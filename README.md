@@ -2,6 +2,16 @@
 
 이웃집멍냥 백엔드 API 서버입니다.
 
+## Setup
+
+.env.template 파일을 참고하여 .env 파일을 생성합니다.
+
+.env는 로컬 환경에서만 사용되며, .gitignore에 등록되어 있습니다.
+
+```bash
+$ cp .env.template .env
+```
+
 ## How to run
 
 개발 환경에서는 docker-compose를 활용한 Postgres DB를 제공합니다.

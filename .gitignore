@@ -30,5 +30,8 @@ go.work
 .idea
 .vscode
 
+### Credentials ###
+.env
+
 ### macOS ###
 .DS_Store
