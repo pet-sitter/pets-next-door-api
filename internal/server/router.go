@@ -32,6 +32,7 @@ func addRoutes(r *chi.Mux) {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login/kakao", authHandler.kakaoLogin)
+			r.Get("/callback/kakao", authHandler.kakaoCallback)
 		})
 	})
 }
