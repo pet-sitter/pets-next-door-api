@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:11.5-alpine
+    ports:
+      - "5454:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=pets_next_door_api_dev
+    volumes:
+      - pg_pets_next_door_api_db:/var/lib/postgresql/data
+
+  db_test:
+    image: postgres:11.5-alpine
+    ports:
+      - "5455:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=pets_next_door_api_test
+    volumes:
+      - pg_pets_next_door_api_db_test:/var/lib/postgresql/data
+
+volumes:
+  pg_pets_next_door_api_db:
+  pg_pets_next_door_api_db_test:
