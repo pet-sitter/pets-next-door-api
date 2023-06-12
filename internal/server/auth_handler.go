@@ -76,9 +76,12 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO: DB에 저장
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"authToken": customToken})
+	json.NewEncoder(w).Encode(map[string]string{
+		"authToken": customToken,
+		"provider":  "kakao.com",
+		"uid":       fmt.Sprintf("%d", userProfile.ID),
+		"email":     userProfile.KakaoAccount.Email,
+	})
 }

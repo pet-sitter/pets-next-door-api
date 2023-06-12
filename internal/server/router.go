@@ -6,10 +6,11 @@ import (
 	"log"
 	"net/http"
 
-	"firebase.google.com/go/auth"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
+	"github.com/pet-sitter/pets-next-door-api/internal/user"
 )
 
 func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
@@ -28,19 +29,13 @@ func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp) {
 	}
 
 	r.Use(middleware.Logger)
-	r.Use(buildFirebaseAppMiddleware(authClient))
-}
-
-func buildFirebaseAppMiddleware(app *auth.Client) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), firebaseAuthClientKey, app)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
+	r.Use(buildFirebaseAuthMiddleware(authClient))
 }
 
 func addRoutes(r *chi.Mux) {
+	db := database.NewInMemoryDB()
+	userService := user.NewUserService(user.NewUserInMemoryRepo(db))
+	userHandler := newUserHandler(userService)
 	authHandler := newAuthHandler()
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +47,11 @@ func addRoutes(r *chi.Mux) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login/kakao", authHandler.kakaoLogin)
 			r.Get("/callback/kakao", authHandler.kakaoCallback)
+		})
+		r.Route("/users", func(r chi.Router) {
+			r.Post("/", userHandler.RegisterUser)
+			r.Get("/me", userHandler.FindMyProfile)
+			r.Put("/me", userHandler.UpdateMyProfile)
 		})
 	})
 }
