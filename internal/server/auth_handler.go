@@ -51,26 +51,9 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fbUser, err := authClient.GetUserByEmail(ctx, userProfile.KakaoAccount.Email)
-	if err != nil {
-		newFBUserParams := (&auth.UserToCreate{}).
-			UID(fmt.Sprintf("%d", userProfile.ID)).
-			Email(userProfile.KakaoAccount.Email).
-			EmailVerified(true).
-			PhotoURL(userProfile.Properties.ProfileImage).
-			Disabled(false)
-
-		newFBUser, err := authClient.CreateUser(ctx, newFBUserParams)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		claims := map[string]interface{}{"provider": "kakao"}
-		authClient.SetCustomUserClaims(ctx, newFBUser.UID, claims)
-	}
+	fbUser, _ := authClient.GetUserByEmail(ctx, userProfile.KakaoAccount.Email)
 	if provider, ok := fbUser.CustomClaims["provider"]; ok {
-		if provider != "kakao" {
+		if provider != "kakao.com" {
 			http.Error(w, fmt.Sprintf("user already registered with another provider: %s", fbUser.ProviderID), http.StatusConflict)
 			return
 		}
@@ -83,5 +66,6 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 		"provider":  "kakao.com",
 		"uid":       fmt.Sprintf("%d", userProfile.ID),
 		"email":     userProfile.KakaoAccount.Email,
+		"photoURL":  userProfile.Properties.ProfileImage,
 	})
 }
