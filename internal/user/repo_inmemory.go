@@ -2,34 +2,21 @@ package user
 
 import (
 	"fmt"
-
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 )
 
-type UserInMemoryRepo struct {
-	db *database.InMemoryDB
-}
-
-func NewUserInMemoryRepo(db *database.InMemoryDB) *UserInMemoryRepo {
-	return &UserInMemoryRepo{
-		db: db,
-	}
-}
-
-func (repo *UserInMemoryRepo) CreateUser(user *models.UserModel) (*models.UserModel, error) {
-	nextID := len(repo.db.Users) + 1
+func (repo *UserInMemoryRepo) CreateUser(user *UserModel) (*UserModel, error) {
+	nextID := len(repo.Users) + 1
 	user.ID = nextID
 
-	repo.db.Users = append(repo.db.Users, *user)
+	repo.Users = append(repo.Users, *user)
 
 	return user, nil
 }
 
-func (repo *UserInMemoryRepo) FindUserByEmail(email string) (*models.UserModel, error) {
-	var user *models.UserModel
+func (repo *UserInMemoryRepo) FindUserByEmail(email string) (*UserModel, error) {
+	var user *UserModel
 
-	for _, v := range repo.db.Users {
+	for _, v := range repo.Users {
 		if v.Email == email {
 			user = &v
 		}
@@ -42,10 +29,10 @@ func (repo *UserInMemoryRepo) FindUserByEmail(email string) (*models.UserModel, 
 	return user, nil
 }
 
-func (repo *UserInMemoryRepo) FindUserByUID(uid string) (*models.UserModel, error) {
-	var user *models.UserModel
+func (repo *UserInMemoryRepo) FindUserByUID(uid string) (*UserModel, error) {
+	var user *UserModel
 
-	for _, v := range repo.db.Users {
+	for _, v := range repo.Users {
 		if v.UID == uid {
 			user = &v
 		}
@@ -58,12 +45,12 @@ func (repo *UserInMemoryRepo) FindUserByUID(uid string) (*models.UserModel, erro
 	return user, nil
 }
 
-func (repo *UserInMemoryRepo) UpdateUserByUID(uid string, nickname string) (*models.UserModel, error) {
-	var user *models.UserModel
-	for i, v := range repo.db.Users {
+func (repo *UserInMemoryRepo) UpdateUserByUID(uid string, nickname string) (*UserModel, error) {
+	var user *UserModel
+	for i, v := range repo.Users {
 		if v.UID == uid {
-			repo.db.Users[i].Nickname = nickname
-			user = &repo.db.Users[i]
+			repo.Users[i].Nickname = nickname
+			user = &repo.Users[i]
 		}
 	}
 

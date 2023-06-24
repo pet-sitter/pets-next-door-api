@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
 )
 
@@ -40,7 +39,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userModel, err := h.userService.CreateUser(&models.UserModel{
+	userModel, err := h.userService.CreateUser(&user.UserModel{
 		Email:     registerUserRequest.Email,
 		UID:       registerUserRequest.UID,
 		Nickname:  registerUserRequest.Nickname,

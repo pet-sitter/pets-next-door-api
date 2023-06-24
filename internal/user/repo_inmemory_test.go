@@ -2,17 +2,14 @@ package user
 
 import (
 	"testing"
-
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 )
 
 func TestUserInMemoryRepo(t *testing.T) {
 	t.Run("CreateUser", func(t *testing.T) {
 		t.Run("should create user", func(t *testing.T) {
-			repo := NewUserInMemoryRepo(database.NewInMemoryDB())
+			repo := NewUserInMemoryRepo()
 
-			expected := &models.UserModel{
+			expected := &UserModel{
 				ID:       1,
 				UID:      "uid",
 				Email:    "test@example.com",
@@ -42,16 +39,16 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 	t.Run("FindUserByEmail", func(t *testing.T) {
 		t.Run("should return user when user exists", func(t *testing.T) {
-			repo := NewUserInMemoryRepo(database.NewInMemoryDB())
+			repo := NewUserInMemoryRepo()
 
 			email := "test@example.com"
-			expected := &models.UserModel{
+			expected := &UserModel{
 				ID:       1,
 				UID:      "1234",
 				Email:    email,
 				Password: "password",
 			}
-			repo.db.Users = append(repo.db.Users, *expected)
+			repo.Users = append(repo.Users, *expected)
 
 			actual, err := repo.FindUserByEmail(email)
 			if err != nil {
@@ -67,16 +64,16 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 	t.Run("FindUserByUID", func(t *testing.T) {
 		t.Run("should return user when user exists", func(t *testing.T) {
-			repo := NewUserInMemoryRepo(database.NewInMemoryDB())
+			repo := NewUserInMemoryRepo()
 
 			uid := "uid"
-			expected := &models.UserModel{
+			expected := &UserModel{
 				ID:       1,
 				UID:      uid,
 				Email:    "test@example.com",
 				Password: "password",
 			}
-			repo.db.Users = append(repo.db.Users, *expected)
+			repo.Users = append(repo.Users, *expected)
 
 			actual, err := repo.FindUserByUID(uid)
 			if err != nil {
@@ -92,17 +89,17 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 	t.Run("UpdateUserByUID", func(t *testing.T) {
 		t.Run("should update user by UID", func(t *testing.T) {
-			repo := NewUserInMemoryRepo(database.NewInMemoryDB())
+			repo := NewUserInMemoryRepo()
 
 			nickname := "test"
-			expected := &models.UserModel{
+			expected := &UserModel{
 				ID:       1,
 				UID:      "1234",
 				Email:    "test@example.com",
 				Nickname: nickname,
 				Password: "password",
 			}
-			repo.db.Users = append(repo.db.Users, *expected)
+			repo.Users = append(repo.Users, *expected)
 
 			expected.Email = "updated@example.com"
 			updated, err := repo.UpdateUserByUID(expected.UID, nickname)
@@ -128,7 +125,7 @@ func TestUserInMemoryRepo(t *testing.T) {
 	})
 }
 
-func assertUserEquals(t testing.TB, expected *models.UserModel, actual *models.UserModel) {
+func assertUserEquals(t testing.TB, expected *UserModel, actual *UserModel) {
 	t.Helper()
 
 	if actual.ID != expected.ID {
