@@ -2,11 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	"net/http"
-	"strings"
-
 	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
+	"net/http"
 )
 
 type UserHandler struct {
@@ -21,10 +19,11 @@ func newUserHandler(userService user.UserServicer) *UserHandler {
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest struct {
-		Email     string   `json:"email"`
-		UID       string   `json:"uid"`
-		Nickname  string   `json:"nickname"`
-		Providers []string `json:"providers"`
+		Email                string `json:"email"`
+		Nickname             string `json:"nickname"`
+		Fullname             string `json:"fullname"`
+		FirebaseProviderType string `json:"fbProviderType"`
+		FirebaseUID          string `json:"fbUid"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&registerUserRequest); err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -40,10 +39,11 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userModel, err := h.userService.CreateUser(&user.UserModel{
-		Email:     registerUserRequest.Email,
-		UID:       registerUserRequest.UID,
-		Nickname:  registerUserRequest.Nickname,
-		Providers: strings.Join(registerUserRequest.Providers, ","),
+		Email:                registerUserRequest.Email,
+		Nickname:             registerUserRequest.Nickname,
+		Fullname:             registerUserRequest.Fullname,
+		FirebaseProviderType: registerUserRequest.FirebaseProviderType,
+		FirebaseUID:          registerUserRequest.FirebaseUID,
 	})
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")

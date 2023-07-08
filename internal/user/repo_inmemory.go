@@ -33,7 +33,7 @@ func (repo *UserInMemoryRepo) FindUserByUID(uid string) (*UserModel, error) {
 	var user *UserModel
 
 	for _, v := range repo.Users {
-		if v.UID == uid {
+		if v.FirebaseUID == uid {
 			user = &v
 		}
 	}
@@ -48,7 +48,7 @@ func (repo *UserInMemoryRepo) FindUserByUID(uid string) (*UserModel, error) {
 func (repo *UserInMemoryRepo) UpdateUserByUID(uid string, nickname string) (*UserModel, error) {
 	var user *UserModel
 	for i, v := range repo.Users {
-		if v.UID == uid {
+		if v.FirebaseUID == uid {
 			repo.Users[i].Nickname = nickname
 			user = &repo.Users[i]
 		}

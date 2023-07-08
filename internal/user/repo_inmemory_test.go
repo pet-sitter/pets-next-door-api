@@ -10,10 +10,10 @@ func TestUserInMemoryRepo(t *testing.T) {
 			repo := NewUserInMemoryRepo()
 
 			expected := &UserModel{
-				ID:       1,
-				UID:      "uid",
-				Email:    "test@example.com",
-				Password: "password",
+				ID:          1,
+				FirebaseUID: "uid",
+				Email:       "test@example.com",
+				Password:    "password",
 			}
 
 			created, err := repo.CreateUser(expected)
@@ -43,10 +43,10 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 			email := "test@example.com"
 			expected := &UserModel{
-				ID:       1,
-				UID:      "1234",
-				Email:    email,
-				Password: "password",
+				ID:          1,
+				FirebaseUID: "1234",
+				Email:       email,
+				Password:    "password",
 			}
 			repo.Users = append(repo.Users, *expected)
 
@@ -68,10 +68,10 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 			uid := "uid"
 			expected := &UserModel{
-				ID:       1,
-				UID:      uid,
-				Email:    "test@example.com",
-				Password: "password",
+				ID:          1,
+				FirebaseUID: uid,
+				Email:       "test@example.com",
+				Password:    "password",
 			}
 			repo.Users = append(repo.Users, *expected)
 
@@ -93,16 +93,16 @@ func TestUserInMemoryRepo(t *testing.T) {
 
 			nickname := "test"
 			expected := &UserModel{
-				ID:       1,
-				UID:      "1234",
-				Email:    "test@example.com",
-				Nickname: nickname,
-				Password: "password",
+				ID:          1,
+				FirebaseUID: "1234",
+				Email:       "test@example.com",
+				Nickname:    nickname,
+				Password:    "password",
 			}
 			repo.Users = append(repo.Users, *expected)
 
 			expected.Email = "updated@example.com"
-			updated, err := repo.UpdateUserByUID(expected.UID, nickname)
+			updated, err := repo.UpdateUserByUID(expected.FirebaseUID, nickname)
 			if err != nil {
 				t.Errorf("expected nil, got %s", err.Error())
 			}
@@ -110,7 +110,7 @@ func TestUserInMemoryRepo(t *testing.T) {
 				t.Errorf("expected user, got nil")
 			}
 
-			actual, err := repo.FindUserByUID(expected.UID)
+			actual, err := repo.FindUserByUID(expected.FirebaseUID)
 			if err != nil {
 				t.Errorf("expected nil, got %s", err.Error())
 			}
@@ -132,8 +132,8 @@ func assertUserEquals(t testing.TB, expected *UserModel, actual *UserModel) {
 		t.Errorf("expected %d, got %d", expected.ID, actual.ID)
 	}
 
-	if actual.UID != expected.UID {
-		t.Errorf("expected %s, got %s", expected.UID, actual.UID)
+	if actual.FirebaseUID != expected.FirebaseUID {
+		t.Errorf("expected %s, got %s", expected.FirebaseUID, actual.FirebaseUID)
 	}
 
 	if actual.Email != expected.Email {
