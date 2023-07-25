@@ -46,5 +46,24 @@ $ docker run -p 8080:8080 pets-next-door-api
 ## How to test
 
 ```bash
+$ docker-compose -f docker-compose-test.yml up -d # Postgres 컨테이너 실행 및 마이그레이션
 $ go test ./...
 ```
+
+## Set Up
+
+### Firebase
+
+Firebase Auth를 사용하기 위해, Firebase 프로젝트를 생성하고, 서비스 계정 키를 발급받아야 합니다.
+
+기본값으로 `firebase-credentials.json` 파일을 사용하며, 환경변수 `FIREBASE_CREDENTIALS`를 통해 파일 경로를 지정할 수 있습니다.
+
+### Database Migration
+
+Postgres DB를 사용하며, 마이그레이션은 [golang-migrate/migrate](https://github.com/golang-migrate/migrate)를 사용합니다.
+
+```bash
+$ migrate -path db/migrations -database DB_URL up
+```
+
+테스트 환경은 `docker-compose-test.yml`를 통해 자동으로 마이그레이션됩니다.
