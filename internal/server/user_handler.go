@@ -27,6 +27,15 @@ type RegisterUserRequest struct {
 	FirebaseUID          string `json:"fbUid"`
 }
 
+type UserResponse struct {
+	ID                   int    `json:"id"`
+	Email                string `json:"email"`
+	Nickname             string `json:"nickname"`
+	Fullname             string `json:"fullname"`
+	FirebaseProviderType string `json:"fbProviderType"`
+	FirebaseUID          string `json:"fbUid"`
+}
+
 // RegisterUser godoc
 // @Summary 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
 // @Description
@@ -34,7 +43,7 @@ type RegisterUserRequest struct {
 // @Accept  json
 // @Produce  json
 // @Param request body RegisterUserRequest true "사용자 회원가입 요청"
-// @Success 201 {object} models.User
+// @Success 201 {object} UserResponse
 // @Router /users/register [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest RegisterUserRequest
@@ -67,7 +76,16 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(userModel)
+
+	response := UserResponse{
+		ID:                   userModel.ID,
+		Email:                userModel.Email,
+		Nickname:             userModel.Nickname,
+		Fullname:             userModel.Fullname,
+		FirebaseProviderType: userModel.FirebaseProviderType,
+		FirebaseUID:          userModel.FirebaseUID,
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 // FindMyProfile godoc
@@ -76,7 +94,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Produce  json
 // @Security firebase
-// @Success 200 {object} models.User
+// @Success 200 {object} UserResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
@@ -97,9 +115,17 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := UserResponse{
+		ID:                   userModel.ID,
+		Email:                userModel.Email,
+		Nickname:             userModel.Nickname,
+		Fullname:             userModel.Fullname,
+		FirebaseProviderType: userModel.FirebaseProviderType,
+		FirebaseUID:          userModel.FirebaseUID,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(userModel)
+	json.NewEncoder(w).Encode(response)
 }
 
 type UpdateUserRequest struct {
@@ -113,7 +139,7 @@ type UpdateUserRequest struct {
 // @Accept  json
 // @Produce  json
 // @Param request body UpdateUserRequest true "프로필 정보 수정 요청"
-// @Success 200 {object} models.User
+// @Success 200 {object} UserResponse
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
@@ -148,7 +174,15 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := UserResponse{
+		ID:                   userModel.ID,
+		Email:                userModel.Email,
+		Nickname:             userModel.Nickname,
+		Fullname:             userModel.Fullname,
+		FirebaseProviderType: userModel.FirebaseProviderType,
+		FirebaseUID:          userModel.FirebaseUID,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(userModel)
+	json.NewEncoder(w).Encode(response)
 }

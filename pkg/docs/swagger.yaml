@@ -1,28 +1,5 @@
 basePath: /api
 definitions:
-  models.User:
-    properties:
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      email:
-        type: string
-      firebaseProviderType:
-        type: string
-      firebaseUID:
-        type: string
-      fullname:
-        type: string
-      id:
-        type: integer
-      nickname:
-        type: string
-      password:
-        type: string
-      updatedAt:
-        type: string
-    type: object
   server.RegisterUserRequest:
     properties:
       email:
@@ -41,15 +18,30 @@ definitions:
       nickname:
         type: string
     type: object
+  server.UserResponse:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        type: string
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+    type: object
   server.kakaoCallbackResponse:
     properties:
       authToken:
         type: string
       email:
         type: string
-      fb_provider_type:
+      fbProviderType:
         type: string
-      fb_uid:
+      fbUid:
         type: string
       photoURL:
         type: string
@@ -68,8 +60,7 @@ info:
 paths:
   /auth/callback/kakao:
     get:
-      description: Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을
-        발급한다.
+      description: Kakao 로그인 콜백을 처리하고, 사용자 기본 정보와 함께 Firebase Custom Token을 발급합니다.
       responses:
         "200":
           description: OK
@@ -83,7 +74,7 @@ paths:
       responses:
         "302":
           description: Found
-      summary: Kakao 로그인 페이지로 redirect한다.
+      summary: Kakao 로그인 페이지로 redirect 합니다.
       tags:
       - auth
   /users/me:
@@ -94,7 +85,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/server.UserResponse'
       security:
       - firebase: []
       summary: 내 프로필 정보를 조회합니다.
@@ -116,7 +107,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/server.UserResponse'
       summary: 내 프로필 정보를 수정합니다.
       tags:
       - users
@@ -137,7 +128,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/server.UserResponse'
       summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
       tags:
       - users
