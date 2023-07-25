@@ -16,7 +16,12 @@ func newAuthHandler() *authHandler {
 	return &authHandler{}
 }
 
-// Kakao 로그인 페이지로 redirect한다.
+// kakaoLogin godoc
+// @Summary Kakao 로그인 페이지로 redirect한다.
+// @Description
+// @Tags auth
+// @Success 302
+// @Router /auth/login/kakao [get]
 func (h *authHandler) kakaoLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "https://kauth.kakao.com/oauth/authorize?"+
 		"client_id="+configs.KakaoRestAPIKey+
@@ -27,7 +32,20 @@ func (h *authHandler) kakaoLogin(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을 발급한다.
+type kakaoCallbackResponse struct {
+	AuthToken            string `json:"authToken"`
+	FirebaseProviderType string `json:"fb_provider_type"`
+	FirebaseUID          string `json:"fb_uid"`
+	Email                string `json:"email"`
+	PhotoURL             string `json:"photoURL"`
+}
+
+// kakaoCallback godoc
+// @Summary Kakao 회원가입 콜백 API
+// @Description Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을 발급한다.
+// @Tags auth
+// @Success 200 {object} kakaoCallbackResponse
+// @Router /auth/callback/kakao [get]
 func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
@@ -61,11 +79,11 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"authToken": customToken,
-		"provider":  "kakao.com",
-		"uid":       fmt.Sprintf("%d", userProfile.ID),
-		"email":     userProfile.KakaoAccount.Email,
-		"photoURL":  userProfile.Properties.ProfileImage,
+	json.NewEncoder(w).Encode(kakaoCallbackResponse{
+		AuthToken:            customToken,
+		FirebaseProviderType: "kakao.com",
+		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
+		Email:                userProfile.KakaoAccount.Email,
+		PhotoURL:             userProfile.Properties.ProfileImage,
 	})
 }

@@ -1,0 +1,144 @@
+basePath: /api
+definitions:
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      firebaseProviderType:
+        type: string
+      firebaseUID:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  server.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        type: string
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      nickname:
+        type: string
+    type: object
+  server.UpdateUserRequest:
+    properties:
+      nickname:
+        type: string
+    type: object
+  server.kakaoCallbackResponse:
+    properties:
+      authToken:
+        type: string
+      email:
+        type: string
+      fb_provider_type:
+        type: string
+      fb_uid:
+        type: string
+      photoURL:
+        type: string
+    type: object
+info:
+  contact:
+    email: petsnextdoordev@gmail.com
+    name: API Support
+  description: 이웃집멍냥 백엔드 API 문서입니다.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: 이웃집멍냥 API 문서
+  version: 0.0.1
+paths:
+  /auth/callback/kakao:
+    get:
+      description: Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을
+        발급한다.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.kakaoCallbackResponse'
+      summary: Kakao 회원가입 콜백 API
+      tags:
+      - auth
+  /auth/login/kakao:
+    get:
+      responses:
+        "302":
+          description: Found
+      summary: Kakao 로그인 페이지로 redirect한다.
+      tags:
+      - auth
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - firebase: []
+      summary: 내 프로필 정보를 조회합니다.
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 프로필 정보 수정 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: 내 프로필 정보를 수정합니다.
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 사용자 회원가입 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
+      tags:
+      - users
+swagger: "2.0"
