@@ -21,10 +21,10 @@ func (db *DB) Close() error {
 	return db.DB.Close()
 }
 
-func (db *DB) Migrate() {
+func (db *DB) Migrate(migrationPath string) {
 
 	m, err := migrate.New(
-		"file://db/migrations",
+		"file://"+migrationPath,
 		db.databaseURL,
 	)
 
