@@ -2,9 +2,11 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/go-playground/validator"
-	"github.com/pet-sitter/pets-next-door-api/internal/user"
 	"net/http"
+
+	"github.com/go-playground/validator"
+	"github.com/pet-sitter/pets-next-door-api/internal/models"
+	"github.com/pet-sitter/pets-next-door-api/internal/user"
 )
 
 type UserHandler struct {
@@ -38,7 +40,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userModel, err := h.userService.CreateUser(&user.UserModel{
+	userModel, err := h.userService.CreateUser(&models.User{
 		Email:                registerUserRequest.Email,
 		Nickname:             registerUserRequest.Nickname,
 		Fullname:             registerUserRequest.Fullname,
