@@ -17,7 +17,7 @@ func newAuthHandler() *authHandler {
 }
 
 // kakaoLogin godoc
-// @Summary Kakao 로그인 페이지로 redirect한다.
+// @Summary Kakao 로그인 페이지로 redirect 합니다.
 // @Description
 // @Tags auth
 // @Success 302
@@ -34,15 +34,15 @@ func (h *authHandler) kakaoLogin(w http.ResponseWriter, r *http.Request) {
 
 type kakaoCallbackResponse struct {
 	AuthToken            string `json:"authToken"`
-	FirebaseProviderType string `json:"fb_provider_type"`
-	FirebaseUID          string `json:"fb_uid"`
+	FirebaseProviderType string `json:"fbProviderType"`
+	FirebaseUID          string `json:"fbUid"`
 	Email                string `json:"email"`
 	PhotoURL             string `json:"photoURL"`
 }
 
 // kakaoCallback godoc
 // @Summary Kakao 회원가입 콜백 API
-// @Description Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을 발급한다.
+// @Description Kakao 로그인 콜백을 처리하고, 사용자 기본 정보와 함께 Firebase Custom Token을 발급합니다.
 // @Tags auth
 // @Success 200 {object} kakaoCallbackResponse
 // @Router /auth/callback/kakao [get]

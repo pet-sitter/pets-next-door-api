@@ -26,7 +26,7 @@ const docTemplate = `{
     "paths": {
         "/auth/callback/kakao": {
             "get": {
-                "description": "Kakao 로그인 콜백을 처리하고, 사용자 기본 정보를 채워 사용자를 생성하고, Firebase Custom Token을 발급한다.",
+                "description": "Kakao 로그인 콜백을 처리하고, 사용자 기본 정보와 함께 Firebase Custom Token을 발급합니다.",
                 "tags": [
                     "auth"
                 ],
@@ -46,7 +46,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Kakao 로그인 페이지로 redirect한다.",
+                "summary": "Kakao 로그인 페이지로 redirect 합니다.",
                 "responses": {
                     "302": {
                         "description": "Found"
@@ -72,7 +72,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/server.UserResponse"
                         }
                     }
                 }
@@ -103,7 +103,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/server.UserResponse"
                         }
                     }
                 }
@@ -136,7 +136,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/server.UserResponse"
                         }
                     }
                 }
@@ -144,41 +144,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "firebaseProviderType": {
-                    "type": "string"
-                },
-                "firebaseUID": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
         "server.RegisterUserRequest": {
             "type": "object",
             "properties": {
@@ -207,6 +172,29 @@ const docTemplate = `{
                 }
             }
         },
+        "server.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "type": "string"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
         "server.kakaoCallbackResponse": {
             "type": "object",
             "properties": {
@@ -216,10 +204,10 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "fb_provider_type": {
+                "fbProviderType": {
                     "type": "string"
                 },
-                "fb_uid": {
+                "fbUid": {
                     "type": "string"
                 },
                 "photoURL": {
