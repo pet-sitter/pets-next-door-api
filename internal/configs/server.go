@@ -9,6 +9,7 @@ import (
 var Port = os.Getenv("PORT")
 
 var DatabaseURL = os.Getenv("DATABASE_URL")
+var MigrationPath = os.Getenv("MIGRATION_PATH")
 
 var KakaoRestAPIKey = os.Getenv("KAKAO_REST_API_KEY")
 var KakaoRedirectURI = os.Getenv("KAKAO_REDIRECT_URI")
@@ -22,6 +23,10 @@ func init() {
 
 	if DatabaseURL == "" {
 		panic("DATABASE_URL is required")
+	}
+
+	if MigrationPath == "" {
+		MigrationPath = "db/migrations"
 	}
 
 	if KakaoRestAPIKey == "" {
