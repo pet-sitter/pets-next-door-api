@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  db_test:
+    image: postgres:11.5-alpine
+    ports:
+      - "5455:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=pets_next_door_api_test
+    volumes:
+      - pg_pets_next_door_api_db_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.7.0
+    depends_on:
+      db_test:
+        condition: service_healthy
+    volumes:
+      - ./db/migrations:/db/migrations
+    command:
+          [ "-path", "/db/migrations", "-database",  "postgresql://postgres:postgres@db_test:5432/pets_next_door_api_test?sslmode=disable", "up" ]
+    restart: on-failure
+
+volumes:
+  pg_pets_next_door_api_db_test:

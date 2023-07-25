@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/pet-sitter/pets-next-door-api/internal/configs"
+	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
 )
@@ -32,7 +34,15 @@ func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp) {
 }
 
 func addRoutes(r *chi.Mux) {
-	userService := user.NewUserService(user.NewUserInMemoryRepo())
+	db, err := database.Open(configs.DatabaseURL)
+
+	db.Migrate()
+
+	if err != nil {
+		log.Fatalf("error opening database: %v\n", err)
+	}
+
+	userService := user.NewUserService(db)
 	userHandler := newUserHandler(userService)
 	authHandler := newAuthHandler()
 
