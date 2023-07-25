@@ -67,3 +67,13 @@ $ migrate -path db/migrations -database DB_URL up
 ```
 
 테스트 환경은 `docker-compose-test.yml`를 통해 자동으로 마이그레이션됩니다.
+
+## API Docs
+
+API 문서는 [swaggo](https://github.com/swaggo/swag)를 사용하여 자동으로 생성됩니다.
+
+```bash
+$ source ./swagger-gen.sh
+```
+
+`swagger/index.html` 또는 `/swagger/doc.json`을 열어 확인할 수 있습니다.

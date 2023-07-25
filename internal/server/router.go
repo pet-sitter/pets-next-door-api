@@ -12,6 +12,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
@@ -50,6 +51,10 @@ func addRoutes(r *chi.Mux) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
