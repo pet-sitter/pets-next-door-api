@@ -62,6 +62,15 @@ Firebase Auth를 사용하기 위해, Firebase 프로젝트를 생성하고, 서
 
 Postgres DB를 사용하며, 마이그레이션은 [golang-migrate/migrate](https://github.com/golang-migrate/migrate)를 사용합니다.
 
+
+마이그레이션 생성은 다음과 같이 합니다.
+
+```bash
+$ migrate create -ext sql -dir db/migrations -seq MIGRATION_NAME
+```
+
+마이그레이션 실행은 다음과 같이 합니다.
+
 ```bash
 $ migrate -path db/migrations -database DB_URL up
 ```
