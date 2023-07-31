@@ -11,6 +11,8 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
+	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
+	"github.com/pet-sitter/pets-next-door-api/internal/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
@@ -47,6 +49,16 @@ func addRoutes(r *chi.Mux) {
 	userHandler := newUserHandler(userService)
 	authHandler := newAuthHandler()
 
+	s3Client := s3infra.NewS3Client(
+		configs.B2KeyID,
+		configs.B2Key,
+		configs.B2Endpoint,
+		configs.B2Region,
+		configs.B2BucketName,
+	)
+	mediaService := media.NewMediaService(db, s3Client)
+	mediaHandler := newMediaHandler(mediaService)
+
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -60,6 +72,10 @@ func addRoutes(r *chi.Mux) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login/kakao", authHandler.kakaoLogin)
 			r.Get("/callback/kakao", authHandler.kakaoCallback)
+		})
+		r.Route("/media", func(r chi.Router) {
+			r.Get("/{id}", mediaHandler.findMediaByID)
+			r.Post("/images", mediaHandler.uploadImage)
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", userHandler.RegisterUser)

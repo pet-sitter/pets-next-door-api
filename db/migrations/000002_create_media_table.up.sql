@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS media (
+  id SERIAL PRIMARY KEY,
+  media_type VARCHAR(10) NOT NULL,
+  url VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP
+);
+
+CREATE INDEX media_media_type_idx ON media (media_type);
