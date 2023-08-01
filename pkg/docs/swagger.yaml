@@ -73,7 +73,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.0.1
+  version: 0.1.0
 paths:
   /auth/callback/kakao:
     get:
