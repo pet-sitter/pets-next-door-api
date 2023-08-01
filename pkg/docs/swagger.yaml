@@ -108,6 +108,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/server.UserResponse'
+      security:
+      - firebase: []
       summary: 내 프로필 정보를 수정합니다.
       tags:
       - users

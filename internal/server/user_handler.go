@@ -138,6 +138,7 @@ type UpdateUserRequest struct {
 // @Tags users
 // @Accept  json
 // @Produce  json
+// @Security firebase
 // @Param request body UpdateUserRequest true "프로필 정보 수정 요청"
 // @Success 200 {object} UserResponse
 // @Router /users/me [put]
