@@ -78,6 +78,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "firebase": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
