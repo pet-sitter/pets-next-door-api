@@ -46,6 +46,65 @@
                 }
             }
         },
+        "/media/images": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media"
+                ],
+                "summary": "이미지를 업로드합니다.",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "이미지 파일",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/server.mediaView"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media"
+                ],
+                "summary": "미디어를 ID로 조회합니다.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "미디어 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.mediaView"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "security": [
@@ -141,6 +200,15 @@
         }
     },
     "definitions": {
+        "models.MediaType": {
+            "type": "string",
+            "enum": [
+                "image"
+            ],
+            "x-enum-varnames": [
+                "IMAGE_MEDIA_TYPE"
+            ]
+        },
         "server.RegisterUserRequest": {
             "type": "object",
             "properties": {
@@ -208,6 +276,23 @@
                     "type": "string"
                 },
                 "photoURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.mediaView": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/models.MediaType"
+                },
+                "url": {
                     "type": "string"
                 }
             }

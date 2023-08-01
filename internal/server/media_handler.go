@@ -27,6 +27,14 @@ type mediaView struct {
 	CreatedAt string           `json:"createdAt"`
 }
 
+// findMediaByID godoc
+// @Summary 미디어를 ID로 조회합니다.
+// @Description
+// @Tags media
+// @Produce  json
+// @Param id path int true "미디어 ID"
+// @Success 200 {object} mediaView
+// @Router /media/{id} [get]
 func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 	id, err := webutils.ParseIdFromPath(r, "id")
 	if err != nil || id <= 0 {
@@ -48,6 +56,15 @@ func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// uploadImage godoc
+// @Summary 이미지를 업로드합니다.
+// @Description
+// @Tags media
+// @Accept  multipart/form-data
+// @Produce  json
+// @Param file formData file true "이미지 파일"
+// @Success 201 {object} mediaView
+// @Router /media/images [post]
 func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		views.BadRequest(w, nil, err.Error())
