@@ -1,5 +1,17 @@
 basePath: /api
 definitions:
+  models.FirebaseProviderType:
+    enum:
+    - email
+    - google
+    - apple
+    - kakao
+    type: string
+    x-enum-varnames:
+    - FirebaseProviderTypeEmail
+    - FirebaseProviderTypeGoogle
+    - FirebaseProviderTypeApple
+    - FirebaseProviderTypeKakao
   models.MediaType:
     enum:
     - image
@@ -11,7 +23,7 @@ definitions:
       email:
         type: string
       fbProviderType:
-        type: string
+        $ref: '#/definitions/models.FirebaseProviderType'
       fbUid:
         type: string
       fullname:
@@ -24,12 +36,20 @@ definitions:
       nickname:
         type: string
     type: object
+  server.UserRegistrationStatus:
+    enum:
+    - NOT_REGISTERED
+    - REGISTERED
+    type: string
+    x-enum-varnames:
+    - UserStatusNotRegistered
+    - UserStatusRegistered
   server.UserResponse:
     properties:
       email:
         type: string
       fbProviderType:
-        type: string
+        $ref: '#/definitions/models.FirebaseProviderType'
       fbUid:
         type: string
       fullname:
@@ -39,6 +59,20 @@ definitions:
       nickname:
         type: string
     type: object
+  server.UserStatusRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  server.UserStatusView:
+    properties:
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      status:
+        $ref: '#/definitions/server.UserRegistrationStatus'
+    type: object
   server.kakaoCallbackResponse:
     properties:
       authToken:
@@ -46,7 +80,7 @@ definitions:
       email:
         type: string
       fbProviderType:
-        type: string
+        $ref: '#/definitions/models.FirebaseProviderType'
       fbUid:
         type: string
       photoURL:
@@ -187,6 +221,27 @@ paths:
           schema:
             $ref: '#/definitions/server.UserResponse'
       summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
+      tags:
+      - users
+  /users/status:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 사용자 가입 상태 조회 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.UserStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.UserStatusView'
+      summary: 이메일로 유저의 가입 상태를 조회합니다.
       tags:
       - users
 swagger: "2.0"

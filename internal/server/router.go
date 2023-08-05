@@ -79,6 +79,7 @@ func addRoutes(r *chi.Mux) {
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", userHandler.RegisterUser)
+			r.Post("/status", userHandler.FindUserStatusByEmail)
 			r.Get("/me", userHandler.FindMyProfile)
 			r.Put("/me", userHandler.UpdateMyProfile)
 		})
