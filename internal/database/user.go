@@ -108,6 +108,29 @@ func (tx *Tx) FindUserByUID(uid string) (*models.User, error) {
 	return user, nil
 }
 
+func (tx *Tx) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
+	var userStatus models.UserStatus
+
+	err := tx.QueryRow(`
+	SELECT
+		fb_provider_type
+	FROM
+		users
+	WHERE
+		email = $1
+	`,
+		email,
+	).Scan(
+		&userStatus.FirebaseProviderType,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &userStatus, nil
+}
+
 func (tx *Tx) UpdateUserByUID(uid string, nickname string) (*models.User, error) {
 	user := &models.User{}
 

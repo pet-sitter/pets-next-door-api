@@ -21,6 +21,7 @@ type UserServicer interface {
 	CreateUser(user *models.User) (*models.User, error)
 	FindUserByEmail(email string) (*models.User, error)
 	FindUserByUID(uid string) (*models.User, error)
+	FindUserStatusByEmail(email string) (*models.UserStatus, error)
 	UpdateUserByUID(uid string, nickname string) (*models.User, error)
 }
 
@@ -67,6 +68,23 @@ func (service *UserService) FindUserByUID(uid string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func (service *UserService) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
+	tx, _ := service.db.Begin()
+
+	userStatus, err := tx.FindUserStatusByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &models.UserStatus{
+		FirebaseProviderType: userStatus.FirebaseProviderType,
+	}, nil
 }
 
 func (service *UserService) UpdateUserByUID(uid string, nickname string) (*models.User, error) {

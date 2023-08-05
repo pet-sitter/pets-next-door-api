@@ -21,20 +21,20 @@ func newUserHandler(userService user.UserServicer) *UserHandler {
 }
 
 type RegisterUserRequest struct {
-	Email                string `json:"email"`
-	Nickname             string `json:"nickname"`
-	Fullname             string `json:"fullname"`
-	FirebaseProviderType string `json:"fbProviderType"`
-	FirebaseUID          string `json:"fbUid"`
+	Email                string                      `json:"email"`
+	Nickname             string                      `json:"nickname"`
+	Fullname             string                      `json:"fullname"`
+	FirebaseProviderType models.FirebaseProviderType `json:"fbProviderType"`
+	FirebaseUID          string                      `json:"fbUid"`
 }
 
 type UserResponse struct {
-	ID                   int    `json:"id"`
-	Email                string `json:"email"`
-	Nickname             string `json:"nickname"`
-	Fullname             string `json:"fullname"`
-	FirebaseProviderType string `json:"fbProviderType"`
-	FirebaseUID          string `json:"fbUid"`
+	ID                   int                         `json:"id"`
+	Email                string                      `json:"email"`
+	Nickname             string                      `json:"nickname"`
+	Fullname             string                      `json:"fullname"`
+	FirebaseProviderType models.FirebaseProviderType `json:"fbProviderType"`
+	FirebaseUID          string                      `json:"fbUid"`
 }
 
 // RegisterUser godoc
@@ -78,8 +78,50 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		FirebaseUID:          userModel.FirebaseUID,
 	})
 }
+
+type UserStatusRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type UserRegistrationStatus string
+
+const (
+	UserStatusNotRegistered UserRegistrationStatus = "NOT_REGISTERED"
+	UserStatusRegistered    UserRegistrationStatus = "REGISTERED"
+)
+
+type UserStatusView struct {
+	Status               UserRegistrationStatus      `json:"status"`
+	FirebaseProviderType models.FirebaseProviderType `json:"fbProviderType,omitempty"`
+}
+
+// FindUserStatusByEmail godoc
+// @Summary 이메일로 유저의 가입 상태를 조회합니다.
+// @Description
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param request body UserStatusRequest true "사용자 가입 상태 조회 요청"
+// @Success 200 {object} UserStatusView
+// @Router /users/status [post]
+func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Request) {
+	var providerRequest UserStatusRequest
+	if err := views.ParseBody(w, r, &providerRequest); err != nil {
+		return
 	}
-	json.NewEncoder(w).Encode(response)
+
+	userStatus, err := h.userService.FindUserStatusByEmail(providerRequest.Email)
+	if err != nil || userStatus == nil {
+		views.OK(w, nil, UserStatusView{
+			Status: UserStatusNotRegistered,
+		})
+		return
+	}
+
+	views.OK(w, nil, UserStatusView{
+		Status:               UserStatusRegistered,
+		FirebaseProviderType: userStatus.FirebaseProviderType,
+	})
 }
 
 // FindMyProfile godoc

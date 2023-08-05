@@ -8,6 +8,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
+	"github.com/pet-sitter/pets-next-door-api/internal/models"
 )
 
 type authHandler struct{}
@@ -33,11 +34,11 @@ func (h *authHandler) kakaoLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 type kakaoCallbackResponse struct {
-	AuthToken            string `json:"authToken"`
-	FirebaseProviderType string `json:"fbProviderType"`
-	FirebaseUID          string `json:"fbUid"`
-	Email                string `json:"email"`
-	PhotoURL             string `json:"photoURL"`
+	AuthToken            string                      `json:"authToken"`
+	FirebaseProviderType models.FirebaseProviderType `json:"fbProviderType"`
+	FirebaseUID          string                      `json:"fbUid"`
+	Email                string                      `json:"email"`
+	PhotoURL             string                      `json:"photoURL"`
 }
 
 // kakaoCallback godoc
@@ -71,7 +72,7 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 
 	fbUser, _ := authClient.GetUserByEmail(ctx, userProfile.KakaoAccount.Email)
 	if provider, ok := fbUser.CustomClaims["provider"]; ok {
-		if provider != "kakao.com" {
+		if provider != models.FirebaseProviderTypeKakao {
 			http.Error(w, fmt.Sprintf("user already registered with another provider: %s", fbUser.ProviderID), http.StatusConflict)
 			return
 		}
@@ -81,7 +82,7 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(kakaoCallbackResponse{
 		AuthToken:            customToken,
-		FirebaseProviderType: "kakao.com",
+		FirebaseProviderType: models.FirebaseProviderTypeKakao,
 		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
 		Email:                userProfile.KakaoAccount.Email,
 		PhotoURL:             userProfile.Properties.ProfileImage,

@@ -21,6 +21,22 @@ func (db *DB) Close() error {
 	return db.DB.Close()
 }
 
+func (db *DB) Flush() error {
+	var tableNames []string = []string{
+		"users",
+		"media",
+	}
+
+	for _, tableName := range tableNames {
+		_, err := db.DB.Exec("DELETE FROM " + tableName)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return nil
+}
+
 func (db *DB) Migrate(migrationPath string) {
 
 	m, err := migrate.New(

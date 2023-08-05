@@ -205,9 +205,57 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/status": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "이메일로 유저의 가입 상태를 조회합니다.",
+                "parameters": [
+                    {
+                        "description": "사용자 가입 상태 조회 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.UserStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.UserStatusView"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.FirebaseProviderType": {
+            "type": "string",
+            "enum": [
+                "email",
+                "google",
+                "apple",
+                "kakao"
+            ],
+            "x-enum-varnames": [
+                "FirebaseProviderTypeEmail",
+                "FirebaseProviderTypeGoogle",
+                "FirebaseProviderTypeApple",
+                "FirebaseProviderTypeKakao"
+            ]
+        },
         "models.MediaType": {
             "type": "string",
             "enum": [
@@ -224,7 +272,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -245,6 +293,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.UserRegistrationStatus": {
+            "type": "string",
+            "enum": [
+                "NOT_REGISTERED",
+                "REGISTERED"
+            ],
+            "x-enum-varnames": [
+                "UserStatusNotRegistered",
+                "UserStatusRegistered"
+            ]
+        },
         "server.UserResponse": {
             "type": "object",
             "properties": {
@@ -252,7 +311,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -268,6 +327,28 @@ const docTemplate = `{
                 }
             }
         },
+        "server.UserStatusRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.UserStatusView": {
+            "type": "object",
+            "properties": {
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "status": {
+                    "$ref": "#/definitions/server.UserRegistrationStatus"
+                }
+            }
+        },
         "server.kakaoCallbackResponse": {
             "type": "object",
             "properties": {
@@ -278,7 +359,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
