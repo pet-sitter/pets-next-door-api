@@ -139,12 +139,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	uid := idToken.UID
 
 	var updateUserRequest UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&updateUserRequest); err != nil {
-		views.BadRequest(w, nil, err.Error())
-		return
-	}
-	if err := validator.New().Struct(updateUserRequest); err != nil {
-		views.BadRequest(w, nil, err.Error())
+	if err := views.ParseBody(w, r, &updateUserRequest); err != nil {
 		return
 	}
 

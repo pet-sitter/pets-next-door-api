@@ -1,8 +1,24 @@
 package views
 
 import (
+	"encoding/json"
 	"net/http"
+
+	"github.com/go-playground/validator"
 )
+
+func ParseBody(w http.ResponseWriter, r *http.Request, payload interface{}) error {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		BadRequest(w, nil, err.Error())
+		return err
+	}
+	if err := validator.New().Struct(payload); err != nil {
+		BadRequest(w, nil, err.Error())
+		return err
+	}
+
+	return nil
+}
 
 type ErrorView struct {
 	Message string `json:"message"`
