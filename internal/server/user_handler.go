@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
+	"github.com/pet-sitter/pets-next-door-api/api/views"
 	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/user"
 )
@@ -48,15 +49,11 @@ type UserResponse struct {
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest RegisterUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&registerUserRequest); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.BadRequest(w, nil, err.Error())
 		return
 	}
 	if err := validator.New().Struct(registerUserRequest); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.BadRequest(w, nil, err.Error())
 		return
 	}
 
@@ -68,22 +65,19 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		FirebaseUID:          registerUserRequest.FirebaseUID,
 	})
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.InternalServerError(w, nil, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-
-	response := UserResponse{
+	views.Created(w, nil, UserResponse{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
 		Fullname:             userModel.Fullname,
 		FirebaseProviderType: userModel.FirebaseProviderType,
 		FirebaseUID:          userModel.FirebaseUID,
+	})
+}
 	}
 	json.NewEncoder(w).Encode(response)
 }
@@ -99,9 +93,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		views.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
@@ -109,23 +101,18 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	userModel, err := h.userService.FindUserByUID(uid)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
-	response := UserResponse{
+	views.OK(w, nil, UserResponse{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
 		Fullname:             userModel.Fullname,
 		FirebaseProviderType: userModel.FirebaseProviderType,
 		FirebaseUID:          userModel.FirebaseUID,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
 type UpdateUserRequest struct {
@@ -145,9 +132,7 @@ type UpdateUserRequest struct {
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		views.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
@@ -155,35 +140,26 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	var updateUserRequest UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&updateUserRequest); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.BadRequest(w, nil, err.Error())
 		return
 	}
 	if err := validator.New().Struct(updateUserRequest); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.BadRequest(w, nil, err.Error())
 		return
 	}
 
 	userModel, err := h.userService.UpdateUserByUID(uid, updateUserRequest.Nickname)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		views.InternalServerError(w, nil, err.Error())
 		return
 	}
 
-	response := UserResponse{
+	views.OK(w, nil, UserResponse{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
 		Fullname:             userModel.Fullname,
 		FirebaseProviderType: userModel.FirebaseProviderType,
 		FirebaseUID:          userModel.FirebaseUID,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	})
 }
