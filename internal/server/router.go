@@ -82,6 +82,8 @@ func addRoutes(r *chi.Mux) {
 			r.Post("/status", userHandler.FindUserStatusByEmail)
 			r.Get("/me", userHandler.FindMyProfile)
 			r.Put("/me", userHandler.UpdateMyProfile)
+			r.Get("/me/pets", userHandler.FindMyPets)
+			r.Put("/me/pets", userHandler.AddMyPets)
 		})
 	})
 }

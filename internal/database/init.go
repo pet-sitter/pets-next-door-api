@@ -25,6 +25,7 @@ func (db *DB) Flush() error {
 	var tableNames []string = []string{
 		"users",
 		"media",
+		"pets",
 	}
 
 	for _, tableName := range tableNames {

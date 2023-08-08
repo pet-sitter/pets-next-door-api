@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"firebase.google.com/go/auth"
+	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	"github.com/pet-sitter/pets-next-door-api/internal/models"
@@ -52,13 +53,13 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 
 	tokenView, err := kakaoinfra.FetchAccessToken(code)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		commonviews.Unauthorized(w, nil, err.Error())
 		return
 	}
 
 	userProfile, err := kakaoinfra.FetchUserProfile(tokenView.AccessToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		commonviews.Unauthorized(w, nil, err.Error())
 		return
 	}
 
@@ -66,16 +67,8 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 	authClient := ctx.Value(firebaseAuthClientKey).(*auth.Client)
 	customToken, err := authClient.CustomToken(ctx, fmt.Sprintf("%d", userProfile.ID))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		commonviews.Unauthorized(w, nil, err.Error())
 		return
-	}
-
-	fbUser, _ := authClient.GetUserByEmail(ctx, userProfile.KakaoAccount.Email)
-	if provider, ok := fbUser.CustomClaims["provider"]; ok {
-		if provider != models.FirebaseProviderTypeKakao {
-			http.Error(w, fmt.Sprintf("user already registered with another provider: %s", fbUser.ProviderID), http.StatusConflict)
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

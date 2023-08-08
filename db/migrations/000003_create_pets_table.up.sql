@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS pets (
+  id SERIAL PRIMARY KEY,
+  owner_id BIGINT NOT NULL,
+  name VARCHAR(30) NOT NULL,
+  pet_type VARCHAR(10) NOT NULL,
+  sex VARCHAR(10) NOT NULL,
+  neutered BOOLEAN NOT NULL,
+  breed VARCHAR(30) NOT NULL,
+  birth_date DATE NOT NULL,
+  weight_in_kg DECIMAL(5, 2) NOT NULL,
+  additional_note VARCHAR(500),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP
+);
+
+CREATE INDEX pets_owner_id_idx ON pets (owner_id);

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
+	"github.com/pet-sitter/pets-next-door-api/internal/views"
 )
 
 var db *database.DB
@@ -21,26 +21,25 @@ func setUp(t *testing.T) func(t *testing.T) {
 
 func TestUserService(t *testing.T) {
 
-	t.Run("CreateUser", func(t *testing.T) {
+	t.Run("RegisterUser", func(t *testing.T) {
 		t.Run("사용자를 새로 생성한다", func(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
 			service := NewUserService(db)
 
-			user := &models.User{
+			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				Password:             "password",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			created, _ := service.CreateUser(user)
+			created, _ := service.RegisterUser(user)
 
 			if created.Email != user.Email {
-				t.Errorf("got %v want %v", created.ID, user.ID)
+				t.Errorf("got %v want %v", created.Email, user.Email)
 			}
 		})
 
@@ -50,17 +49,16 @@ func TestUserService(t *testing.T) {
 
 			service := NewUserService(db)
 
-			user := &models.User{
+			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				Password:             "password",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			_, _ = service.CreateUser(user)
-			_, err := service.CreateUser(user)
+			_, _ = service.RegisterUser(user)
+			_, err := service.RegisterUser(user)
 
 			if err == nil {
 				t.Errorf("got %v want %v", err, nil)
@@ -75,16 +73,15 @@ func TestUserService(t *testing.T) {
 
 			service := NewUserService(db)
 
-			user := &models.User{
+			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				Password:             "password",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			created, _ := service.CreateUser(user)
+			created, _ := service.RegisterUser(user)
 
 			found, err := service.FindUserByEmail(created.Email)
 			if err != nil {
@@ -116,16 +113,15 @@ func TestUserService(t *testing.T) {
 
 			service := NewUserService(db)
 
-			user := &models.User{
+			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				Password:             "password",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			created, _ := service.CreateUser(user)
+			created, _ := service.RegisterUser(user)
 
 			found, err := service.FindUserByUID(created.FirebaseUID)
 
@@ -158,16 +154,15 @@ func TestUserService(t *testing.T) {
 
 			service := NewUserService(db)
 
-			user := &models.User{
-				Email:                "pnd@example.com",
-				Password:             "password",
+			user := &views.RegisterUserRequest{
+				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			created, err := service.CreateUser(user)
+			created, err := service.RegisterUser(user)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -190,16 +185,15 @@ func TestUserService(t *testing.T) {
 
 			service := NewUserService(db)
 
-			user := &models.User{
+			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				Password:             "password",
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
 
-			created, _ := service.CreateUser(user)
+			created, _ := service.RegisterUser(user)
 
 			updatedNickname := "updated"
 
@@ -218,4 +212,85 @@ func TestUserService(t *testing.T) {
 			}
 		})
 	})
+
+	t.Run("AddPetsToOwner", func(t *testing.T) {
+		t.Run("사용자에게 반려동물을 추가한다", func(t *testing.T) {
+			tearDown := setUp(t)
+			defer tearDown(t)
+
+			service := NewUserService(db)
+
+			owner, _ := service.RegisterUser(&views.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             "nickname",
+				Fullname:             "fullname",
+				FirebaseProviderType: "kakao",
+				FirebaseUID:          "uid",
+			})
+
+			pets := views.AddPetsToOwnerRequest{
+				Pets: []views.AddPetRequest{
+					{
+						Name:       "name",
+						PetType:    "dog",
+						Sex:        "male",
+						Neutered:   true,
+						Breed:      "poodle",
+						BirthDate:  "2020-01-01T00:00:00Z",
+						WeightInKg: 10.0,
+					},
+				},
+			}
+
+			_, err := service.AddPetsToOwner(owner.FirebaseUID, pets)
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
+			found, err := service.FindPetsByOwnerUID(owner.FirebaseUID)
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
+			if len(found.Pets) != 1 {
+				t.Errorf("got %v want %v", len(found.Pets), 1)
+			}
+
+			for _, expected := range pets.Pets {
+				for _, found := range found.Pets {
+					assertPetEquals(t, expected, found)
+				}
+			}
+		})
+	})
+}
+
+func assertPetEquals(t *testing.T, expected views.AddPetRequest, found views.PetView) {
+	if expected.Name != found.Name {
+		t.Errorf("got %v want %v", expected.Name, found.Name)
+	}
+
+	if expected.PetType != found.PetType {
+		t.Errorf("got %v want %v", expected.PetType, found.PetType)
+	}
+
+	if expected.Sex != found.Sex {
+		t.Errorf("got %v want %v", expected.Sex, found.PetType)
+	}
+
+	if expected.Neutered != found.Neutered {
+		t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
+	}
+
+	if expected.Breed != found.Breed {
+		t.Errorf("got %v want %v", expected.Breed, found.Breed)
+	}
+
+	if expected.BirthDate != found.BirthDate {
+		t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
+	}
+
+	if expected.WeightInKg != found.WeightInKg {
+		t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
+	}
 }

@@ -1,4 +1,4 @@
-package views
+package commonviews
 
 import (
 	"encoding/json"
@@ -9,6 +9,11 @@ func writePayload(w http.ResponseWriter, headers map[string]string, payload inte
 	setHeaders(w, headers)
 
 	w.WriteHeader(statusCode)
+
+	if payload == nil {
+		return nil
+	}
+
 	return json.NewEncoder(w).Encode(payload)
 }
 
