@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pet-sitter/pets-next-door-api/api/views"
+	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/models"
@@ -38,17 +38,17 @@ type mediaView struct {
 func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 	id, err := webutils.ParseIdFromPath(r, "id")
 	if err != nil || id <= 0 {
-		views.NotFound(w, nil, "invalid media ID")
+		commonviews.NotFound(w, nil, "invalid media ID")
 		return
 	}
 
 	media, err := h.mediaService.FindMediaByID(id)
 	if err != nil {
-		views.BadRequest(w, nil, err.Error())
+		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 
-	views.OK(w, nil, mediaView{
+	commonviews.OK(w, nil, mediaView{
 		ID:        media.ID,
 		MediaType: media.MediaType,
 		URL:       media.URL,
@@ -67,29 +67,29 @@ func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 // @Router /media/images [post]
 func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		views.BadRequest(w, nil, err.Error())
+		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		views.BadRequest(w, nil, err.Error())
+		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 	defer file.Close()
 
 	if !isValidMimeType(header.Header.Get("Content-Type")) {
-		views.BadRequest(w, nil, "invalid MIME type; supported MIME types are: ["+supportedMimeTypeString()+"]")
+		commonviews.BadRequest(w, nil, "invalid MIME type; supported MIME types are: ["+supportedMimeTypeString()+"]")
 		return
 	}
 
 	res, err := h.mediaService.UploadMedia(file, models.IMAGE_MEDIA_TYPE, header.Filename)
 	if err != nil {
-		views.BadRequest(w, nil, err.Error())
+		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 
-	views.Created(w,
+	commonviews.Created(w,
 		nil,
 		mediaView{
 			ID:        res.ID,

@@ -113,67 +113,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/me": {
-            "get": {
-                "security": [
-                    {
-                        "firebase": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "내 프로필 정보를 조회합니다.",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/server.UserResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "firebase": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "내 프로필 정보를 수정합니다.",
-                "parameters": [
-                    {
-                        "description": "프로필 정보 수정 요청",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.UpdateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/server.UserResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/register": {
+        "/users": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -192,7 +132,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.RegisterUserRequest"
+                            "$ref": "#/definitions/views.RegisterUserRequest"
                         }
                     }
                 ],
@@ -200,8 +140,127 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/server.UserResponse"
+                            "$ref": "#/definitions/views.RegisterUserResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "내 프로필 정보를 조회합니다.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/views.FindUserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "내 프로필 정보를 수정합니다.",
+                "parameters": [
+                    {
+                        "description": "사용자 프로필 수정 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/views.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/views.UpdateUserResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/pets": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users",
+                    "pets"
+                ],
+                "summary": "내 반려동물 목록을 조회합니다.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/views.FindMyPetsView"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users",
+                    "pets"
+                ],
+                "summary": "내 반려동물을 등록합니다.",
+                "parameters": [
+                    {
+                        "description": "반려동물 등록 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/views.AddPetsToOwnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -225,7 +284,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.UserStatusRequest"
+                            "$ref": "#/definitions/views.UserStatusRequest"
                         }
                     }
                 ],
@@ -233,7 +292,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.UserStatusView"
+                            "$ref": "#/definitions/views.UserStatusView"
                         }
                     }
                 }
@@ -264,90 +323,6 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "IMAGE_MEDIA_TYPE"
             ]
-        },
-        "server.RegisterUserRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "nickname": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.UpdateUserRequest": {
-            "type": "object",
-            "properties": {
-                "nickname": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.UserRegistrationStatus": {
-            "type": "string",
-            "enum": [
-                "NOT_REGISTERED",
-                "REGISTERED"
-            ],
-            "x-enum-varnames": [
-                "UserStatusNotRegistered",
-                "UserStatusRegistered"
-            ]
-        },
-        "server.UserResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.UserStatusRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.UserStatusView": {
-            "type": "object",
-            "properties": {
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "status": {
-                    "$ref": "#/definitions/server.UserRegistrationStatus"
-                }
-            }
         },
         "server.kakaoCallbackResponse": {
             "type": "object",
@@ -385,13 +360,284 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "types.PetSex": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "PetSexMale",
+                "PetSexFemale"
+            ]
+        },
+        "types.PetType": {
+            "type": "string",
+            "enum": [
+                "dog",
+                "cat"
+            ],
+            "x-enum-varnames": [
+                "PetTypeDog",
+                "PetTypeCat"
+            ]
+        },
+        "views.AddPetRequest": {
+            "type": "object",
+            "required": [
+                "birth_date",
+                "breed",
+                "name",
+                "neutered",
+                "pet_type",
+                "sex",
+                "weight_in_kg"
+            ],
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "breed": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "neutered": {
+                    "type": "boolean"
+                },
+                "pet_type": {
+                    "enum": [
+                        "dog",
+                        "cat"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.PetType"
+                        }
+                    ]
+                },
+                "sex": {
+                    "enum": [
+                        "male",
+                        "female"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.PetSex"
+                        }
+                    ]
+                },
+                "weight_in_kg": {
+                    "type": "number"
+                }
+            }
+        },
+        "views.AddPetsToOwnerRequest": {
+            "type": "object",
+            "required": [
+                "pets"
+            ],
+            "properties": {
+                "pets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/views.AddPetRequest"
+                    }
+                }
+            }
+        },
+        "views.FindMyPetsView": {
+            "type": "object",
+            "properties": {
+                "pets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/views.PetView"
+                    }
+                }
+            }
+        },
+        "views.FindUserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.PetView": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "breed": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "neutered": {
+                    "type": "boolean"
+                },
+                "pet_type": {
+                    "$ref": "#/definitions/types.PetType"
+                },
+                "sex": {
+                    "$ref": "#/definitions/types.PetSex"
+                },
+                "weight_in_kg": {
+                    "type": "number"
+                }
+            }
+        },
+        "views.RegisterUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "fbProviderType",
+                "fbUid",
+                "fullname",
+                "nickname"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.RegisterUserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.UpdateUserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.UserRegistrationStatus": {
+            "type": "string",
+            "enum": [
+                "NOT_REGISTERED",
+                "REGISTERED"
+            ],
+            "x-enum-varnames": [
+                "UserStatusNotRegistered",
+                "UserStatusRegistered"
+            ]
+        },
+        "views.UserStatusRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "views.UserStatusView": {
+            "type": "object",
+            "properties": {
+                "fbProviderType": {
+                    "$ref": "#/definitions/models.FirebaseProviderType"
+                },
+                "status": {
+                    "$ref": "#/definitions/views.UserRegistrationStatus"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "FirebaseAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.1.0",
+	Version:          "0.2.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},

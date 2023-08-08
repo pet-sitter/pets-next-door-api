@@ -11,6 +11,12 @@ services:
       - POSTGRES_DB=pets_next_door_api_dev
     volumes:
       - pg_pets_next_door_api_db:/var/lib/postgresql/data
+    networks:
+      - pets_next_door_api_dev
 
 volumes:
   pg_pets_next_door_api_db:
+
+networks:
+  pets_next_door_api_dev:
+    driver: bridge

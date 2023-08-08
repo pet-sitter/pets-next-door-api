@@ -1,4 +1,4 @@
-package views
+package commonviews
 
 import (
 	"encoding/json"

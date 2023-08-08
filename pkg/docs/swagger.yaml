@@ -18,61 +18,6 @@ definitions:
     type: string
     x-enum-varnames:
     - IMAGE_MEDIA_TYPE
-  server.RegisterUserRequest:
-    properties:
-      email:
-        type: string
-      fbProviderType:
-        $ref: '#/definitions/models.FirebaseProviderType'
-      fbUid:
-        type: string
-      fullname:
-        type: string
-      nickname:
-        type: string
-    type: object
-  server.UpdateUserRequest:
-    properties:
-      nickname:
-        type: string
-    type: object
-  server.UserRegistrationStatus:
-    enum:
-    - NOT_REGISTERED
-    - REGISTERED
-    type: string
-    x-enum-varnames:
-    - UserStatusNotRegistered
-    - UserStatusRegistered
-  server.UserResponse:
-    properties:
-      email:
-        type: string
-      fbProviderType:
-        $ref: '#/definitions/models.FirebaseProviderType'
-      fbUid:
-        type: string
-      fullname:
-        type: string
-      id:
-        type: integer
-      nickname:
-        type: string
-    type: object
-  server.UserStatusRequest:
-    properties:
-      email:
-        type: string
-    required:
-    - email
-    type: object
-  server.UserStatusView:
-    properties:
-      fbProviderType:
-        $ref: '#/definitions/models.FirebaseProviderType'
-      status:
-        $ref: '#/definitions/server.UserRegistrationStatus'
-    type: object
   server.kakaoCallbackResponse:
     properties:
       authToken:
@@ -97,6 +42,181 @@ definitions:
       url:
         type: string
     type: object
+  types.PetSex:
+    enum:
+    - male
+    - female
+    type: string
+    x-enum-varnames:
+    - PetSexMale
+    - PetSexFemale
+  types.PetType:
+    enum:
+    - dog
+    - cat
+    type: string
+    x-enum-varnames:
+    - PetTypeDog
+    - PetTypeCat
+  views.AddPetRequest:
+    properties:
+      birth_date:
+        type: string
+      breed:
+        type: string
+      name:
+        type: string
+      neutered:
+        type: boolean
+      pet_type:
+        allOf:
+        - $ref: '#/definitions/types.PetType'
+        enum:
+        - dog
+        - cat
+      sex:
+        allOf:
+        - $ref: '#/definitions/types.PetSex'
+        enum:
+        - male
+        - female
+      weight_in_kg:
+        type: number
+    required:
+    - birth_date
+    - breed
+    - name
+    - neutered
+    - pet_type
+    - sex
+    - weight_in_kg
+    type: object
+  views.AddPetsToOwnerRequest:
+    properties:
+      pets:
+        items:
+          $ref: '#/definitions/views.AddPetRequest'
+        type: array
+    required:
+    - pets
+    type: object
+  views.FindMyPetsView:
+    properties:
+      pets:
+        items:
+          $ref: '#/definitions/views.PetView'
+        type: array
+    type: object
+  views.FindUserResponse:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+    type: object
+  views.PetView:
+    properties:
+      birth_date:
+        type: string
+      breed:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      neutered:
+        type: boolean
+      pet_type:
+        $ref: '#/definitions/types.PetType'
+      sex:
+        $ref: '#/definitions/types.PetSex'
+      weight_in_kg:
+        type: number
+    type: object
+  views.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      nickname:
+        type: string
+    required:
+    - email
+    - fbProviderType
+    - fbUid
+    - fullname
+    - nickname
+    type: object
+  views.RegisterUserResponse:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+    type: object
+  views.UpdateUserRequest:
+    properties:
+      nickname:
+        type: string
+    type: object
+  views.UpdateUserResponse:
+    properties:
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      fbUid:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+    type: object
+  views.UserRegistrationStatus:
+    enum:
+    - NOT_REGISTERED
+    - REGISTERED
+    type: string
+    x-enum-varnames:
+    - UserStatusNotRegistered
+    - UserStatusRegistered
+  views.UserStatusRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  views.UserStatusView:
+    properties:
+      fbProviderType:
+        $ref: '#/definitions/models.FirebaseProviderType'
+      status:
+        $ref: '#/definitions/views.UserRegistrationStatus'
+    type: object
 info:
   contact:
     email: petsnextdoordev@gmail.com
@@ -107,7 +227,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.1.0
+  version: 0.2.0
 paths:
   /auth/callback/kakao:
     get:
@@ -166,43 +286,7 @@ paths:
       summary: 이미지를 업로드합니다.
       tags:
       - media
-  /users/me:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.UserResponse'
-      security:
-      - firebase: []
-      summary: 내 프로필 정보를 조회합니다.
-      tags:
-      - users
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: 프로필 정보 수정 요청
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/server.UpdateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.UserResponse'
-      security:
-      - firebase: []
-      summary: 내 프로필 정보를 수정합니다.
-      tags:
-      - users
-  /users/register:
+  /users:
     post:
       consumes:
       - application/json
@@ -212,17 +296,89 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.RegisterUserRequest'
+          $ref: '#/definitions/views.RegisterUserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/server.UserResponse'
+            $ref: '#/definitions/views.RegisterUserResponse'
       summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
       tags:
       - users
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.FindUserResponse'
+      security:
+      - FirebaseAuth: []
+      summary: 내 프로필 정보를 조회합니다.
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 사용자 프로필 수정 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/views.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.UpdateUserResponse'
+      security:
+      - FirebaseAuth: []
+      summary: 내 프로필 정보를 수정합니다.
+      tags:
+      - users
+  /users/me/pets:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.FindMyPetsView'
+      security:
+      - FirebaseAuth: []
+      summary: 내 반려동물 목록을 조회합니다.
+      tags:
+      - users
+      - pets
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 반려동물 등록 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/views.AddPetsToOwnerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - FirebaseAuth: []
+      summary: 내 반려동물을 등록합니다.
+      tags:
+      - users
+      - pets
   /users/status:
     post:
       consumes:
@@ -233,15 +389,20 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.UserStatusRequest'
+          $ref: '#/definitions/views.UserStatusRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.UserStatusView'
+            $ref: '#/definitions/views.UserStatusView'
       summary: 이메일로 유저의 가입 상태를 조회합니다.
       tags:
       - users
+securityDefinitions:
+  FirebaseAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
