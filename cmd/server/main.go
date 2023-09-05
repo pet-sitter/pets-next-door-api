@@ -30,7 +30,13 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	app := firebaseinfra.NewFirebaseApp(configs.FirebaseCredentialsPath)
+	var app *firebaseinfra.FirebaseApp
+	if configs.GetFirebaseCredentialsJSON() != (configs.FirebaseCredentialsJSONType{}) {
+		app = firebaseinfra.NewFirebaseAppFromCredentialsJSON(configs.GetFirebaseCredentialsJSON())
+	} else {
+		app = firebaseinfra.NewFirebaseAppFromCredentialsPath(configs.FirebaseCredentialsPath)
+	}
+
 	r := server.NewRouter(app)
 
 	log.Printf("Starting server on port %s", configs.Port)

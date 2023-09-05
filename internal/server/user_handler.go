@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-playground/validator"
@@ -90,6 +91,7 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
+		log.Printf("verifyAuth error: %v\n", err)
 		return
 	}
 

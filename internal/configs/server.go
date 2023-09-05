@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strings"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -15,6 +16,36 @@ var KakaoRestAPIKey = os.Getenv("KAKAO_REST_API_KEY")
 var KakaoRedirectURI = os.Getenv("KAKAO_REDIRECT_URI")
 
 var FirebaseCredentialsPath = os.Getenv("FIREBASE_CREDENTIALS_PATH")
+
+type FirebaseCredentialsJSONType struct {
+	Type                    string `json:"type"`
+	ProjectID               string `json:"project_id"`
+	PrivateKeyID            string `json:"private_key_id"`
+	PrivateKey              string `json:"private_key"`
+	ClientEmail             string `json:"client_email"`
+	ClientID                string `json:"client_id"`
+	AuthURI                 string `json:"auth_uri"`
+	TokenURI                string `json:"token_uri"`
+	AuthProviderX509CertURL string `json:"auth_provider_x509_cert_url"`
+	ClientX509CertURL       string `json:"client_x509_cert_url"`
+	UniverseDomain          string `json:"universe_domain"`
+}
+
+func GetFirebaseCredentialsJSON() FirebaseCredentialsJSONType {
+	return FirebaseCredentialsJSONType{
+		Type:                    os.Getenv("FIREBASE_CREDENTIALS_TYPE"),
+		ProjectID:               os.Getenv("FIREBASE_CREDENTIALS_PROJECT_ID"),
+		PrivateKeyID:            os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY_ID"),
+		PrivateKey:              strings.ReplaceAll(os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY"), "\\n", "\n"),
+		ClientEmail:             os.Getenv("FIREBASE_CREDENTIALS_CLIENT_EMAIL"),
+		ClientID:                os.Getenv("FIREBASE_CREDENTIALS_CLIENT_ID"),
+		AuthURI:                 os.Getenv("FIREBASE_CREDENTIALS_AUTH_URI"),
+		TokenURI:                os.Getenv("FIREBASE_CREDENTIALS_TOKEN_URI"),
+		AuthProviderX509CertURL: os.Getenv("FIREBASE_CREDENTIALS_AUTH_PROVIDER_X509_CERT_URL"),
+		ClientX509CertURL:       os.Getenv("FIREBASE_CREDENTIALS_CLIENT_X509_CERT_URL"),
+		UniverseDomain:          os.Getenv("FIREBASE_CREDENTIALS_UNIVERSE_DOMAIN"),
+	}
+}
 
 var B2KeyID = os.Getenv("B2_APPLICATION_KEY_ID")
 var B2Key = os.Getenv("B2_APPLICATION_KEY")
@@ -43,8 +74,8 @@ func init() {
 		panic("KAKAO_REDIRECT_URI is required")
 	}
 
-	if FirebaseCredentialsPath == "" {
-		FirebaseCredentialsPath = "firebase-credentials.json"
+	if FirebaseCredentialsPath == "" && GetFirebaseCredentialsJSON() == (FirebaseCredentialsJSONType{}) {
+		panic("FIREBASE_CREDENTIALS_PATH or FIREBASE_CREDENTIALS_JSON is required")
 	}
 
 	if B2KeyID == "" {
