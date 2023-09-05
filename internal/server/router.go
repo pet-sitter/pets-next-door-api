@@ -38,9 +38,6 @@ func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp) {
 
 func addRoutes(r *chi.Mux) {
 	db, err := database.Open(configs.DatabaseURL)
-
-	db.Migrate(configs.MigrationPath)
-
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}

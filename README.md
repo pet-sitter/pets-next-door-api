@@ -56,7 +56,7 @@ $ go test ./...
 
 Firebase Auth를 사용하기 위해, Firebase 프로젝트를 생성하고, 서비스 계정 키를 발급받아야 합니다.
 
-기본값으로 `firebase-credentials.json` 파일을 사용하며, 환경변수 `FIREBASE_CREDENTIALS`를 통해 파일 경로를 지정할 수 있습니다.
+기본값으로 `firebase-credentials.json` 파일을 사용하며, 환경변수 `FIREBASE_CREDENTIALS_PATH`, 또는 `FIREBASE_CREDENTIALS_PATH` 비우고 `FIREBASE_CREDENTIALS_*`를 통해 파일 경로를 지정할 수 있습니다.
 
 ### Database Migration
 
@@ -76,6 +76,19 @@ $ migrate -path db/migrations -database DB_URL up
 ```
 
 테스트 환경은 `docker-compose-test.yml`를 통해 자동으로 마이그레이션됩니다.
+
+개발 환경에서는 다음과 같은 스크립트를 제공합니다.
+
+```bash
+$ go run cmd/migrate/main.go
+```
+
+배포 환경에서는 다음과 같은 스크립트를 제공합니다.
+
+```bash
+$ go build -o migrate cmd/migrate/main.go
+$ ./migrate
+```
 
 ## API Docs
 

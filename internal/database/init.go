@@ -38,20 +38,21 @@ func (db *DB) Flush() error {
 	return nil
 }
 
-func (db *DB) Migrate(migrationPath string) {
-
+func (db *DB) Migrate(migrationPath string) error {
 	m, err := migrate.New(
 		"file://"+migrationPath,
 		db.databaseURL,
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 func (db *DB) Begin() (*Tx, error) {
