@@ -1,8 +1,22 @@
-package database
+package postgres
 
-import "github.com/pet-sitter/pets-next-door-api/internal/models"
+import (
+	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
+)
 
-func (tx *Tx) CreateMedia(media *models.Media) (*models.Media, error) {
+type MediaPostgresStore struct {
+	db *database.DB
+}
+
+func NewMediaPostgresStore(db *database.DB) *MediaPostgresStore {
+	return &MediaPostgresStore{
+		db: db,
+	}
+}
+
+func (s *MediaPostgresStore) CreateMedia(media *media.Media) (*media.Media, error) {
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	INSERT INTO
 		media
@@ -18,6 +32,7 @@ func (tx *Tx) CreateMedia(media *models.Media) (*models.Media, error) {
 		media.MediaType,
 		media.URL,
 	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -26,9 +41,10 @@ func (tx *Tx) CreateMedia(media *models.Media) (*models.Media, error) {
 	return media, nil
 }
 
-func (tx *Tx) FindMediaByID(id int) (*models.Media, error) {
-	media := &models.Media{}
+func (s *MediaPostgresStore) FindMediaByID(id int) (*media.Media, error) {
+	media := &media.Media{}
 
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	SELECT
 		id,
@@ -50,6 +66,7 @@ func (tx *Tx) FindMediaByID(id int) (*models.Media, error) {
 		&media.CreatedAt,
 		&media.UpdatedAt,
 	)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err

@@ -1,8 +1,8 @@
 package user
 
 import (
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/media"
 )
 
 type UserService struct {

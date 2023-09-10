@@ -71,7 +71,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/server.mediaView"
+                            "$ref": "#/definitions/media.MediaView"
                         }
                     }
                 }
@@ -99,7 +99,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.mediaView"
+                            "$ref": "#/definitions/media.MediaView"
                         }
                     }
                 }
@@ -292,7 +292,7 @@
         }
     },
     "definitions": {
-        "models.MediaType": {
+        "media.MediaType": {
             "type": "string",
             "enum": [
                 "image"
@@ -300,6 +300,23 @@
             "x-enum-varnames": [
                 "IMAGE_MEDIA_TYPE"
             ]
+        },
+        "media.MediaView": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/media.MediaType"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
         },
         "pet.AddPetRequest": {
             "type": "object",
@@ -444,23 +461,6 @@
                     "type": "string"
                 },
                 "photoURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.mediaView": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "mediaType": {
-                    "$ref": "#/definitions/models.MediaType"
-                },
-                "url": {
                     "type": "string"
                 }
             }
