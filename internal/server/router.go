@@ -13,6 +13,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
+	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -43,8 +44,6 @@ func addRoutes(r *chi.Mux) {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	authHandler := newAuthHandler()
-
 	mediaService := media.NewMediaService(
 		postgres.NewMediaPostgresStore(db),
 		s3infra.NewS3Client(
@@ -55,14 +54,15 @@ func addRoutes(r *chi.Mux) {
 			configs.B2BucketName,
 		),
 	)
-	mediaHandler := newMediaHandler(mediaService)
-
 	userService := user.NewUserService(
 		postgres.NewUserPostgresStore(db),
 		postgres.NewPetPostgresStore(db),
 		mediaService,
 	)
+
+	authHandler := newAuthHandler(kakaoinfra.NewKakaoClient())
 	userHandler := newUserHandler(userService)
+	mediaHandler := newMediaHandler(mediaService)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

@@ -12,10 +12,14 @@ import (
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 )
 
-type authHandler struct{}
+type authHandler struct {
+	kakaoClient kakaoinfra.IKakaoClient
+}
 
-func newAuthHandler() *authHandler {
-	return &authHandler{}
+func newAuthHandler(kakaoClient kakaoinfra.IKakaoClient) *authHandler {
+	return &authHandler{
+		kakaoClient: kakaoClient,
+	}
 }
 
 // kakaoLogin godoc
@@ -51,13 +55,13 @@ type kakaoCallbackResponse struct {
 func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
-	tokenView, err := kakaoinfra.FetchAccessToken(code)
+	tokenView, err := h.kakaoClient.FetchAccessToken(code)
 	if err != nil {
 		commonviews.Unauthorized(w, nil, err.Error())
 		return
 	}
 
-	userProfile, err := kakaoinfra.FetchUserProfile(tokenView.AccessToken)
+	userProfile, err := h.kakaoClient.FetchUserProfile(tokenView.AccessToken)
 	if err != nil {
 		commonviews.Unauthorized(w, nil, err.Error())
 		return

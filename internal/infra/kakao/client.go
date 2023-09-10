@@ -9,7 +9,18 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 )
 
-func FetchAccessToken(code string) (*kakaoTokenResponse, error) {
+type IKakaoClient interface {
+	FetchAccessToken(code string) (*kakaoTokenResponse, error)
+	FetchUserProfile(code string) (*kakaoUserProfile, error)
+}
+
+type KakaoClient struct{}
+
+func NewKakaoClient() *KakaoClient {
+	return &KakaoClient{}
+}
+
+func (kakaoClient *KakaoClient) FetchAccessToken(code string) (*kakaoTokenResponse, error) {
 	kakaoTokenRequest := NewKakaoTokenRequest(
 		configs.KakaoRestAPIKey,
 		configs.KakaoRedirectURI,
@@ -49,7 +60,7 @@ func FetchAccessToken(code string) (*kakaoTokenResponse, error) {
 	return kakaoTokenResponse, nil
 }
 
-func FetchUserProfile(code string) (*kakaoUserProfile, error) {
+func (kakaoClient *KakaoClient) FetchUserProfile(code string) (*kakaoUserProfile, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://kapi.kakao.com/v2/user/me", nil)
 	req.Header.Add("Authorization", "Bearer "+code)
