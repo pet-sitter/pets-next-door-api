@@ -18,6 +18,7 @@ type MediaService struct {
 
 type MediaServicer interface {
 	UploadMedia(file io.ReadSeeker, mediaType models.MediaType, fileName string) (*models.Media, error)
+	CreateMedia(media *models.Media) (*models.Media, error)
 	FindMediaByID(id int) (*models.Media, error)
 }
 
@@ -51,7 +52,7 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType models.MediaTyp
 		return nil, err
 	}
 
-	created, err := s.createMedia(&models.Media{
+	created, err := s.CreateMedia(&models.Media{
 		MediaType: mediaType,
 		URL:       req.HTTPRequest.URL.String(),
 	})
@@ -63,7 +64,7 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType models.MediaTyp
 	return created, nil
 }
 
-func (s *MediaService) createMedia(media *models.Media) (*models.Media, error) {
+func (s *MediaService) CreateMedia(media *models.Media) (*models.Media, error) {
 	tx, _ := s.db.Begin()
 
 	created, err := tx.CreateMedia(media)

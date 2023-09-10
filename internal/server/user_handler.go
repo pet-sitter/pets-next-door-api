@@ -130,7 +130,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userModel, err := h.userService.UpdateUserByUID(uid, updateUserRequest.Nickname)
+	userModel, err := h.userService.UpdateUserByUID(uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
 	if err != nil {
 		commonviews.InternalServerError(w, nil, err.Error())
 		return
@@ -141,6 +141,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
 		Fullname:             userModel.Fullname,
+		ProfileImageURL:      userModel.ProfileImageURL,
 		FirebaseProviderType: userModel.FirebaseProviderType,
 		FirebaseUID:          userModel.FirebaseUID,
 	})
