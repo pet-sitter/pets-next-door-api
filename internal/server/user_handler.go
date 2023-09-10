@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/views"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
 type UserHandler struct {
@@ -27,11 +27,11 @@ func newUserHandler(userService user.UserServicer) *UserHandler {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param request body views.RegisterUserRequest true "사용자 회원가입 요청"
-// @Success 201 {object} views.RegisterUserResponse
+// @Param request body user.RegisterUserRequest true "사용자 회원가입 요청"
+// @Success 201 {object} user.RegisterUserResponse
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var registerUserRequest views.RegisterUserRequest
+	var registerUserRequest user.RegisterUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&registerUserRequest); err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
@@ -56,25 +56,25 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param request body views.UserStatusRequest true "사용자 가입 상태 조회 요청"
-// @Success 200 {object} views.UserStatusView
+// @Param request body user.UserStatusRequest true "사용자 가입 상태 조회 요청"
+// @Success 200 {object} user.UserStatusView
 // @Router /users/status [post]
 func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Request) {
-	var providerRequest views.UserStatusRequest
+	var providerRequest user.UserStatusRequest
 	if err := commonviews.ParseBody(w, r, &providerRequest); err != nil {
 		return
 	}
 
 	userStatus, err := h.userService.FindUserStatusByEmail(providerRequest.Email)
 	if err != nil || userStatus == nil {
-		commonviews.OK(w, nil, views.UserStatusView{
-			Status: views.UserStatusNotRegistered,
+		commonviews.OK(w, nil, user.UserStatusView{
+			Status: user.UserStatusNotRegistered,
 		})
 		return
 	}
 
-	commonviews.OK(w, nil, views.UserStatusView{
-		Status:               views.UserStatusRegistered,
+	commonviews.OK(w, nil, user.UserStatusView{
+		Status:               user.UserStatusRegistered,
 		FirebaseProviderType: userStatus.FirebaseProviderType,
 	})
 }
@@ -85,7 +85,7 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Tags users
 // @Produce  json
 // @Security FirebaseAuth
-// @Success 200 {object} views.FindUserResponse
+// @Success 200 {object} user.FindUserResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
@@ -113,8 +113,8 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Security FirebaseAuth
-// @Param request body views.UpdateUserRequest true "사용자 프로필 수정 요청"
-// @Success 200 {object} views.UpdateUserResponse
+// @Param request body user.UpdateUserRequest true "사용자 프로필 수정 요청"
+// @Success 200 {object} user.UpdateUserResponse
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
@@ -125,7 +125,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	uid := idToken.UID
 
-	var updateUserRequest views.UpdateUserRequest
+	var updateUserRequest user.UpdateUserRequest
 	if err := commonviews.ParseBody(w, r, &updateUserRequest); err != nil {
 		return
 	}
@@ -136,7 +136,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commonviews.OK(w, nil, views.UpdateUserResponse{
+	commonviews.OK(w, nil, user.UpdateUserResponse{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
@@ -154,7 +154,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Security FirebaseAuth
-// @Param request body views.AddPetsToOwnerRequest true "반려동물 등록 요청"
+// @Param request body pet.AddPetsToOwnerRequest true "반려동물 등록 요청"
 // @Success 200
 // @Router /users/me/pets [put]
 func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
@@ -166,7 +166,7 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 
 	uid := idToken.UID
 
-	var addPetsToOwnerRequest views.AddPetsToOwnerRequest
+	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
 	if err := commonviews.ParseBody(w, r, &addPetsToOwnerRequest); err != nil {
 		return
 	}
@@ -185,7 +185,7 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 // @Tags users,pets
 // @Produce json
 // @Security FirebaseAuth
-// @Success 200 {object} views.FindMyPetsView
+// @Success 200 {object} pet.FindMyPetsView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
 	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))

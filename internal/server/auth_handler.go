@@ -8,8 +8,8 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 )
 
 type authHandler struct{}
@@ -35,11 +35,11 @@ func (h *authHandler) kakaoLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 type kakaoCallbackResponse struct {
-	AuthToken            string                      `json:"authToken"`
-	FirebaseProviderType models.FirebaseProviderType `json:"fbProviderType"`
-	FirebaseUID          string                      `json:"fbUid"`
-	Email                string                      `json:"email"`
-	PhotoURL             string                      `json:"photoURL"`
+	AuthToken            string                    `json:"authToken"`
+	FirebaseProviderType user.FirebaseProviderType `json:"fbProviderType"`
+	FirebaseUID          string                    `json:"fbUid"`
+	Email                string                    `json:"email"`
+	PhotoURL             string                    `json:"photoURL"`
 }
 
 // kakaoCallback godoc
@@ -75,7 +75,7 @@ func (h *authHandler) kakaoCallback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(kakaoCallbackResponse{
 		AuthToken:            customToken,
-		FirebaseProviderType: models.FirebaseProviderTypeKakao,
+		FirebaseProviderType: user.FirebaseProviderTypeKakao,
 		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
 		Email:                userProfile.KakaoAccount.Email,
 		PhotoURL:             userProfile.Properties.ProfileImage,

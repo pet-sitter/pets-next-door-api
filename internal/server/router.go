@@ -10,10 +10,11 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/user"
+	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -54,7 +55,11 @@ func addRoutes(r *chi.Mux) {
 	mediaService := media.NewMediaService(db, s3Client)
 	mediaHandler := newMediaHandler(mediaService)
 
-	userService := user.NewUserService(db, mediaService)
+	userService := user.NewUserService(
+		postgres.NewUserPostgresStore(db),
+		postgres.NewPetPostgresStore(db),
+		mediaService,
+	)
 	userHandler := newUserHandler(userService)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

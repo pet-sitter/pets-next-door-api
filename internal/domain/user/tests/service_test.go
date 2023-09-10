@@ -1,13 +1,15 @@
-package user
+package user_test
 
 import (
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/models"
+	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
-	"github.com/pet-sitter/pets-next-door-api/internal/views"
 )
 
 var db *database.DB
@@ -34,9 +36,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -61,9 +63,9 @@ func TestUserService(t *testing.T) {
 				MediaType: models.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -92,9 +94,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -120,7 +122,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			media_service := media.NewMediaService(db, nil)
-			service := NewUserService(db, media_service)
+
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
 			_, err := service.FindUserByEmail("non-existent@example.com")
 			if err == nil {
@@ -140,9 +143,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -168,7 +171,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			media_service := media.NewMediaService(db, nil)
-			service := NewUserService(db, media_service)
+
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
 			_, err := service.FindUserByUID("non-existent")
 			if err == nil {
@@ -188,9 +192,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -226,9 +230,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			user := &views.RegisterUserRequest{
+			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -268,9 +272,9 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			service := NewUserService(db, media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
-			owner, _ := service.RegisterUser(&views.RegisterUserRequest{
+			owner, _ := service.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -279,8 +283,8 @@ func TestUserService(t *testing.T) {
 				FirebaseUID:          "uid",
 			})
 
-			pets := views.AddPetsToOwnerRequest{
-				Pets: []views.AddPetRequest{
+			pets := pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
 					{
 						Name:       "name",
 						PetType:    "dog",
@@ -316,7 +320,7 @@ func TestUserService(t *testing.T) {
 	})
 }
 
-func assertPetEquals(t *testing.T, expected views.AddPetRequest, found views.PetView) {
+func assertPetEquals(t *testing.T, expected pet.AddPetRequest, found pet.PetView) {
 	if expected.Name != found.Name {
 		t.Errorf("got %v want %v", expected.Name, found.Name)
 	}
