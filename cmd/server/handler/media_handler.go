@@ -1,4 +1,4 @@
-package server
+package handler
 
 import (
 	"net/http"
@@ -13,7 +13,7 @@ type mediaHandler struct {
 	mediaService media.MediaServicer
 }
 
-func newMediaHandler(mediaService media.MediaServicer) *mediaHandler {
+func NewMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 	return &mediaHandler{
 		mediaService: mediaService,
 	}
@@ -27,7 +27,7 @@ func newMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 // @Param id path int true "미디어 ID"
 // @Success 200 {object} media.MediaView
 // @Router /media/{id} [get]
-func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
+func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 	id, err := webutils.ParseIdFromPath(r, "id")
 	if err != nil || id <= 0 {
 		commonviews.NotFound(w, nil, "invalid media ID")
@@ -57,7 +57,7 @@ func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 // @Param file formData file true "이미지 파일"
 // @Success 201 {object} media.MediaView
 // @Router /media/images [post]
-func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
+func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return

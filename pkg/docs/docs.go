@@ -35,7 +35,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.kakaoCallbackResponse"
+                            "$ref": "#/definitions/auth.KakaoCallbackResponse"
                         }
                     }
                 }
@@ -300,6 +300,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.KakaoCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "authToken": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "photoURL": {
+                    "type": "string"
+                }
+            }
+        },
         "media.MediaType": {
             "type": "string",
             "enum": [
@@ -450,26 +470,6 @@ const docTemplate = `{
                 },
                 "weight_in_kg": {
                     "type": "number"
-                }
-            }
-        },
-        "server.kakaoCallbackResponse": {
-            "type": "object",
-            "properties": {
-                "authToken": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/user.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "photoURL": {
-                    "type": "string"
                 }
             }
         },

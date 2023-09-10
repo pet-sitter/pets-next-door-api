@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -8,7 +8,9 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -16,29 +18,31 @@ import (
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
+	pndMiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	r := chi.NewRouter()
 
-	registerMiddlewares(r, app)
-	addRoutes(r)
-
-	return r
-}
-
-func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp) {
 	authClient, err := app.Auth(context.Background())
+	authService := auth.NewFirebaseBearerAuthService(authClient)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
 
-	r.Use(middleware.Logger)
-	r.Use(buildFirebaseAuthMiddleware(authClient))
+	registerMiddlewares(r, app, authService)
+	addRoutes(r, authService)
+
+	return r
 }
 
-func addRoutes(r *chi.Mux) {
+func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp, authService auth.AuthService) {
+	r.Use(middleware.Logger)
+	r.Use(pndMiddleware.BuildAuthMiddleware(&authService, auth.FirebaseAuthClientKey))
+}
+
+func addRoutes(r *chi.Mux, authService auth.AuthService) {
 	db, err := database.Open(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
@@ -60,9 +64,9 @@ func addRoutes(r *chi.Mux) {
 		mediaService,
 	)
 
-	authHandler := newAuthHandler(kakaoinfra.NewKakaoClient())
-	userHandler := newUserHandler(userService)
-	mediaHandler := newMediaHandler(mediaService)
+	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoClient())
+	userHandler := handler.NewUserHandler(userService, authService)
+	mediaHandler := handler.NewMediaHandler(mediaService)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -75,12 +79,12 @@ func addRoutes(r *chi.Mux) {
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Get("/login/kakao", authHandler.kakaoLogin)
-			r.Get("/callback/kakao", authHandler.kakaoCallback)
+			r.Get("/login/kakao", authHandler.KakaoLogin)
+			r.Get("/callback/kakao", authHandler.KakaoCallback)
 		})
 		r.Route("/media", func(r chi.Router) {
-			r.Get("/{id}", mediaHandler.findMediaByID)
-			r.Post("/images", mediaHandler.uploadImage)
+			r.Get("/{id}", mediaHandler.FindMediaByID)
+			r.Post("/images", mediaHandler.UploadImage)
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", userHandler.RegisterUser)
