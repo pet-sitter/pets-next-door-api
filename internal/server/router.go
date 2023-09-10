@@ -42,8 +42,6 @@ func addRoutes(r *chi.Mux) {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	userService := user.NewUserService(db)
-	userHandler := newUserHandler(userService)
 	authHandler := newAuthHandler()
 
 	s3Client := s3infra.NewS3Client(
@@ -55,6 +53,9 @@ func addRoutes(r *chi.Mux) {
 	)
 	mediaService := media.NewMediaService(db, s3Client)
 	mediaHandler := newMediaHandler(mediaService)
+
+	userService := user.NewUserService(db, mediaService)
+	userHandler := newUserHandler(userService)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

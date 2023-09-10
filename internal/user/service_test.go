@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/media"
+	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 	"github.com/pet-sitter/pets-next-door-api/internal/views"
 )
@@ -26,12 +28,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -47,12 +56,18 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -71,12 +86,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -97,7 +119,8 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			service := NewUserService(db, media_service)
 
 			_, err := service.FindUserByEmail("non-existent@example.com")
 			if err == nil {
@@ -111,12 +134,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -124,7 +154,6 @@ func TestUserService(t *testing.T) {
 			created, _ := service.RegisterUser(user)
 
 			found, err := service.FindUserByUID(created.FirebaseUID)
-
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -138,7 +167,8 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			service := NewUserService(db, media_service)
 
 			_, err := service.FindUserByUID("non-existent")
 			if err == nil {
@@ -152,12 +182,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -183,12 +220,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			user := &views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -197,7 +241,7 @@ func TestUserService(t *testing.T) {
 
 			updatedNickname := "updated"
 
-			_, err := service.UpdateUserByUID(created.FirebaseUID, updatedNickname)
+			_, err := service.UpdateUserByUID(created.FirebaseUID, updatedNickname, profile_image.ID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -218,12 +262,19 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			service := NewUserService(db)
+			media_service := media.NewMediaService(db, nil)
+			profile_image, _ := media_service.CreateMedia(&models.Media{
+				MediaType: models.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := NewUserService(db, media_service)
 
 			owner, _ := service.RegisterUser(&views.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			})

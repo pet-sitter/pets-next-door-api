@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/views"
 
@@ -9,37 +10,36 @@ import (
 )
 
 type UserService struct {
-	db *database.DB
+	db           *database.DB
+	mediaService media.MediaServicer
 }
 
-func NewUserService(db *database.DB) *UserService {
+func NewUserService(db *database.DB, mediaService media.MediaServicer) *UserService {
 	return &UserService{
-		db: db,
+		db:           db,
+		mediaService: mediaService,
 	}
 }
 
 type UserServicer interface {
 	RegisterUser(registerUserRequest *views.RegisterUserRequest) (*views.RegisterUserResponse, error)
-	FindUserByEmail(email string) (*models.User, error)
+	FindUserByEmail(email string) (*models.UserWithProfileImage, error)
 	FindUserByUID(uid string) (*views.FindUserResponse, error)
 	FindUserStatusByEmail(email string) (*models.UserStatus, error)
-	UpdateUserByUID(uid string, nickname string) (*models.User, error)
+	UpdateUserByUID(uid string, nickname string, profileImageID int) (*models.UserWithProfileImage, error)
 	AddPetsToOwner(uid string, addPetsRequest views.AddPetsToOwnerRequest) ([]views.PetView, error)
 	FindPetsByOwnerUID(uid string) (*views.FindMyPetsView, error)
 }
 
 func (service *UserService) RegisterUser(registerUserRequest *views.RegisterUserRequest) (*views.RegisterUserResponse, error) {
-	user := models.User{
-		Email:                registerUserRequest.Email,
-		Nickname:             registerUserRequest.Nickname,
-		Fullname:             registerUserRequest.Fullname,
-		FirebaseProviderType: registerUserRequest.FirebaseProviderType,
-		FirebaseUID:          registerUserRequest.FirebaseUID,
+	media, err := service.mediaService.FindMediaByID(registerUserRequest.ProfileImageID)
+	if err != nil {
+		return nil, err
 	}
 
 	tx, _ := service.db.Begin()
 
-	created, err := tx.CreateUser(&user)
+	created, err := tx.CreateUser(registerUserRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +53,13 @@ func (service *UserService) RegisterUser(registerUserRequest *views.RegisterUser
 		Email:                created.Email,
 		Nickname:             created.Nickname,
 		Fullname:             created.Fullname,
+		ProfileImageURL:      media.URL,
 		FirebaseProviderType: created.FirebaseProviderType,
 		FirebaseUID:          created.FirebaseUID,
 	}, nil
 }
 
-func (service *UserService) FindUserByEmail(email string) (*models.User, error) {
+func (service *UserService) FindUserByEmail(email string) (*models.UserWithProfileImage, error) {
 	tx, _ := service.db.Begin()
 
 	user, err := tx.FindUserByEmail(email)
@@ -90,6 +91,7 @@ func (service *UserService) FindUserByUID(uid string) (*views.FindUserResponse, 
 		Email:                user.Email,
 		Nickname:             user.Nickname,
 		Fullname:             user.Fullname,
+		ProfileImageURL:      user.ProfileImageURL,
 		FirebaseProviderType: user.FirebaseProviderType,
 		FirebaseUID:          user.FirebaseUID,
 	}, nil
@@ -112,10 +114,10 @@ func (service *UserService) FindUserStatusByEmail(email string) (*models.UserSta
 	}, nil
 }
 
-func (service *UserService) UpdateUserByUID(uid string, nickname string) (*models.User, error) {
+func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID int) (*models.UserWithProfileImage, error) {
 	tx, _ := service.db.Begin()
 
-	updated, err := tx.UpdateUserByUID(uid, nickname)
+	updated, err := tx.UpdateUserByUID(uid, nickname, profileImageID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +126,20 @@ func (service *UserService) UpdateUserByUID(uid string, nickname string) (*model
 		return nil, err
 	}
 
-	return updated, nil
+	profileImage, err := service.mediaService.FindMediaByID(updated.ProfileImageID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.UserWithProfileImage{
+		ID:                   updated.ID,
+		Email:                updated.Email,
+		Nickname:             updated.Nickname,
+		Fullname:             updated.Fullname,
+		ProfileImageURL:      profileImage.URL,
+		FirebaseProviderType: updated.FirebaseProviderType,
+		FirebaseUID:          updated.FirebaseUID,
+	}, nil
 }
 
 func (service *UserService) AddPetsToOwner(uid string, addPetsRequest views.AddPetsToOwnerRequest) ([]views.PetView, error) {

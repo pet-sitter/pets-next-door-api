@@ -121,6 +121,8 @@ definitions:
         type: integer
       nickname:
         type: string
+      profileImageUrl:
+        type: string
     type: object
   views.PetView:
     properties:
@@ -153,12 +155,15 @@ definitions:
         type: string
       nickname:
         type: string
+      profileImageId:
+        type: integer
     required:
     - email
     - fbProviderType
     - fbUid
     - fullname
     - nickname
+    - profileImageId
     type: object
   views.RegisterUserResponse:
     properties:
@@ -174,11 +179,15 @@ definitions:
         type: integer
       nickname:
         type: string
+      profileImageUrl:
+        type: string
     type: object
   views.UpdateUserRequest:
     properties:
       nickname:
         type: string
+      profileImageId:
+        type: integer
     type: object
   views.UpdateUserResponse:
     properties:
@@ -193,6 +202,8 @@ definitions:
       id:
         type: integer
       nickname:
+        type: string
+      profileImageUrl:
         type: string
     type: object
   views.UserRegistrationStatus:
@@ -227,7 +238,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.2.0
+  version: 0.3.0
 paths:
   /auth/callback/kakao:
     get:

@@ -1,8 +1,13 @@
 package database
 
-import "github.com/pet-sitter/pets-next-door-api/internal/models"
+import (
+	"github.com/pet-sitter/pets-next-door-api/internal/models"
+	"github.com/pet-sitter/pets-next-door-api/internal/views"
+)
 
-func (tx *Tx) CreateUser(user *models.User) (*models.User, error) {
+func (tx *Tx) CreateUser(request *views.RegisterUserRequest) (*models.User, error) {
+	user := &models.User{}
+
 	err := tx.QueryRow(`
 	INSERT INTO
 		users
@@ -11,21 +16,23 @@ func (tx *Tx) CreateUser(user *models.User) (*models.User, error) {
 			nickname,
 			fullname,
 			password,
+			profile_image_id,
 			fb_provider_type,
 			fb_uid,
 			created_at,
 			updated_at
 		)
-	VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-	RETURNING id, created_at, updated_at
+	VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+	RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at
 	`,
-		user.Email,
-		user.Nickname,
-		user.Fullname,
-		user.Password,
-		user.FirebaseProviderType,
-		user.FirebaseUID,
-	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+		request.Email,
+		request.Nickname,
+		request.Fullname,
+		"",
+		request.ProfileImageID,
+		request.FirebaseProviderType,
+		request.FirebaseUID,
+	).Scan(&user.ID, &user.Email, &user.Nickname, &user.Fullname, &user.ProfileImageID, &user.FirebaseProviderType, &user.FirebaseUID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		return nil, err
@@ -34,23 +41,28 @@ func (tx *Tx) CreateUser(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (tx *Tx) FindUserByEmail(email string) (*models.User, error) {
-	user := &models.User{}
+func (tx *Tx) FindUserByEmail(email string) (*models.UserWithProfileImage, error) {
+	user := &models.UserWithProfileImage{}
 
 	err := tx.QueryRow(`
 	SELECT
-		id,
-		email,
-		nickname,
-		fullname,
-		fb_provider_type,
-		fb_uid,
-		created_at,
-		updated_at
+		users.id,
+		users.email,
+		users.nickname,
+		users.fullname,
+		media.url AS profile_image_url,
+		users.fb_provider_type,
+		users.fb_uid,
+		users.created_at,
+		users.updated_at
 	FROM
 		users
+	LEFT OUTER JOIN
+		media
+	ON
+		users.profile_image_id = media.id
 	WHERE
-		email = $1
+		users.email = $1
 	`,
 		email,
 	).Scan(
@@ -58,6 +70,7 @@ func (tx *Tx) FindUserByEmail(email string) (*models.User, error) {
 		&user.Email,
 		&user.Nickname,
 		&user.Fullname,
+		&user.ProfileImageURL,
 		&user.FirebaseProviderType,
 		&user.FirebaseUID,
 		&user.CreatedAt,
@@ -71,23 +84,28 @@ func (tx *Tx) FindUserByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (tx *Tx) FindUserByUID(uid string) (*models.User, error) {
-	user := &models.User{}
+func (tx *Tx) FindUserByUID(uid string) (*models.UserWithProfileImage, error) {
+	user := &models.UserWithProfileImage{}
 
 	err := tx.QueryRow(`
 	SELECT
-		id,
-		email,
-		nickname,
-		fullname,
-		fb_provider_type,
-		fb_uid,
-		created_at,
-		updated_at
+		users.id,
+		users.email,
+		users.nickname,
+		users.fullname,
+		media.url AS profile_image_url,
+		users.fb_provider_type,
+		users.fb_uid,
+		users.created_at,
+		users.updated_at
 	FROM
 		users
+	LEFT JOIN
+		media
+	ON
+		users.profile_image_id = media.id
 	WHERE
-		fb_uid = $1
+		users.fb_uid = $1
 	`,
 		uid,
 	).Scan(
@@ -95,6 +113,7 @@ func (tx *Tx) FindUserByUID(uid string) (*models.User, error) {
 		&user.Email,
 		&user.Nickname,
 		&user.Fullname,
+		&user.ProfileImageURL,
 		&user.FirebaseProviderType,
 		&user.FirebaseUID,
 		&user.CreatedAt,
@@ -131,7 +150,7 @@ func (tx *Tx) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
 	return &userStatus, nil
 }
 
-func (tx *Tx) UpdateUserByUID(uid string, nickname string) (*models.User, error) {
+func (tx *Tx) UpdateUserByUID(uid string, nickname string, profileImageID int) (*models.User, error) {
 	user := &models.User{}
 
 	err := tx.QueryRow(`
@@ -139,15 +158,23 @@ func (tx *Tx) UpdateUserByUID(uid string, nickname string) (*models.User, error)
 		users
 	SET
 		nickname = $1,
+		profile_image_id = $2,
 		updated_at = NOW()
 	WHERE
-		fb_uid = $2
-	RETURNING id, created_at, updated_at
+		fb_uid = $3
+	RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at
 	`,
 		nickname,
+		profileImageID,
 		uid,
 	).Scan(
 		&user.ID,
+		&user.Email,
+		&user.Nickname,
+		&user.Fullname,
+		&user.ProfileImageID,
+		&user.FirebaseProviderType,
+		&user.FirebaseUID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)

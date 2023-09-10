@@ -479,6 +479,9 @@ const docTemplate = `{
                 },
                 "nickname": {
                     "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
                 }
             }
         },
@@ -518,7 +521,8 @@ const docTemplate = `{
                 "fbProviderType",
                 "fbUid",
                 "fullname",
-                "nickname"
+                "nickname",
+                "profileImageId"
             ],
             "properties": {
                 "email": {
@@ -535,6 +539,9 @@ const docTemplate = `{
                 },
                 "nickname": {
                     "type": "string"
+                },
+                "profileImageId": {
+                    "type": "integer"
                 }
             }
         },
@@ -558,6 +565,9 @@ const docTemplate = `{
                 },
                 "nickname": {
                     "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
                 }
             }
         },
@@ -566,6 +576,9 @@ const docTemplate = `{
             "properties": {
                 "nickname": {
                     "type": "string"
+                },
+                "profileImageId": {
+                    "type": "integer"
                 }
             }
         },
@@ -588,6 +601,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "nickname": {
+                    "type": "string"
+                },
+                "profileImageUrl": {
                     "type": "string"
                 }
             }
@@ -637,7 +653,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.2.0",
+	Version:          "0.3.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
