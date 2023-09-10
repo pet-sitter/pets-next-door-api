@@ -1,12 +1,24 @@
-package database
+package postgres
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
-	"github.com/pet-sitter/pets-next-door-api/internal/views"
+	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
-func (tx *Tx) CreateUser(request *views.RegisterUserRequest) (*models.User, error) {
-	user := &models.User{}
+type UserPostgresStore struct {
+	db *database.DB
+}
+
+func NewUserPostgresStore(db *database.DB) *UserPostgresStore {
+	return &UserPostgresStore{
+		db: db,
+	}
+}
+
+func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user.User, error) {
+	user := &user.User{}
+
+	tx, _ := s.db.Begin()
 
 	err := tx.QueryRow(`
 	INSERT INTO
@@ -33,6 +45,7 @@ func (tx *Tx) CreateUser(request *views.RegisterUserRequest) (*models.User, erro
 		request.FirebaseProviderType,
 		request.FirebaseUID,
 	).Scan(&user.ID, &user.Email, &user.Nickname, &user.Fullname, &user.ProfileImageID, &user.FirebaseProviderType, &user.FirebaseUID, &user.CreatedAt, &user.UpdatedAt)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -41,9 +54,10 @@ func (tx *Tx) CreateUser(request *views.RegisterUserRequest) (*models.User, erro
 	return user, nil
 }
 
-func (tx *Tx) FindUserByEmail(email string) (*models.UserWithProfileImage, error) {
-	user := &models.UserWithProfileImage{}
+func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfileImage, error) {
+	user := &user.UserWithProfileImage{}
 
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	SELECT
 		users.id,
@@ -76,6 +90,7 @@ func (tx *Tx) FindUserByEmail(email string) (*models.UserWithProfileImage, error
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -84,9 +99,10 @@ func (tx *Tx) FindUserByEmail(email string) (*models.UserWithProfileImage, error
 	return user, nil
 }
 
-func (tx *Tx) FindUserByUID(uid string) (*models.UserWithProfileImage, error) {
-	user := &models.UserWithProfileImage{}
+func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImage, error) {
+	user := &user.UserWithProfileImage{}
 
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	SELECT
 		users.id,
@@ -119,6 +135,7 @@ func (tx *Tx) FindUserByUID(uid string) (*models.UserWithProfileImage, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -127,9 +144,10 @@ func (tx *Tx) FindUserByUID(uid string) (*models.UserWithProfileImage, error) {
 	return user, nil
 }
 
-func (tx *Tx) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
-	var userStatus models.UserStatus
+func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatus, error) {
+	var userStatus user.UserStatus
 
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	SELECT
 		fb_provider_type
@@ -142,6 +160,7 @@ func (tx *Tx) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
 	).Scan(
 		&userStatus.FirebaseProviderType,
 	)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -150,9 +169,10 @@ func (tx *Tx) FindUserStatusByEmail(email string) (*models.UserStatus, error) {
 	return &userStatus, nil
 }
 
-func (tx *Tx) UpdateUserByUID(uid string, nickname string, profileImageID int) (*models.User, error) {
-	user := &models.User{}
+func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profileImageID int) (*user.User, error) {
+	user := &user.User{}
 
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	UPDATE
 		users
@@ -178,6 +198,7 @@ func (tx *Tx) UpdateUserByUID(uid string, nickname string, profileImageID int) (
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err

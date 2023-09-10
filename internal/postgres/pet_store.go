@@ -1,8 +1,22 @@
-package database
+package postgres
 
-import "github.com/pet-sitter/pets-next-door-api/internal/models"
+import (
+	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+)
 
-func (tx *Tx) CreatePet(pet *models.Pet) (*models.Pet, error) {
+type PetPostgresStore struct {
+	db *database.DB
+}
+
+func NewPetPostgresStore(db *database.DB) *PetPostgresStore {
+	return &PetPostgresStore{
+		db: db,
+	}
+}
+
+func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, error) {
+	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	INSERT INTO
 		pets
@@ -30,6 +44,7 @@ func (tx *Tx) CreatePet(pet *models.Pet) (*models.Pet, error) {
 		pet.BirthDate,
 		pet.WeightInKg,
 	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt)
+	tx.Commit()
 
 	if err != nil {
 		return nil, err
@@ -38,9 +53,10 @@ func (tx *Tx) CreatePet(pet *models.Pet) (*models.Pet, error) {
 	return pet, nil
 }
 
-func (tx *Tx) FindPetsByOwnerID(ownerID int) ([]models.Pet, error) {
-	var pets []models.Pet
+func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, error) {
+	var pets []pet.Pet
 
+	tx, _ := s.db.Begin()
 	rows, err := tx.Query(`
 	SELECT
 		id,
@@ -68,7 +84,7 @@ func (tx *Tx) FindPetsByOwnerID(ownerID int) ([]models.Pet, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var pet models.Pet
+		var pet pet.Pet
 
 		if err := rows.Scan(
 			&pet.ID,
@@ -88,6 +104,7 @@ func (tx *Tx) FindPetsByOwnerID(ownerID int) ([]models.Pet, error) {
 
 		pets = append(pets, pet)
 	}
+	tx.Commit()
 
 	return pets, nil
 }

@@ -124,7 +124,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.RegisterUserRequest"
+                            "$ref": "#/definitions/user.RegisterUserRequest"
                         }
                     }
                 ],
@@ -132,7 +132,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/views.RegisterUserResponse"
+                            "$ref": "#/definitions/user.RegisterUserResponse"
                         }
                     }
                 }
@@ -156,7 +156,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.FindUserResponse"
+                            "$ref": "#/definitions/user.FindUserResponse"
                         }
                     }
                 }
@@ -184,7 +184,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.UpdateUserRequest"
+                            "$ref": "#/definitions/user.UpdateUserRequest"
                         }
                     }
                 ],
@@ -192,7 +192,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.UpdateUserResponse"
+                            "$ref": "#/definitions/user.UpdateUserResponse"
                         }
                     }
                 }
@@ -217,7 +217,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.FindMyPetsView"
+                            "$ref": "#/definitions/pet.FindMyPetsView"
                         }
                     }
                 }
@@ -246,7 +246,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.AddPetsToOwnerRequest"
+                            "$ref": "#/definitions/pet.AddPetsToOwnerRequest"
                         }
                     }
                 ],
@@ -276,7 +276,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.UserStatusRequest"
+                            "$ref": "#/definitions/user.UserStatusRequest"
                         }
                     }
                 ],
@@ -284,7 +284,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.UserStatusView"
+                            "$ref": "#/definitions/user.UserStatusView"
                         }
                     }
                 }
@@ -292,21 +292,6 @@
         }
     },
     "definitions": {
-        "models.FirebaseProviderType": {
-            "type": "string",
-            "enum": [
-                "email",
-                "google",
-                "apple",
-                "kakao"
-            ],
-            "x-enum-varnames": [
-                "FirebaseProviderTypeEmail",
-                "FirebaseProviderTypeGoogle",
-                "FirebaseProviderTypeApple",
-                "FirebaseProviderTypeKakao"
-            ]
-        },
         "models.MediaType": {
             "type": "string",
             "enum": [
@@ -316,66 +301,7 @@
                 "IMAGE_MEDIA_TYPE"
             ]
         },
-        "server.kakaoCallbackResponse": {
-            "type": "object",
-            "properties": {
-                "authToken": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "photoURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.mediaView": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "mediaType": {
-                    "$ref": "#/definitions/models.MediaType"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.PetSex": {
-            "type": "string",
-            "enum": [
-                "male",
-                "female"
-            ],
-            "x-enum-varnames": [
-                "PetSexMale",
-                "PetSexFemale"
-            ]
-        },
-        "types.PetType": {
-            "type": "string",
-            "enum": [
-                "dog",
-                "cat"
-            ],
-            "x-enum-varnames": [
-                "PetTypeDog",
-                "PetTypeCat"
-            ]
-        },
-        "views.AddPetRequest": {
+        "pet.AddPetRequest": {
             "type": "object",
             "required": [
                 "birth_date",
@@ -406,7 +332,7 @@
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/types.PetType"
+                            "$ref": "#/definitions/pet.PetType"
                         }
                     ]
                 },
@@ -417,7 +343,7 @@
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/types.PetSex"
+                            "$ref": "#/definitions/pet.PetSex"
                         }
                     ]
                 },
@@ -426,7 +352,7 @@
                 }
             }
         },
-        "views.AddPetsToOwnerRequest": {
+        "pet.AddPetsToOwnerRequest": {
             "type": "object",
             "required": [
                 "pets"
@@ -435,49 +361,45 @@
                 "pets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/views.AddPetRequest"
+                        "$ref": "#/definitions/pet.AddPetRequest"
                     }
                 }
             }
         },
-        "views.FindMyPetsView": {
+        "pet.FindMyPetsView": {
             "type": "object",
             "properties": {
                 "pets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/views.PetView"
+                        "$ref": "#/definitions/pet.PetView"
                     }
                 }
             }
         },
-        "views.FindUserResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                },
-                "profileImageUrl": {
-                    "type": "string"
-                }
-            }
+        "pet.PetSex": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "PetSexMale",
+                "PetSexFemale"
+            ]
         },
-        "views.PetView": {
+        "pet.PetType": {
+            "type": "string",
+            "enum": [
+                "dog",
+                "cat"
+            ],
+            "x-enum-varnames": [
+                "PetTypeDog",
+                "PetTypeCat"
+            ]
+        },
+        "pet.PetView": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -496,17 +418,95 @@
                     "type": "boolean"
                 },
                 "pet_type": {
-                    "$ref": "#/definitions/types.PetType"
+                    "$ref": "#/definitions/pet.PetType"
                 },
                 "sex": {
-                    "$ref": "#/definitions/types.PetSex"
+                    "$ref": "#/definitions/pet.PetSex"
                 },
                 "weight_in_kg": {
                     "type": "number"
                 }
             }
         },
-        "views.RegisterUserRequest": {
+        "server.kakaoCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "authToken": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "photoURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.mediaView": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/models.MediaType"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.FindUserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.FirebaseProviderType": {
+            "type": "string",
+            "enum": [
+                "email",
+                "google",
+                "apple",
+                "kakao"
+            ],
+            "x-enum-varnames": [
+                "FirebaseProviderTypeEmail",
+                "FirebaseProviderTypeGoogle",
+                "FirebaseProviderTypeApple",
+                "FirebaseProviderTypeKakao"
+            ]
+        },
+        "user.RegisterUserRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -521,7 +521,7 @@
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -537,14 +537,14 @@
                 }
             }
         },
-        "views.RegisterUserResponse": {
+        "user.RegisterUserResponse": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -563,7 +563,7 @@
                 }
             }
         },
-        "views.UpdateUserRequest": {
+        "user.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "nickname": {
@@ -574,14 +574,14 @@
                 }
             }
         },
-        "views.UpdateUserResponse": {
+        "user.UpdateUserResponse": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -600,7 +600,7 @@
                 }
             }
         },
-        "views.UserRegistrationStatus": {
+        "user.UserRegistrationStatus": {
             "type": "string",
             "enum": [
                 "NOT_REGISTERED",
@@ -611,7 +611,7 @@
                 "UserStatusRegistered"
             ]
         },
-        "views.UserStatusRequest": {
+        "user.UserStatusRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -622,14 +622,14 @@
                 }
             }
         },
-        "views.UserStatusView": {
+        "user.UserStatusView": {
             "type": "object",
             "properties": {
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "status": {
-                    "$ref": "#/definitions/views.UserRegistrationStatus"
+                    "$ref": "#/definitions/user.UserRegistrationStatus"
                 }
             }
         }

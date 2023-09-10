@@ -1,4 +1,4 @@
-package models
+package user
 
 type FirebaseProviderType string
 
@@ -39,4 +39,12 @@ type UserWithProfileImage struct {
 
 type UserStatus struct {
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
+}
+
+type UserStore interface {
+	CreateUser(request *RegisterUserRequest) (*User, error)
+	FindUserByEmail(email string) (*UserWithProfileImage, error)
+	FindUserByUID(uid string) (*UserWithProfileImage, error)
+	FindUserStatusByEmail(email string) (*UserStatus, error)
+	UpdateUserByUID(uid string, nickname string, profileImageID int) (*User, error)
 }

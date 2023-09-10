@@ -132,7 +132,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.RegisterUserRequest"
+                            "$ref": "#/definitions/user.RegisterUserRequest"
                         }
                     }
                 ],
@@ -140,7 +140,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/views.RegisterUserResponse"
+                            "$ref": "#/definitions/user.RegisterUserResponse"
                         }
                     }
                 }
@@ -164,7 +164,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.FindUserResponse"
+                            "$ref": "#/definitions/user.FindUserResponse"
                         }
                     }
                 }
@@ -192,7 +192,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.UpdateUserRequest"
+                            "$ref": "#/definitions/user.UpdateUserRequest"
                         }
                     }
                 ],
@@ -200,7 +200,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.UpdateUserResponse"
+                            "$ref": "#/definitions/user.UpdateUserResponse"
                         }
                     }
                 }
@@ -225,7 +225,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.FindMyPetsView"
+                            "$ref": "#/definitions/pet.FindMyPetsView"
                         }
                     }
                 }
@@ -254,7 +254,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.AddPetsToOwnerRequest"
+                            "$ref": "#/definitions/pet.AddPetsToOwnerRequest"
                         }
                     }
                 ],
@@ -284,7 +284,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/views.UserStatusRequest"
+                            "$ref": "#/definitions/user.UserStatusRequest"
                         }
                     }
                 ],
@@ -292,7 +292,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/views.UserStatusView"
+                            "$ref": "#/definitions/user.UserStatusView"
                         }
                     }
                 }
@@ -300,21 +300,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.FirebaseProviderType": {
-            "type": "string",
-            "enum": [
-                "email",
-                "google",
-                "apple",
-                "kakao"
-            ],
-            "x-enum-varnames": [
-                "FirebaseProviderTypeEmail",
-                "FirebaseProviderTypeGoogle",
-                "FirebaseProviderTypeApple",
-                "FirebaseProviderTypeKakao"
-            ]
-        },
         "models.MediaType": {
             "type": "string",
             "enum": [
@@ -324,66 +309,7 @@ const docTemplate = `{
                 "IMAGE_MEDIA_TYPE"
             ]
         },
-        "server.kakaoCallbackResponse": {
-            "type": "object",
-            "properties": {
-                "authToken": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "photoURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.mediaView": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "mediaType": {
-                    "$ref": "#/definitions/models.MediaType"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.PetSex": {
-            "type": "string",
-            "enum": [
-                "male",
-                "female"
-            ],
-            "x-enum-varnames": [
-                "PetSexMale",
-                "PetSexFemale"
-            ]
-        },
-        "types.PetType": {
-            "type": "string",
-            "enum": [
-                "dog",
-                "cat"
-            ],
-            "x-enum-varnames": [
-                "PetTypeDog",
-                "PetTypeCat"
-            ]
-        },
-        "views.AddPetRequest": {
+        "pet.AddPetRequest": {
             "type": "object",
             "required": [
                 "birth_date",
@@ -414,7 +340,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/types.PetType"
+                            "$ref": "#/definitions/pet.PetType"
                         }
                     ]
                 },
@@ -425,7 +351,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/types.PetSex"
+                            "$ref": "#/definitions/pet.PetSex"
                         }
                     ]
                 },
@@ -434,7 +360,7 @@ const docTemplate = `{
                 }
             }
         },
-        "views.AddPetsToOwnerRequest": {
+        "pet.AddPetsToOwnerRequest": {
             "type": "object",
             "required": [
                 "pets"
@@ -443,49 +369,45 @@ const docTemplate = `{
                 "pets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/views.AddPetRequest"
+                        "$ref": "#/definitions/pet.AddPetRequest"
                     }
                 }
             }
         },
-        "views.FindMyPetsView": {
+        "pet.FindMyPetsView": {
             "type": "object",
             "properties": {
                 "pets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/views.PetView"
+                        "$ref": "#/definitions/pet.PetView"
                     }
                 }
             }
         },
-        "views.FindUserResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                },
-                "profileImageUrl": {
-                    "type": "string"
-                }
-            }
+        "pet.PetSex": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "PetSexMale",
+                "PetSexFemale"
+            ]
         },
-        "views.PetView": {
+        "pet.PetType": {
+            "type": "string",
+            "enum": [
+                "dog",
+                "cat"
+            ],
+            "x-enum-varnames": [
+                "PetTypeDog",
+                "PetTypeCat"
+            ]
+        },
+        "pet.PetView": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -504,17 +426,95 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "pet_type": {
-                    "$ref": "#/definitions/types.PetType"
+                    "$ref": "#/definitions/pet.PetType"
                 },
                 "sex": {
-                    "$ref": "#/definitions/types.PetSex"
+                    "$ref": "#/definitions/pet.PetSex"
                 },
                 "weight_in_kg": {
                     "type": "number"
                 }
             }
         },
-        "views.RegisterUserRequest": {
+        "server.kakaoCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "authToken": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "photoURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.mediaView": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/models.MediaType"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.FindUserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.FirebaseProviderType": {
+            "type": "string",
+            "enum": [
+                "email",
+                "google",
+                "apple",
+                "kakao"
+            ],
+            "x-enum-varnames": [
+                "FirebaseProviderTypeEmail",
+                "FirebaseProviderTypeGoogle",
+                "FirebaseProviderTypeApple",
+                "FirebaseProviderTypeKakao"
+            ]
+        },
+        "user.RegisterUserRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -529,7 +529,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -545,14 +545,14 @@ const docTemplate = `{
                 }
             }
         },
-        "views.RegisterUserResponse": {
+        "user.RegisterUserResponse": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -571,7 +571,7 @@ const docTemplate = `{
                 }
             }
         },
-        "views.UpdateUserRequest": {
+        "user.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "nickname": {
@@ -582,14 +582,14 @@ const docTemplate = `{
                 }
             }
         },
-        "views.UpdateUserResponse": {
+        "user.UpdateUserResponse": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "fbUid": {
                     "type": "string"
@@ -608,7 +608,7 @@ const docTemplate = `{
                 }
             }
         },
-        "views.UserRegistrationStatus": {
+        "user.UserRegistrationStatus": {
             "type": "string",
             "enum": [
                 "NOT_REGISTERED",
@@ -619,7 +619,7 @@ const docTemplate = `{
                 "UserStatusRegistered"
             ]
         },
-        "views.UserStatusRequest": {
+        "user.UserStatusRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -630,14 +630,14 @@ const docTemplate = `{
                 }
             }
         },
-        "views.UserStatusView": {
+        "user.UserStatusView": {
             "type": "object",
             "properties": {
                 "fbProviderType": {
-                    "$ref": "#/definitions/models.FirebaseProviderType"
+                    "$ref": "#/definitions/user.FirebaseProviderType"
                 },
                 "status": {
-                    "$ref": "#/definitions/views.UserRegistrationStatus"
+                    "$ref": "#/definitions/user.UserRegistrationStatus"
                 }
             }
         }
