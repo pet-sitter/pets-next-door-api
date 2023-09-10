@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
@@ -30,9 +29,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
@@ -58,9 +57,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
@@ -88,9 +87,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
@@ -121,7 +120,7 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
@@ -137,9 +136,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
@@ -170,7 +169,7 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
 
@@ -186,9 +185,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
@@ -224,9 +223,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
@@ -266,9 +265,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(db, nil)
-			profile_image, _ := media_service.CreateMedia(&models.Media{
-				MediaType: models.IMAGE_MEDIA_TYPE,
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 

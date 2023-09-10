@@ -1,4 +1,4 @@
-package models
+package media
 
 type MediaType string
 
@@ -13,4 +13,16 @@ type Media struct {
 	CreatedAt string    `field:"created_at"`
 	UpdatedAt string    `field:"updated_at"`
 	DeletedAt string    `field:"deleted_at"`
+}
+
+type MediaStore interface {
+	CreateMedia(media *Media) (*Media, error)
+	FindMediaByID(id int) (*Media, error)
+}
+
+type MediaView struct {
+	ID        int       `json:"id"`
+	MediaType MediaType `json:"mediaType"`
+	URL       string    `json:"url"`
+	CreatedAt string    `json:"createdAt"`
 }

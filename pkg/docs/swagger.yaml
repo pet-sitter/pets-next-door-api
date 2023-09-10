@@ -1,11 +1,22 @@
 basePath: /api
 definitions:
-  models.MediaType:
+  media.MediaType:
     enum:
     - image
     type: string
     x-enum-varnames:
     - IMAGE_MEDIA_TYPE
+  media.MediaView:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      mediaType:
+        $ref: '#/definitions/media.MediaType'
+      url:
+        type: string
+    type: object
   pet.AddPetRequest:
     properties:
       birth_date:
@@ -101,17 +112,6 @@ definitions:
       fbUid:
         type: string
       photoURL:
-        type: string
-    type: object
-  server.mediaView:
-    properties:
-      createdAt:
-        type: string
-      id:
-        type: integer
-      mediaType:
-        $ref: '#/definitions/models.MediaType'
-      url:
         type: string
     type: object
   user.FindUserResponse:
@@ -273,7 +273,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.mediaView'
+            $ref: '#/definitions/media.MediaView'
       summary: 미디어를 ID로 조회합니다.
       tags:
       - media
@@ -293,7 +293,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/server.mediaView'
+            $ref: '#/definitions/media.MediaView'
       summary: 이미지를 업로드합니다.
       tags:
       - media

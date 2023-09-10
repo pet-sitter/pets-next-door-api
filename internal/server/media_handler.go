@@ -6,8 +6,7 @@ import (
 
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
-	"github.com/pet-sitter/pets-next-door-api/internal/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 )
 
 type mediaHandler struct {
@@ -20,20 +19,13 @@ func newMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 	}
 }
 
-type mediaView struct {
-	ID        int              `json:"id"`
-	MediaType models.MediaType `json:"mediaType"`
-	URL       string           `json:"url"`
-	CreatedAt string           `json:"createdAt"`
-}
-
 // findMediaByID godoc
 // @Summary 미디어를 ID로 조회합니다.
 // @Description
 // @Tags media
 // @Produce  json
 // @Param id path int true "미디어 ID"
-// @Success 200 {object} mediaView
+// @Success 200 {object} media.MediaView
 // @Router /media/{id} [get]
 func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 	id, err := webutils.ParseIdFromPath(r, "id")
@@ -42,17 +34,17 @@ func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	media, err := h.mediaService.FindMediaByID(id)
+	found, err := h.mediaService.FindMediaByID(id)
 	if err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 
-	commonviews.OK(w, nil, mediaView{
-		ID:        media.ID,
-		MediaType: media.MediaType,
-		URL:       media.URL,
-		CreatedAt: media.CreatedAt,
+	commonviews.OK(w, nil, media.MediaView{
+		ID:        found.ID,
+		MediaType: found.MediaType,
+		URL:       found.URL,
+		CreatedAt: found.CreatedAt,
 	})
 }
 
@@ -63,7 +55,7 @@ func (h *mediaHandler) findMediaByID(w http.ResponseWriter, r *http.Request) {
 // @Accept  multipart/form-data
 // @Produce  json
 // @Param file formData file true "이미지 파일"
-// @Success 201 {object} mediaView
+// @Success 201 {object} media.MediaView
 // @Router /media/images [post]
 func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
@@ -83,7 +75,7 @@ func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.mediaService.UploadMedia(file, models.IMAGE_MEDIA_TYPE, header.Filename)
+	res, err := h.mediaService.UploadMedia(file, media.IMAGE_MEDIA_TYPE, header.Filename)
 	if err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
@@ -91,7 +83,7 @@ func (h *mediaHandler) uploadImage(w http.ResponseWriter, r *http.Request) {
 
 	commonviews.Created(w,
 		nil,
-		mediaView{
+		media.MediaView{
 			ID:        res.ID,
 			MediaType: res.MediaType,
 			URL:       res.URL,

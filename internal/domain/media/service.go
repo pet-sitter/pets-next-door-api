@@ -6,26 +6,24 @@ import (
 
 	"github.com/aws/aws-sdk-go/private/protocol/rest"
 	"github.com/google/uuid"
-	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
-	"github.com/pet-sitter/pets-next-door-api/internal/models"
 )
 
 type MediaService struct {
-	db       *database.DB
-	s3Client *s3infra.S3Client
+	mediaStore MediaStore
+	s3Client   *s3infra.S3Client
 }
 
 type MediaServicer interface {
-	UploadMedia(file io.ReadSeeker, mediaType models.MediaType, fileName string) (*models.Media, error)
-	CreateMedia(media *models.Media) (*models.Media, error)
-	FindMediaByID(id int) (*models.Media, error)
+	UploadMedia(file io.ReadSeeker, mediaType MediaType, fileName string) (*Media, error)
+	CreateMedia(media *Media) (*Media, error)
+	FindMediaByID(id int) (*Media, error)
 }
 
-func NewMediaService(db *database.DB, s3Client *s3infra.S3Client) *MediaService {
+func NewMediaService(mediaStore MediaStore, s3Client *s3infra.S3Client) *MediaService {
 	return &MediaService{
-		db:       db,
-		s3Client: s3Client,
+		mediaStore: mediaStore,
+		s3Client:   s3Client,
 	}
 }
 
@@ -38,7 +36,7 @@ type UploadFileResponse struct {
 	FileEndpoint string
 }
 
-func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType models.MediaType, fileName string) (*models.Media, error) {
+func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType MediaType, fileName string) (*Media, error) {
 	randomFileName := generateRandomFileName(fileName)
 	fullPath := "media/" + randomFileName
 
@@ -52,7 +50,7 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType models.MediaTyp
 		return nil, err
 	}
 
-	created, err := s.CreateMedia(&models.Media{
+	created, err := s.CreateMedia(&Media{
 		MediaType: mediaType,
 		URL:       req.HTTPRequest.URL.String(),
 	})
@@ -64,30 +62,18 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType models.MediaTyp
 	return created, nil
 }
 
-func (s *MediaService) CreateMedia(media *models.Media) (*models.Media, error) {
-	tx, _ := s.db.Begin()
-
-	created, err := tx.CreateMedia(media)
+func (s *MediaService) CreateMedia(media *Media) (*Media, error) {
+	created, err := s.mediaStore.CreateMedia(media)
 	if err != nil {
-		return nil, err
-	}
-
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
 	return created, nil
 }
 
-func (s *MediaService) FindMediaByID(id int) (*models.Media, error) {
-	tx, _ := s.db.Begin()
-
-	media, err := tx.FindMediaByID(id)
+func (s *MediaService) FindMediaByID(id int) (*Media, error) {
+	media, err := s.mediaStore.FindMediaByID(id)
 	if err != nil {
-		return nil, err
-	}
-
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 

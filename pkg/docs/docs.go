@@ -79,7 +79,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/server.mediaView"
+                            "$ref": "#/definitions/media.MediaView"
                         }
                     }
                 }
@@ -107,7 +107,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.mediaView"
+                            "$ref": "#/definitions/media.MediaView"
                         }
                     }
                 }
@@ -300,7 +300,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.MediaType": {
+        "media.MediaType": {
             "type": "string",
             "enum": [
                 "image"
@@ -308,6 +308,23 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "IMAGE_MEDIA_TYPE"
             ]
+        },
+        "media.MediaView": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/media.MediaType"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
         },
         "pet.AddPetRequest": {
             "type": "object",
@@ -452,23 +469,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "photoURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.mediaView": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "mediaType": {
-                    "$ref": "#/definitions/models.MediaType"
-                },
-                "url": {
                     "type": "string"
                 }
             }
