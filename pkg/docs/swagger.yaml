@@ -1,5 +1,18 @@
 basePath: /api
 definitions:
+  auth.KakaoCallbackResponse:
+    properties:
+      authToken:
+        type: string
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/user.FirebaseProviderType'
+      fbUid:
+        type: string
+      photoURL:
+        type: string
+    type: object
   media.MediaType:
     enum:
     - image
@@ -100,19 +113,6 @@ definitions:
         $ref: '#/definitions/pet.PetSex'
       weight_in_kg:
         type: number
-    type: object
-  server.kakaoCallbackResponse:
-    properties:
-      authToken:
-        type: string
-      email:
-        type: string
-      fbProviderType:
-        $ref: '#/definitions/user.FirebaseProviderType'
-      fbUid:
-        type: string
-      photoURL:
-        type: string
     type: object
   user.FindUserResponse:
     properties:
@@ -247,7 +247,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.kakaoCallbackResponse'
+            $ref: '#/definitions/auth.KakaoCallbackResponse'
       summary: Kakao 회원가입 콜백 API
       tags:
       - auth

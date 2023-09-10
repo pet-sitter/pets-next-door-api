@@ -1,4 +1,4 @@
-package server
+package handler
 
 import (
 	"encoding/json"
@@ -7,17 +7,20 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
 type UserHandler struct {
 	userService user.UserServicer
+	authService auth.AuthService
 }
 
-func newUserHandler(userService user.UserServicer) *UserHandler {
+func NewUserHandler(userService user.UserServicer, authService auth.AuthService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
+		authService: authService,
 	}
 }
 
@@ -88,7 +91,7 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Success 200 {object} user.FindUserResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
-	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
+	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		log.Printf("verifyAuth error: %v\n", err)
@@ -117,7 +120,7 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} user.UpdateUserResponse
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
-	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
+	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
@@ -158,7 +161,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Router /users/me/pets [put]
 func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
-	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
+	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
@@ -188,7 +191,7 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} pet.FindMyPetsView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
-	idToken, err := verifyAuth(r.Context(), r.Header.Get("Authorization"))
+	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
