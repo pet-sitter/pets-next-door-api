@@ -3,10 +3,10 @@ package user_test
 import (
 	"testing"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )

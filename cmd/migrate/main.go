@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
-	"github.com/pet-sitter/pets-next-door-api/internal/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 func main() {
