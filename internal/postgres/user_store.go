@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/internal/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 type UserPostgresStore struct {
