@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"log"
 	"net/http"
 
@@ -63,10 +64,14 @@ func addRoutes(r *chi.Mux, authService auth.AuthService) {
 		postgres.NewPetPostgresStore(db),
 		mediaService,
 	)
+	breedService := pet.NewBreedService(
+		postgres.NewBreedPostgresStore(db),
+	)
 
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoClient())
 	userHandler := handler.NewUserHandler(userService, authService)
 	mediaHandler := handler.NewMediaHandler(mediaService)
+	breedHandler := handler.NewBreedHandler(breedService)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -93,6 +98,9 @@ func addRoutes(r *chi.Mux, authService auth.AuthService) {
 			r.Put("/me", userHandler.UpdateMyProfile)
 			r.Get("/me/pets", userHandler.FindMyPets)
 			r.Put("/me/pets", userHandler.AddMyPets)
+		})
+		r.Route("/breeds", func(r chi.Router) {
+			r.Get("/", breedHandler.FindBreeds)
 		})
 	})
 }
