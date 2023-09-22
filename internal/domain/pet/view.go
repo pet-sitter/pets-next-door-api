@@ -28,3 +28,9 @@ type PetView struct {
 	BirthDate  string  `json:"birth_date"`
 	WeightInKg float64 `json:"weight_in_kg"`
 }
+
+type BreedView struct {
+	ID      int     `json:"id"`
+	PetType PetType `json:"pet_type"`
+	Name    string  `json:"name"`
+}

@@ -53,6 +53,9 @@ var B2BucketName = os.Getenv("B2_BUCKET_NAME")
 var B2Endpoint = os.Getenv("B2_ENDPOINT")
 var B2Region = os.Getenv("B2_REGION")
 
+var GoogleSheetsAPIKey = os.Getenv("GOOGLE_SHEETS_API_KEY")
+var BreedsSheetsID = os.Getenv("BREEDS_SHEETS_ID")
+
 func init() {
 	if Port == "" {
 		Port = "8080"
