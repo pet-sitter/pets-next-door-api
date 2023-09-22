@@ -13,6 +13,17 @@ definitions:
       photoURL:
         type: string
     type: object
+  commonviews.PaginatedView-pet_BreedView:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/pet.BreedView'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
   media.MediaType:
     enum:
     - image
@@ -71,6 +82,15 @@ definitions:
         type: array
     required:
     - pets
+    type: object
+  pet.BreedView:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      pet_type:
+        $ref: '#/definitions/pet.PetType'
     type: object
   pet.FindMyPetsView:
     properties:
@@ -259,6 +279,38 @@ paths:
       summary: Kakao 로그인 페이지로 redirect 합니다.
       tags:
       - auth
+  /breeds:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 페이지 번호
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 페이지 사이즈
+        in: query
+        name: size
+        type: integer
+      - description: 펫 종류
+        enum:
+        - dog
+        - cat
+        in: query
+        name: pet_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/commonviews.PaginatedView-pet_BreedView'
+      summary: 견/묘종을 조회합니다.
+      tags:
+      - pets
   /media/{id}:
     get:
       parameters:

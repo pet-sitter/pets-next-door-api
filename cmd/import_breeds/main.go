@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("error initializing google sheets client: %v\n", err)
 	}
 
-	spreadsheet, err := client.GetSpreadsheet(configs.BreedsSheetsID)
+	spreadsheet, err := client.GetSpreadsheet(configs.BreedsGoogleSheetsID)
 
 	switch flags.petTypeToImport {
 	case Cat:

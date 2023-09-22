@@ -54,7 +54,7 @@ var B2Endpoint = os.Getenv("B2_ENDPOINT")
 var B2Region = os.Getenv("B2_REGION")
 
 var GoogleSheetsAPIKey = os.Getenv("GOOGLE_SHEETS_API_KEY")
-var BreedsSheetsID = os.Getenv("BREEDS_SHEETS_ID")
+var BreedsGoogleSheetsID = os.Getenv("BREEDS_GOOGLE_SHEETS_ID")
 
 func init() {
 	if Port == "" {

@@ -5,6 +5,20 @@ import (
 	"net/http"
 )
 
+type PaginatedView[T interface{}] struct {
+	Page  int `json:"page"`
+	Size  int `json:"size"`
+	Items []T `json:"items"`
+}
+
+func NewPaginatedView[T interface{}](page int, size int, items []T) *PaginatedView[T] {
+	return &PaginatedView[T]{
+		Page:  page,
+		Size:  size,
+		Items: items,
+	}
+}
+
 func writePayload(w http.ResponseWriter, headers map[string]string, payload interface{}, statusCode int) error {
 	setHeaders(w, headers)
 
