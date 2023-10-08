@@ -26,29 +26,14 @@ import (
 func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	r := chi.NewRouter()
 
-	authClient, err := app.Auth(context.Background())
-	authService := auth.NewFirebaseBearerAuthService(authClient)
-	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
-	}
-
-	registerMiddlewares(r, app, authService)
-	addRoutes(r, authService)
-
-	return r
-}
-
-func registerMiddlewares(r *chi.Mux, app *firebaseinfra.FirebaseApp, authService auth.AuthService) {
-	r.Use(middleware.Logger)
-	r.Use(pndMiddleware.BuildAuthMiddleware(&authService, auth.FirebaseAuthClientKey))
-}
-
-func addRoutes(r *chi.Mux, authService auth.AuthService) {
 	db, err := database.Open(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
+	authClient, err := app.Auth(context.Background())
+
+	// Initialize services
 	mediaService := media.NewMediaService(
 		postgres.NewMediaPostgresStore(db),
 		s3infra.NewS3Client(
@@ -59,20 +44,33 @@ func addRoutes(r *chi.Mux, authService auth.AuthService) {
 			configs.B2BucketName,
 		),
 	)
+
 	userService := user.NewUserService(
 		postgres.NewUserPostgresStore(db),
 		postgres.NewPetPostgresStore(db),
 		mediaService,
 	)
+
+	authService := auth.NewFirebaseBearerAuthService(authClient, userService)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+
 	breedService := pet.NewBreedService(
 		postgres.NewBreedPostgresStore(db),
 	)
 
+	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoClient())
 	userHandler := handler.NewUserHandler(userService, authService)
 	mediaHandler := handler.NewMediaHandler(mediaService)
 	breedHandler := handler.NewBreedHandler(breedService)
 
+	// Register middlewares
+	r.Use(middleware.Logger)
+	r.Use(pndMiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
+
+	// Register routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -103,4 +101,6 @@ func addRoutes(r *chi.Mux, authService auth.AuthService) {
 			r.Get("/", breedHandler.FindBreeds)
 		})
 	})
+
+	return r
 }

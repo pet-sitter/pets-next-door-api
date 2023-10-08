@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/go-playground/validator"
@@ -91,18 +90,9 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Success 200 {object} user.FindUserResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
-	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
+	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
-		log.Printf("verifyAuth error: %v\n", err)
-		return
-	}
-
-	uid := idToken.UID
-
-	res, err := h.userService.FindUserByUID(uid)
-	if err != nil {
-		commonviews.Unauthorized(w, nil, "not registered")
 		return
 	}
 
@@ -120,13 +110,13 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} user.UpdateUserResponse
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
-	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
-	uid := idToken.UID
+	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
 	if err := commonviews.ParseBody(w, r, &updateUserRequest); err != nil {
@@ -161,13 +151,13 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Router /users/me/pets [put]
 func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
-	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
-	uid := idToken.UID
+	uid := foundUser.FirebaseUID
 
 	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
 	if err := commonviews.ParseBody(w, r, &addPetsToOwnerRequest); err != nil {
@@ -191,13 +181,13 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} pet.FindMyPetsView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
-	idToken, err := h.authService.VerifyAuth(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
 		return
 	}
 
-	uid := idToken.UID
+	uid := foundUser.FirebaseUID
 
 	res, err := h.userService.FindPetsByOwnerUID(uid)
 	if err != nil {
