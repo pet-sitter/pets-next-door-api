@@ -76,7 +76,8 @@ func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfile
 	ON
 		users.profile_image_id = media.id
 	WHERE
-		users.email = $1
+		users.email = $1 AND
+		users.deleted_at IS NULL
 	`,
 		email,
 	).Scan(
@@ -121,7 +122,8 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	ON
 		users.profile_image_id = media.id
 	WHERE
-		users.fb_uid = $1
+		users.fb_uid = $1 AND
+		users.deleted_at IS NULL
 	`,
 		uid,
 	).Scan(
@@ -154,7 +156,8 @@ func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatu
 	FROM
 		users
 	WHERE
-		email = $1
+		email = $1 AND
+		deleted_at IS NULL
 	`,
 		email,
 	).Scan(
@@ -181,7 +184,8 @@ func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profile
 		profile_image_id = $2,
 		updated_at = NOW()
 	WHERE
-		fb_uid = $3
+		fb_uid = $3 AND
+		deleted_at IS NULL
 	RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at
 	`,
 		nickname,
