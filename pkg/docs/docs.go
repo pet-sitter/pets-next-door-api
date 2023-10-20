@@ -193,6 +193,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/check/nickname": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "닉네임 중복 여부를 조회합니다.",
+                "parameters": [
+                    {
+                        "description": "사용자 닉네임 중복 조회 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.CheckNicknameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.CheckNicknameView"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "security": [
@@ -551,6 +584,25 @@ const docTemplate = `{
                 }
             }
         },
+        "user.CheckNicknameRequest": {
+            "type": "object",
+            "required": [
+                "nickname"
+            ],
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.CheckNicknameView": {
+            "type": "object",
+            "properties": {
+                "isAvailable": {
+                    "type": "boolean"
+                }
+            }
+        },
         "user.FindUserResponse": {
             "type": "object",
             "properties": {
@@ -731,7 +783,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.4.0",
+	Version:          "0.5.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},

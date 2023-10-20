@@ -180,6 +180,52 @@ func TestUserService(t *testing.T) {
 		})
 	})
 
+	t.Run("ExistsByNickname", func(t *testing.T) {
+		t.Run("사용자의 닉네임이 존재하지 않을 경우 false를 반환한다", func(t *testing.T) {
+			tearDown := setUp(t)
+			defer tearDown(t)
+
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+
+			exists, _ := service.ExistsByNickname("non-existent")
+			if exists {
+				t.Errorf("got %v want %v", exists, false)
+			}
+		})
+
+		t.Run("사용자의 닉네임이 존재할 경우 true를 반환한다", func(t *testing.T) {
+			tearDown := setUp(t)
+			defer tearDown(t)
+
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+
+			user := &user.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             "nickname",
+				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
+				FirebaseProviderType: "kakao",
+				FirebaseUID:          "uid",
+			}
+
+			_, _ = service.RegisterUser(user)
+
+			exists, _ := service.ExistsByNickname(user.Nickname)
+
+			if !exists {
+				t.Errorf("got %v want %v", exists, true)
+			}
+		})
+	})
+
 	t.Run("FindUserStatusByEmail", func(t *testing.T) {
 		t.Run("사용자의 상태를 반환한다", func(t *testing.T) {
 			tearDown := setUp(t)
