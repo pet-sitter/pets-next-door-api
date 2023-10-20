@@ -134,6 +134,18 @@ definitions:
       weight_in_kg:
         type: number
     type: object
+  user.CheckNicknameRequest:
+    properties:
+      nickname:
+        type: string
+    required:
+    - nickname
+    type: object
+  user.CheckNicknameView:
+    properties:
+      isAvailable:
+        type: boolean
+    type: object
   user.FindUserResponse:
     properties:
       email:
@@ -258,7 +270,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.4.0
+  version: 0.5.0
 paths:
   /auth/callback/kakao:
     get:
@@ -368,6 +380,27 @@ paths:
           schema:
             $ref: '#/definitions/user.RegisterUserResponse'
       summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
+      tags:
+      - users
+  /users/check/nickname:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 사용자 닉네임 중복 조회 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CheckNicknameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.CheckNicknameView'
+      summary: 닉네임 중복 여부를 조회합니다.
       tags:
       - users
   /users/me:

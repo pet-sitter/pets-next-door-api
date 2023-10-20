@@ -146,6 +146,39 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	return user, nil
 }
 
+func (s *UserPostgresStore) ExistsByNickname(nickname string) (bool, error) {
+	var exists bool
+
+	tx, _ := s.db.Begin()
+	err := tx.QueryRow(`
+	SELECT
+		CASE
+		    WHEN EXISTS (
+				SELECT
+					1
+				FROM
+					users
+				WHERE
+					nickname = $1 AND
+					deleted_at IS NULL
+			) THEN TRUE
+			ELSE FALSE
+		END
+	`,
+		nickname,
+	).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatus, error) {
 	var userStatus user.UserStatus
 

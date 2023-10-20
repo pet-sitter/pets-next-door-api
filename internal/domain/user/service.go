@@ -23,6 +23,7 @@ type UserServicer interface {
 	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, error)
 	FindUserByEmail(email string) (*UserWithProfileImage, error)
 	FindUserByUID(uid string) (*FindUserResponse, error)
+	ExistsByNickname(nickname string) (bool, error)
 	FindUserStatusByEmail(email string) (*UserStatus, error)
 	UpdateUserByUID(uid string, nickname string, profileImageID int) (*UserWithProfileImage, error)
 	AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, error)
@@ -79,6 +80,10 @@ func (service *UserService) FindUserByUID(uid string) (*FindUserResponse, error)
 		FirebaseProviderType: user.FirebaseProviderType,
 		FirebaseUID:          user.FirebaseUID,
 	}, nil
+}
+
+func (service *UserService) ExistsByNickname(nickname string) (bool, error) {
+	return service.userStore.ExistsByNickname(nickname)
 }
 
 func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, error) {

@@ -52,6 +52,30 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	commonviews.Created(w, nil, res)
 }
 
+// CheckUserNickname godoc
+// @Summary 닉네임 중복 여부를 조회합니다.
+// @Description
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param request body user.CheckNicknameRequest true "사용자 닉네임 중복 조회 요청"
+// @Success 200 {object} user.CheckNicknameView
+// @Router /users/check/nickname [post]
+func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) {
+	var checkUserNicknameRequest user.CheckNicknameRequest
+	if err := commonviews.ParseBody(w, r, &checkUserNicknameRequest); err != nil {
+		return
+	}
+
+	exists, err := h.userService.ExistsByNickname(checkUserNicknameRequest.Nickname)
+	if err != nil {
+		commonviews.InternalServerError(w, nil, err.Error())
+		return
+	}
+
+	commonviews.OK(w, nil, user.CheckNicknameView{IsAvailable: !exists})
+}
+
 // FindUserStatusByEmail godoc
 // @Summary 이메일로 유저의 가입 상태를 조회합니다.
 // @Description

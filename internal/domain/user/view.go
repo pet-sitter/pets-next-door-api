@@ -29,6 +29,14 @@ type FindUserResponse struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
+type CheckNicknameRequest struct {
+	Nickname string `json:"nickname" validate:"required"`
+}
+
+type CheckNicknameView struct {
+	IsAvailable bool `json:"isAvailable"`
+}
+
 type UserStatusRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
