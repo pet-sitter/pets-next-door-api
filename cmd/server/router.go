@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
