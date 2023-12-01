@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"log"
 	"net/http"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -60,11 +62,17 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 		postgres.NewBreedPostgresStore(db),
 	)
 
+	sosPostService := sos_post.NewSosPostService(
+		postgres.NewSosPostPostgresStore(db),
+		postgres.NewResourceMediaPostgresStore(db),
+	)
+
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoClient())
 	userHandler := handler.NewUserHandler(userService, authService)
 	mediaHandler := handler.NewMediaHandler(mediaService)
 	breedHandler := handler.NewBreedHandler(breedService)
+	sosPostHandler := handler.NewSosPostHandler(*sosPostService, authService)
 
 	// Register middlewares
 	r.Use(middleware.Logger)
@@ -100,6 +108,13 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 		})
 		r.Route("/breeds", func(r chi.Router) {
 			r.Get("/", breedHandler.FindBreeds)
+		})
+		r.Route("/posts", func(r chi.Router) {
+			r.Post("/sos", sosPostHandler.UploadSosPost)
+			r.Get("/sos/author", sosPostHandler.FindSosPostsByAuthorID)
+			r.Get("/sos/{id}", sosPostHandler.FindSosPostByID)
+			r.Get("/sos", sosPostHandler.FindSosPosts)
+			r.Put("/sos", sosPostHandler.UpdateSosPost)
 		})
 	})
 

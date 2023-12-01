@@ -160,6 +160,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts/sos": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "전체 돌봄급구 게시글을 조회합니다.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "페이지 번호",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "페이지 사이즈",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "deadline"
+                        ],
+                        "type": "string",
+                        "description": "정렬 기준",
+                        "name": "sort_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "돌봄급구 게시글을 수정합니다.",
+                "parameters": [
+                    {
+                        "description": "돌봄급구 수정 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sos_post.UpdateSosPostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "돌봄급구 게시글을 업로드합니다.",
+                "parameters": [
+                    {
+                        "description": "돌봄급구 게시글 업로드 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sos_post.UploadSosPostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/sos_post.UploadSosPostResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/sos/author": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "작성자 ID로 돌봄급구 게시글을 조회합니다.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "페이지 번호",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "페이지 사이즈",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/sos/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "게시글 ID로 돌봄급구 게시글을 조회합니다.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "게시글 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "post": {
                 "consumes": [
@@ -417,6 +618,23 @@ const docTemplate = `{
                 }
             }
         },
+        "commonviews.PaginatedView-sos_post_FindSosPostResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "media.MediaType": {
             "type": "string",
             "enum": [
@@ -581,6 +799,354 @@ const docTemplate = `{
                 },
                 "weight_in_kg": {
                     "type": "number"
+                }
+            }
+        },
+        "sos_post.CareType": {
+            "type": "string",
+            "enum": [
+                "foster",
+                "visiting"
+            ],
+            "x-enum-varnames": [
+                "CareTypeFoster",
+                "CareTypeVisiting"
+            ]
+        },
+        "sos_post.CarerGender": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "CarerGenderMale",
+                "CarerGenderFemale"
+            ]
+        },
+        "sos_post.ConditionView": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "sos_post.FindSosPostResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "integer"
+                },
+                "care_type": {
+                    "$ref": "#/definitions/sos_post.CareType"
+                },
+                "carer_gender": {
+                    "$ref": "#/definitions/sos_post.CarerGender"
+                },
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.ConditionView"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "date_end_at": {
+                    "type": "string"
+                },
+                "date_start_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/media.MediaView"
+                    }
+                },
+                "pets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pet.PetView"
+                    }
+                },
+                "reward": {
+                    "type": "string"
+                },
+                "reward_amount": {
+                    "$ref": "#/definitions/sos_post.RewardAmount"
+                },
+                "thumbnail_id": {
+                    "type": "integer"
+                },
+                "time_end_at": {
+                    "type": "string"
+                },
+                "time_start_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "sos_post.RewardAmount": {
+            "type": "string",
+            "enum": [
+                "hour"
+            ],
+            "x-enum-varnames": [
+                "RewardAmountHour"
+            ]
+        },
+        "sos_post.UpdateSosPostRequest": {
+            "type": "object",
+            "required": [
+                "care_type",
+                "carer_gender",
+                "content",
+                "date_end_at",
+                "date_start_at",
+                "id",
+                "image_ids",
+                "reward",
+                "reward_amount",
+                "time_end_at",
+                "time_start_at",
+                "title"
+            ],
+            "properties": {
+                "care_type": {
+                    "enum": [
+                        "foster",
+                        "visiting"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.CareType"
+                        }
+                    ]
+                },
+                "carer_gender": {
+                    "enum": [
+                        "male",
+                        "female"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.CarerGender"
+                        }
+                    ]
+                },
+                "condition_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "date_end_at": {
+                    "type": "string"
+                },
+                "date_start_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "pet_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "reward": {
+                    "type": "string"
+                },
+                "reward_amount": {
+                    "enum": [
+                        "hour"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.RewardAmount"
+                        }
+                    ]
+                },
+                "time_end_at": {
+                    "type": "string"
+                },
+                "time_start_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "sos_post.UploadSosPostRequest": {
+            "type": "object",
+            "required": [
+                "care_type",
+                "carer_gender",
+                "content",
+                "date_end_at",
+                "date_start_at",
+                "image_ids",
+                "reward",
+                "reward_amount",
+                "time_end_at",
+                "time_start_at",
+                "title"
+            ],
+            "properties": {
+                "care_type": {
+                    "enum": [
+                        "foster",
+                        "visiting"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.CareType"
+                        }
+                    ]
+                },
+                "carer_gender": {
+                    "enum": [
+                        "male",
+                        "female"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.CarerGender"
+                        }
+                    ]
+                },
+                "condition_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "date_end_at": {
+                    "type": "string"
+                },
+                "date_start_at": {
+                    "type": "string"
+                },
+                "image_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "pet_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "reward": {
+                    "type": "string"
+                },
+                "reward_amount": {
+                    "enum": [
+                        "hour"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sos_post.RewardAmount"
+                        }
+                    ]
+                },
+                "time_end_at": {
+                    "type": "string"
+                },
+                "time_start_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "sos_post.UploadSosPostResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "integer"
+                },
+                "care_type": {
+                    "$ref": "#/definitions/sos_post.CareType"
+                },
+                "carer_gender": {
+                    "$ref": "#/definitions/sos_post.CarerGender"
+                },
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.ConditionView"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "date_end_at": {
+                    "type": "string"
+                },
+                "date_start_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/media.MediaView"
+                    }
+                },
+                "pets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pet.PetView"
+                    }
+                },
+                "reward": {
+                    "type": "string"
+                },
+                "reward_amount": {
+                    "$ref": "#/definitions/sos_post.RewardAmount"
+                },
+                "thumbnail_id": {
+                    "type": "integer"
+                },
+                "time_end_at": {
+                    "type": "string"
+                },
+                "time_start_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
