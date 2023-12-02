@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS sos_posts (
  thumbnail_ID BIGINT
 ) INHERITS (base_posts);
 
+CREATE INDEX IF NOT EXISTS sos_posts_author_id_deleted_at ON sos_posts(author_id);
+
 CREATE TABLE IF NOT EXISTS resource_media (
   id SERIAL PRIMARY KEY,
   media_id BIGINT REFERENCES media(id),
@@ -20,6 +22,8 @@ CREATE TABLE IF NOT EXISTS resource_media (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS resource_media_resource_id ON resource_media(resource_id);
 
 CREATE TABLE IF NOT EXISTS sos_conditions (
     id SERIAL PRIMARY KEY,
@@ -38,6 +42,8 @@ CREATE TABLE IF NOT EXISTS sos_posts_conditions (
   deleted_at TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS sos_posts_conditions_sos_post_id ON sos_posts_conditions(sos_post_id);
+
 CREATE TABLE IF NOT EXISTS sos_posts_pets (
   id SERIAL PRIMARY KEY,
   sos_post_id BIGINT REFERENCES sos_posts(id),
@@ -46,3 +52,5 @@ CREATE TABLE IF NOT EXISTS sos_posts_pets (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS sos_posts_pets_sos_post_id ON sos_posts_pets(sos_post_id);
