@@ -12,7 +12,6 @@ func main() {
 	log.Println("Starting to import condition")
 
 	db, err := database.Open(configs.DatabaseURL)
-
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
@@ -20,7 +19,6 @@ func main() {
 	conditionStore := postgres.NewConditionPostgresStore(db)
 
 	result, err := conditionStore.InitConditions(sos_post.ConditionName)
-
 	if err != nil {
 		log.Fatalf("error initializing condition: %v\n", err)
 	}
