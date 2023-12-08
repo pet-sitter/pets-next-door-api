@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS resource_media_resource_id ON resource_media (resourc
 
 CREATE TABLE IF NOT EXISTS sos_conditions
 (
-    id         SERIAL PRIMARY KEY,
+    id         INT PRIMARY KEY,
     name       VARCHAR(50),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
