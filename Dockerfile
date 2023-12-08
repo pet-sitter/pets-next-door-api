@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o ./server ./cmd/server/*.go
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./migrate ./cmd/migrate/*.go
 # scripts
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./import_breeds ./cmd/import_breeds/*.go
-
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./import_breeds ./cmd/import_conditions/*.go
 # Test stage
 FROM build-stage AS run-test-stage
 RUN go test -v ./...
