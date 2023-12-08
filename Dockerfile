@@ -23,6 +23,7 @@ COPY --from=build-stage /app/migrate /migrate
 COPY --from=build-stage /app/db/migrations /db/migrations
 # scripts
 COPY --from=build-stage /app/import_breeds /import_breeds
+COPY --from=build-stage /app/import_conditions /import_conditions
 EXPOSE 8080
 RUN adduser -D nonroot
 USER nonroot:nonroot
