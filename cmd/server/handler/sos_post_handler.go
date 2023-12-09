@@ -24,17 +24,17 @@ func NewSosPostHandler(sosPostService sos_post.SosPostService, authService auth.
 	}
 }
 
-// uploadSosPost godoc
+// writeSosPost godoc
 // @Summary 돌봄급구 게시글을 업로드합니다.
 // @Description
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param request body sos_post.UploadSosPostRequest true "돌봄급구 게시글 업로드 요청"
+// @Param request body sos_post.WriteSosPostRequest true "돌봄급구 게시글 업로드 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} sos_post.UploadSosPostResponse
+// @Success 201 {object} sos_post.WriteSosPostResponse
 // @Router /posts/sos [post]
-func (h *SosPostHandler) UploadSosPost(w http.ResponseWriter, r *http.Request) {
+func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		commonviews.Unauthorized(w, nil, "unauthorized")
@@ -43,18 +43,18 @@ func (h *SosPostHandler) UploadSosPost(w http.ResponseWriter, r *http.Request) {
 
 	uid, _ := strconv.Atoi(foundUser.FirebaseUID)
 
-	var uploadSosPostRequest sos_post.UploadSosPostRequest
+	var writeSosPostRequest sos_post.WriteSosPostRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&uploadSosPostRequest); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&writeSosPostRequest); err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
-	if err := validator.New().Struct(uploadSosPostRequest); err != nil {
+	if err := validator.New().Struct(writeSosPostRequest); err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
 	}
 
-	res, err := h.sosPostService.UploadSosPost(uid, &uploadSosPostRequest)
+	res, err := h.sosPostService.WriteSosPost(uid, &writeSosPostRequest)
 	if err != nil {
 		commonviews.InternalServerError(w, nil, err.Error())
 		return
@@ -201,8 +201,23 @@ func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request)
 // @Success 200
 // @Router /posts/sos [put]
 func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	if err != nil {
+		commonviews.Unauthorized(w, nil, "unauthorized")
+		return
+	}
+
+	uid, _ := strconv.Atoi(foundUser.FirebaseUID)
+
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
 	if err := commonviews.ParseBody(w, r, &updateSosPostRequest); err != nil {
+		return
+	}
+
+	permission := h.sosPostService.CheckUpdatePermission(uid, updateSosPostRequest.ID)
+
+	if !permission {
+		commonviews.Forbidden(w, nil, "forbidden")
 		return
 	}
 

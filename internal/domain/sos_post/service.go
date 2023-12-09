@@ -17,8 +17,8 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) UploadSosPost(authorID int, request *UploadSosPostRequest) (*UploadSosPostResponse, error) {
-	sosPost, err := service.sosPostStore.CreateSosPost(authorID, request)
+func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
+	sosPost, err := service.sosPostStore.WriteSosPost(authorID, request)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (service *SosPostService) UploadSosPost(authorID int, request *UploadSosPos
 		petsView = append(petsView, p)
 	}
 
-	return &UploadSosPostResponse{
+	return &WriteSosPostResponse{
 		ID:           sosPost.ID,
 		AuthorID:     sosPost.AuthorID,
 		Title:        sosPost.Title,
@@ -346,12 +346,12 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, er
 }
 
 func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostResponse, error) {
-	sosPost, err := service.sosPostStore.UpdateSosPost(request)
+	updateSosPost, err := service.sosPostStore.UpdateSosPost(request)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
+	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(updateSosPost.ID, string(media.SosResourceType))
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +368,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		mediaView = append(mediaView, view)
 	}
 
-	conditions, err := service.sosPostStore.FindConditionByID(sosPost.ID)
+	conditions, err := service.sosPostStore.FindConditionByID(updateSosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +383,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		conditionsView = append(conditionsView, view)
 	}
 
-	pets, err := service.sosPostStore.FindPetsByID(sosPost.ID)
+	pets, err := service.sosPostStore.FindPetsByID(updateSosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -404,21 +404,29 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 	}
 
 	return &UpdateSosPostResponse{
-		ID:           sosPost.ID,
-		AuthorID:     sosPost.AuthorID,
-		Title:        sosPost.Title,
-		Content:      sosPost.Content,
+		ID:           updateSosPost.ID,
+		AuthorID:     updateSosPost.AuthorID,
+		Title:        updateSosPost.Title,
+		Content:      updateSosPost.Content,
 		Media:        mediaView,
 		Conditions:   conditionsView,
 		Pets:         petsView,
-		Reward:       sosPost.Reward,
-		DateStartAt:  sosPost.DateStartAt,
-		DateEndAt:    sosPost.DateEndAt,
-		TimeStartAt:  sosPost.TimeStartAt,
-		TimeEndAt:    sosPost.TimeEndAt,
-		CareType:     sosPost.CareType,
-		CarerGender:  sosPost.CarerGender,
-		RewardAmount: sosPost.RewardAmount,
-		ThumbnailID:  sosPost.ThumbnailID,
+		Reward:       updateSosPost.Reward,
+		DateStartAt:  updateSosPost.DateStartAt,
+		DateEndAt:    updateSosPost.DateEndAt,
+		TimeStartAt:  updateSosPost.TimeStartAt,
+		TimeEndAt:    updateSosPost.TimeEndAt,
+		CareType:     updateSosPost.CareType,
+		CarerGender:  updateSosPost.CarerGender,
+		RewardAmount: updateSosPost.RewardAmount,
+		ThumbnailID:  updateSosPost.ThumbnailID,
 	}, nil
+}
+
+func (service *SosPostService) CheckUpdatePermission(userID int, sosPostID int) bool {
+	sosPost, _ := service.sosPostStore.FindSosPostByID(sosPostID)
+	if sosPost.AuthorID != userID {
+		return false
+	}
+	return true
 }
