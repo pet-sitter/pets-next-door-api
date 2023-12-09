@@ -276,7 +276,7 @@ definitions:
     - time_start_at
     - title
     type: object
-  sos_post.UploadSosPostRequest:
+  sos_post.WriteSosPostRequest:
     properties:
       care_type:
         allOf:
@@ -334,7 +334,7 @@ definitions:
     - time_start_at
     - title
     type: object
-  sos_post.UploadSosPostResponse:
+  sos_post.WriteSosPostResponse:
     properties:
       author_id:
         type: integer
@@ -645,14 +645,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/sos_post.UploadSosPostRequest'
+          $ref: '#/definitions/sos_post.WriteSosPostRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/sos_post.UploadSosPostResponse'
+            $ref: '#/definitions/sos_post.WriteSosPostResponse'
       security:
       - FirebaseAuth: []
       summary: 돌봄급구 게시글을 업로드합니다.

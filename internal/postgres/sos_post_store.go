@@ -19,7 +19,7 @@ func NewSosPostPostgresStore(db *database.DB) *SosPostPostgresStore {
 	}
 }
 
-func (s *SosPostPostgresStore) CreateSosPost(authorID int, request *sos_post.UploadSosPostRequest) (*sos_post.SosPost, error) {
+func (s *SosPostPostgresStore) WriteSosPost(authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, error) {
 	sosPost := &sos_post.SosPost{}
 
 	tx, err := s.db.Begin()

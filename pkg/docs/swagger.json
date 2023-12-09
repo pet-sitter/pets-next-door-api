@@ -261,7 +261,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/sos_post.UploadSosPostRequest"
+                            "$ref": "#/definitions/sos_post.WriteSosPostRequest"
                         }
                     }
                 ],
@@ -269,7 +269,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.UploadSosPostResponse"
+                            "$ref": "#/definitions/sos_post.WriteSosPostResponse"
                         }
                     }
                 }
@@ -992,7 +992,7 @@
                 }
             }
         },
-        "sos_post.UploadSosPostRequest": {
+        "sos_post.WriteSosPostRequest": {
             "type": "object",
             "required": [
                 "care_type",
@@ -1081,7 +1081,7 @@
                 }
             }
         },
-        "sos_post.UploadSosPostResponse": {
+        "sos_post.WriteSosPostResponse": {
             "type": "object",
             "properties": {
                 "author_id": {

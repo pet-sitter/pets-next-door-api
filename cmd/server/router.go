@@ -110,7 +110,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 			r.Get("/", breedHandler.FindBreeds)
 		})
 		r.Route("/posts", func(r chi.Router) {
-			r.Post("/sos", sosPostHandler.UploadSosPost)
+			r.Post("/sos", sosPostHandler.WriteSosPost)
 			r.Get("/sos/author", sosPostHandler.FindSosPostsByAuthorID)
 			r.Get("/sos/{id}", sosPostHandler.FindSosPostByID)
 			r.Get("/sos", sosPostHandler.FindSosPosts)

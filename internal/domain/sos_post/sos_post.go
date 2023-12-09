@@ -44,7 +44,7 @@ type SosPost struct {
 }
 
 type SosPostStore interface {
-	CreateSosPost(authorID int, request *UploadSosPostRequest) (*SosPost, error)
+	WriteSosPost(authorID int, request *WriteSosPostRequest) (*SosPost, error)
 	FindSosPosts(page int, size int, sortBy string) ([]SosPost, error)
 	FindSosPostsByAuthorID(authorID int, page int, size int) ([]SosPost, error)
 	FindSosPostByID(id int) (*SosPost, error)

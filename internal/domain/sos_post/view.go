@@ -5,7 +5,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
 
-type UploadSosPostRequest struct {
+type WriteSosPostRequest struct {
 	Title        string       `json:"title" validate:"required"`
 	Content      string       `json:"content" validate:"required"`
 	ImageIDs     []int        `json:"image_ids" validate:"required"`
@@ -21,7 +21,7 @@ type UploadSosPostRequest struct {
 	PetIDs       []int        `json:"pet_ids"`
 }
 
-type UploadSosPostResponse struct {
+type WriteSosPostResponse struct {
 	ID           int               `json:"id"`
 	AuthorID     int               `json:"author_id"`
 	Title        string            `json:"title"`

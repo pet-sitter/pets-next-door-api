@@ -268,7 +268,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/sos_post.UploadSosPostRequest"
+                            "$ref": "#/definitions/sos_post.WriteSosPostRequest"
                         }
                     }
                 ],
@@ -276,7 +276,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.UploadSosPostResponse"
+                            "$ref": "#/definitions/sos_post.WriteSosPostResponse"
                         }
                     }
                 }
@@ -999,7 +999,7 @@ const docTemplate = `{
                 }
             }
         },
-        "sos_post.UploadSosPostRequest": {
+        "sos_post.WriteSosPostRequest": {
             "type": "object",
             "required": [
                 "care_type",
@@ -1088,7 +1088,7 @@ const docTemplate = `{
                 }
             }
         },
-        "sos_post.UploadSosPostResponse": {
+        "sos_post.WriteSosPostResponse": {
             "type": "object",
             "properties": {
                 "author_id": {
