@@ -32,8 +32,8 @@ type SosPost struct {
 	Reward       string       `field:"reward"`
 	DateStartAt  string       `field:"date_start_at"`
 	DateEndAt    string       `field:"date_end_at"`
-	TimeStartAt  string       `field:"time_start_at"`
-	TimeEndAt    string       `field:"time_end_at"`
+	TimeStartAt  time.Time    `field:"time_start_at"`
+	TimeEndAt    time.Time    `field:"time_end_at"`
 	CareType     CareType     `field:"care_type"`
 	CarerGender  CarerGender  `field:"carer_gender"`
 	RewardAmount RewardAmount `field:"reward_amount"`
@@ -44,7 +44,7 @@ type SosPost struct {
 }
 
 type SosPostStore interface {
-	WriteSosPost(authorID int, request *WriteSosPostRequest) (*SosPost, error)
+	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, error)
 	FindSosPosts(page int, size int, sortBy string) ([]SosPost, error)
 	FindSosPostsByAuthorID(authorID int, page int, size int) ([]SosPost, error)
 	FindSosPostByID(id int) (*SosPost, error)

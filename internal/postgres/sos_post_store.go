@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
@@ -19,7 +18,7 @@ func NewSosPostPostgresStore(db *database.DB) *SosPostPostgresStore {
 	}
 }
 
-func (s *SosPostPostgresStore) WriteSosPost(authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, error) {
+func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, error) {
 	sosPost := &sos_post.SosPost{}
 
 	tx, err := s.db.Begin()
@@ -67,8 +66,8 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, request *sos_post.Writ
 		request.Title,
 		request.Content,
 		request.Reward,
-		request.DateStartAt,
-		request.DateEndAt,
+		utcDateStart,
+		utcDateEnd,
 		request.TimeStartAt,
 		request.TimeEndAt,
 		request.CareType,
@@ -77,6 +76,9 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, request *sos_post.Writ
 		request.ImageIDs[0],
 	).Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID)
 
+	fmt.Println(sosPost.DateStartAt)
+	fmt.Println(sosPost.DateEndAt)
+	fmt.Println(sosPost.TimeStartAt)
 	if err != nil {
 		tx.Rollback()
 		return nil, err

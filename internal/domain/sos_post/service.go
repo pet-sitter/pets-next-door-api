@@ -4,6 +4,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"time"
 )
 
 type SosPostService struct {
@@ -26,7 +27,10 @@ func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostR
 		return nil, err
 	}
 
-	sosPost, err := service.sosPostStore.WriteSosPost(userID, request)
+	utcDateStart := request.DateStartAt.UTC().Format(time.RFC3339)
+	utcDateEnd := request.DateEndAt.UTC().Format(time.RFC3339)
+
+	sosPost, err := service.sosPostStore.WriteSosPost(userID, utcDateStart, utcDateEnd, request)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +98,8 @@ func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostR
 		Reward:       sosPost.Reward,
 		DateStartAt:  sosPost.DateStartAt,
 		DateEndAt:    sosPost.DateEndAt,
-		TimeStartAt:  sosPost.TimeStartAt,
-		TimeEndAt:    sosPost.TimeEndAt,
+		TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
+		TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
 		CareType:     sosPost.CareType,
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
@@ -175,8 +179,8 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			Reward:       sosPost.Reward,
 			DateStartAt:  sosPost.DateStartAt,
 			DateEndAt:    sosPost.DateEndAt,
-			TimeStartAt:  sosPost.TimeStartAt,
-			TimeEndAt:    sosPost.TimeEndAt,
+			TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
+			TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -261,8 +265,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			Reward:       sosPost.Reward,
 			DateStartAt:  sosPost.DateStartAt,
 			DateEndAt:    sosPost.DateEndAt,
-			TimeStartAt:  sosPost.TimeStartAt,
-			TimeEndAt:    sosPost.TimeEndAt,
+			TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
+			TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -344,8 +348,8 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, er
 		Reward:       sosPost.Reward,
 		DateStartAt:  sosPost.DateStartAt,
 		DateEndAt:    sosPost.DateEndAt,
-		TimeStartAt:  sosPost.TimeStartAt,
-		TimeEndAt:    sosPost.TimeEndAt,
+		TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
+		TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
 		CareType:     sosPost.CareType,
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
@@ -422,8 +426,8 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		Reward:       updateSosPost.Reward,
 		DateStartAt:  updateSosPost.DateStartAt,
 		DateEndAt:    updateSosPost.DateEndAt,
-		TimeStartAt:  updateSosPost.TimeStartAt,
-		TimeEndAt:    updateSosPost.TimeEndAt,
+		TimeStartAt:  datetimeToTime(updateSosPost.TimeStartAt),
+		TimeEndAt:    datetimeToTime(updateSosPost.TimeEndAt),
 		CareType:     updateSosPost.CareType,
 		CarerGender:  updateSosPost.CarerGender,
 		RewardAmount: updateSosPost.RewardAmount,
@@ -437,4 +441,8 @@ func (service *SosPostService) CheckUpdatePermission(userID int, sosPostID int) 
 		return false
 	}
 	return true
+}
+
+func datetimeToTime(datetime time.Time) string {
+	return datetime.Format("15:04")
 }

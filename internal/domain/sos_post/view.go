@@ -3,6 +3,7 @@ package sos_post
 import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"time"
 )
 
 type WriteSosPostRequest struct {
@@ -10,8 +11,8 @@ type WriteSosPostRequest struct {
 	Content      string       `json:"content" validate:"required"`
 	ImageIDs     []int        `json:"image_ids" validate:"required"`
 	Reward       string       `json:"reward" validate:"required"`
-	DateStartAt  string       `json:"date_start_at" validate:"required"`
-	DateEndAt    string       `json:"date_end_at" validate:"required"`
+	DateStartAt  time.Time    `json:"date_start_at" validate:"required"`
+	DateEndAt    time.Time    `json:"date_end_at" validate:"required"`
 	TimeStartAt  string       `json:"time_start_at" validate:"required"`
 	TimeEndAt    string       `json:"time_end_at" validate:"required"`
 	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
