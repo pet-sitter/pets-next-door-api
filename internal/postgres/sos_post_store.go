@@ -76,9 +76,6 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		request.ImageIDs[0],
 	).Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID)
 
-	fmt.Println(sosPost.DateStartAt)
-	fmt.Println(sosPost.DateEndAt)
-	fmt.Println(sosPost.TimeStartAt)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
