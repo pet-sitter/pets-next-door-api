@@ -607,6 +607,10 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: 작성자 ID
+        in: query
+        name: authorID
+        type: integer
       - default: 1
         description: 페이지 번호
         in: query
@@ -633,7 +637,7 @@ paths:
             $ref: '#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse'
       security:
       - FirebaseAuth: []
-      summary: 전체 돌봄급구 게시글을 조회합니다.
+      summary: 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
     post:
@@ -698,33 +702,6 @@ paths:
       security:
       - FirebaseAuth: []
       summary: 게시글 ID로 돌봄급구 게시글을 조회합니다.
-      tags:
-      - posts
-  /posts/sos/author:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - default: 1
-        description: 페이지 번호
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: 페이지 사이즈
-        in: query
-        name: size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse'
-      security:
-      - FirebaseAuth: []
-      summary: 작성자 ID로 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
   /users:

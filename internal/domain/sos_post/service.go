@@ -3,22 +3,30 @@ package sos_post
 import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
 type SosPostService struct {
 	sosPostStore       SosPostStore
 	resourceMediaStore media.ResourceMediaStore
+	userStore          user.UserStore
 }
 
-func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.ResourceMediaStore) *SosPostService {
+func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.ResourceMediaStore, userStore user.UserStore) *SosPostService {
 	return &SosPostService{
 		sosPostStore:       sosPostStore,
 		resourceMediaStore: resourceMediaStore,
+		userStore:          userStore,
 	}
 }
 
 func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
-	sosPost, err := service.sosPostStore.WriteSosPost(authorID, request)
+	userID, err := service.userStore.FindUserIDByUID(authorID)
+	if err != nil {
+		return nil, err
+	}
+
+	sosPost, err := service.sosPostStore.WriteSosPost(userID, request)
 	if err != nil {
 		return nil, err
 	}

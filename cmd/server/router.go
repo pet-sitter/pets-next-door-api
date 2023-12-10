@@ -65,6 +65,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	sosPostService := sos_post.NewSosPostService(
 		postgres.NewSosPostPostgresStore(db),
 		postgres.NewResourceMediaPostgresStore(db),
+		postgres.NewUserPostgresStore(db),
 	)
 
 	// Initialize handlers
@@ -111,7 +112,6 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 		})
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/sos", sosPostHandler.WriteSosPost)
-			r.Get("/sos/author", sosPostHandler.FindSosPostsByAuthorID)
 			r.Get("/sos/{id}", sosPostHandler.FindSosPostByID)
 			r.Get("/sos", sosPostHandler.FindSosPosts)
 			r.Put("/sos", sosPostHandler.UpdateSosPost)

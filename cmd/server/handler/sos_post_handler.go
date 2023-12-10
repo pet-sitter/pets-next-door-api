@@ -63,12 +63,13 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	commonviews.Created(w, nil, res)
 }
 
-// findSosPostsByAuthorID godoc
-// @Summary 전체 돌봄급구 게시글을 조회합니다.
+// findSosPosts godoc
+// @Summary 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
 // @Accept  json
 // @Produce  json
+// @Param authorID query int false "작성자 ID"
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
@@ -76,6 +77,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} commonviews.PaginatedView[sos_post.FindSosPostResponse]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
+	authorIDQuery := r.URL.Query().Get("authorID")
 	pageQuery := r.URL.Query().Get("page")
 	sizeQuery := r.URL.Query().Get("size")
 	sortByQuery := r.URL.Query().Get("sort_by")
@@ -100,68 +102,36 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var sortBy string
-	if sortByQuery == "" {
-		sortBy = "newest"
+	var res []sos_post.FindSosPostResponse
+
+	if authorIDQuery != "" {
+		var authorID int
+		authorID, err = strconv.Atoi(authorIDQuery)
+		if err != nil {
+			commonviews.BadRequest(w, nil, err.Error())
+			return
+		}
+
+		res, err = h.sosPostService.FindSosPostsByAuthorID(authorID, page, size)
+		if err != nil {
+			commonviews.InternalServerError(w, nil, err.Error())
+			return
+		}
 	} else {
-		sortBy = sortByQuery
-	}
+		var sortBy string
+		if sortByQuery == "" {
+			sortBy = "newest"
+		} else {
+			sortBy = sortByQuery
+		}
 
-	res, err := h.sosPostService.FindSosPosts(page, size, sortBy)
-	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
-		return
-	}
-	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
-}
-
-// findSosPostsByAuthorID godoc
-// @Summary 작성자 ID로 돌봄급구 게시글을 조회합니다.
-// @Description
-// @Tags posts
-// @Accept  json
-// @Produce  json
-// @Param page query int false "페이지 번호" default(1)
-// @Param size query int false "페이지 사이즈" default(20)
-// @Security FirebaseAuth
-// @Success 200 {object} commonviews.PaginatedView[sos_post.FindSosPostResponse]
-// @Router /posts/sos/author [get]
-func (h *SosPostHandler) FindSosPostsByAuthorID(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
-	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
-		return
-	}
-
-	pageQuery := r.URL.Query().Get("page")
-	sizeQuery := r.URL.Query().Get("size")
-
-	page := 1
-	size := 20
-
-	if pageQuery != "" {
-		page, err = strconv.Atoi(pageQuery)
+		res, err = h.sosPostService.FindSosPosts(page, size, sortBy)
 		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
+			commonviews.InternalServerError(w, nil, err.Error())
 			return
 		}
 	}
 
-	if sizeQuery != "" {
-		size, err = strconv.Atoi(sizeQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
-	}
-
-	uid, _ := strconv.Atoi(foundUser.FirebaseUID)
-
-	res, err := h.sosPostService.FindSosPostsByAuthorID(uid, page, size)
-	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
-		return
-	}
 	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
 }
 
