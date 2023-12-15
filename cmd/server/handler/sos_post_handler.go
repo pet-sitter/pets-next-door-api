@@ -69,7 +69,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param authorID query int false "작성자 ID"
+// @Param author_id query int false "작성자 ID"
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
@@ -77,7 +77,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} commonviews.PaginatedView[sos_post.FindSosPostResponse]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
-	authorIDQuery := r.URL.Query().Get("authorID")
+	authorIDQuery := r.URL.Query().Get("author_id")
 	pageQuery := r.URL.Query().Get("page")
 	sizeQuery := r.URL.Query().Get("size")
 	sortByQuery := r.URL.Query().Get("sort_by")

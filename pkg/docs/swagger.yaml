@@ -609,7 +609,7 @@ paths:
       parameters:
       - description: 작성자 ID
         in: query
-        name: authorID
+        name: author_id
         type: integer
       - default: 1
         description: 페이지 번호

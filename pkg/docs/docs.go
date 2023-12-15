@@ -181,7 +181,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "작성자 ID",
-                        "name": "authorID",
+                        "name": "author_id",
                         "in": "query"
                     },
                     {
