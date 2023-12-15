@@ -146,6 +146,30 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	return user, nil
 }
 
+func (s *UserPostgresStore) FindUserIDByUID(uid int) (int, error) {
+	var UserID int
+
+	tx, _ := s.db.Begin()
+	err := tx.QueryRow(`
+	SELECT
+		id
+	FROM
+		users
+	WHERE
+		fb_uid = $1 AND
+		deleted_at IS NULL
+	`,
+		uid,
+	).Scan(&UserID)
+	tx.Commit()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return UserID, nil
+}
+
 func (s *UserPostgresStore) ExistsByNickname(nickname string) (bool, error) {
 	var exists bool
 

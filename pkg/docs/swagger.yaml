@@ -24,6 +24,17 @@ definitions:
       size:
         type: integer
     type: object
+  commonviews.PaginatedView-sos_post_FindSosPostResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/sos_post.FindSosPostResponse'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
   media.MediaType:
     enum:
     - image
@@ -133,6 +144,236 @@ definitions:
         $ref: '#/definitions/pet.PetSex'
       weight_in_kg:
         type: number
+    type: object
+  sos_post.CareType:
+    enum:
+    - foster
+    - visiting
+    type: string
+    x-enum-varnames:
+    - CareTypeFoster
+    - CareTypeVisiting
+  sos_post.CarerGender:
+    enum:
+    - male
+    - female
+    type: string
+    x-enum-varnames:
+    - CarerGenderMale
+    - CarerGenderFemale
+  sos_post.ConditionView:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  sos_post.FindSosPostResponse:
+    properties:
+      author_id:
+        type: integer
+      care_type:
+        $ref: '#/definitions/sos_post.CareType'
+      carer_gender:
+        $ref: '#/definitions/sos_post.CarerGender'
+      conditions:
+        items:
+          $ref: '#/definitions/sos_post.ConditionView'
+        type: array
+      content:
+        type: string
+      date_end_at:
+        type: string
+      date_start_at:
+        type: string
+      id:
+        type: integer
+      media:
+        items:
+          $ref: '#/definitions/media.MediaView'
+        type: array
+      pets:
+        items:
+          $ref: '#/definitions/pet.PetView'
+        type: array
+      reward:
+        type: string
+      reward_amount:
+        $ref: '#/definitions/sos_post.RewardAmount'
+      thumbnail_id:
+        type: integer
+      time_end_at:
+        type: string
+      time_start_at:
+        type: string
+      title:
+        type: string
+    type: object
+  sos_post.RewardAmount:
+    enum:
+    - hour
+    type: string
+    x-enum-varnames:
+    - RewardAmountHour
+  sos_post.UpdateSosPostRequest:
+    properties:
+      care_type:
+        allOf:
+        - $ref: '#/definitions/sos_post.CareType'
+        enum:
+        - foster
+        - visiting
+      carer_gender:
+        allOf:
+        - $ref: '#/definitions/sos_post.CarerGender'
+        enum:
+        - male
+        - female
+      condition_ids:
+        items:
+          type: integer
+        type: array
+      content:
+        type: string
+      date_end_at:
+        type: string
+      date_start_at:
+        type: string
+      id:
+        type: integer
+      image_ids:
+        items:
+          type: integer
+        type: array
+      pet_ids:
+        items:
+          type: integer
+        type: array
+      reward:
+        type: string
+      reward_amount:
+        allOf:
+        - $ref: '#/definitions/sos_post.RewardAmount'
+        enum:
+        - hour
+      time_end_at:
+        type: string
+      time_start_at:
+        type: string
+      title:
+        type: string
+    required:
+    - care_type
+    - carer_gender
+    - content
+    - date_end_at
+    - date_start_at
+    - id
+    - image_ids
+    - reward
+    - reward_amount
+    - time_end_at
+    - time_start_at
+    - title
+    type: object
+  sos_post.WriteSosPostRequest:
+    properties:
+      care_type:
+        allOf:
+        - $ref: '#/definitions/sos_post.CareType'
+        enum:
+        - foster
+        - visiting
+      carer_gender:
+        allOf:
+        - $ref: '#/definitions/sos_post.CarerGender'
+        enum:
+        - male
+        - female
+      condition_ids:
+        items:
+          type: integer
+        type: array
+      content:
+        type: string
+      date_end_at:
+        type: string
+      date_start_at:
+        type: string
+      image_ids:
+        items:
+          type: integer
+        type: array
+      pet_ids:
+        items:
+          type: integer
+        type: array
+      reward:
+        type: string
+      reward_amount:
+        allOf:
+        - $ref: '#/definitions/sos_post.RewardAmount'
+        enum:
+        - hour
+      time_end_at:
+        type: string
+      time_start_at:
+        type: string
+      title:
+        type: string
+    required:
+    - care_type
+    - carer_gender
+    - content
+    - date_end_at
+    - date_start_at
+    - image_ids
+    - reward
+    - reward_amount
+    - time_end_at
+    - time_start_at
+    - title
+    type: object
+  sos_post.WriteSosPostResponse:
+    properties:
+      author_id:
+        type: integer
+      care_type:
+        $ref: '#/definitions/sos_post.CareType'
+      carer_gender:
+        $ref: '#/definitions/sos_post.CarerGender'
+      conditions:
+        items:
+          $ref: '#/definitions/sos_post.ConditionView'
+        type: array
+      content:
+        type: string
+      date_end_at:
+        type: string
+      date_start_at:
+        type: string
+      id:
+        type: integer
+      media:
+        items:
+          $ref: '#/definitions/media.MediaView'
+        type: array
+      pets:
+        items:
+          $ref: '#/definitions/pet.PetView'
+        type: array
+      reward:
+        type: string
+      reward_amount:
+        $ref: '#/definitions/sos_post.RewardAmount'
+      thumbnail_id:
+        type: integer
+      time_end_at:
+        type: string
+      time_start_at:
+        type: string
+      title:
+        type: string
     type: object
   user.CheckNicknameRequest:
     properties:
@@ -361,6 +602,108 @@ paths:
       summary: 이미지를 업로드합니다.
       tags:
       - media
+  /posts/sos:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 작성자 ID
+        in: query
+        name: author_id
+        type: integer
+      - default: 1
+        description: 페이지 번호
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 페이지 사이즈
+        in: query
+        name: size
+        type: integer
+      - description: 정렬 기준
+        enum:
+        - newest
+        - deadline
+        in: query
+        name: sort_by
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse'
+      security:
+      - FirebaseAuth: []
+      summary: 돌봄급구 게시글을 조회합니다.
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 돌봄급구 게시글 업로드 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sos_post.WriteSosPostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/sos_post.WriteSosPostResponse'
+      security:
+      - FirebaseAuth: []
+      summary: 돌봄급구 게시글을 업로드합니다.
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 돌봄급구 수정 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sos_post.UpdateSosPostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - FirebaseAuth: []
+      summary: 돌봄급구 게시글을 수정합니다.
+      tags:
+      - posts
+  /posts/sos/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 게시글 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sos_post.FindSosPostResponse'
+      security:
+      - FirebaseAuth: []
+      summary: 게시글 ID로 돌봄급구 게시글을 조회합니다.
+      tags:
+      - posts
   /users:
     post:
       consumes:

@@ -8,6 +8,11 @@ type Condition struct {
 	DeletedAt string `filed:"deleted_at"`
 }
 
+type ConditionView struct {
+	ID   int    `filed:"id"`
+	Name string `filed:"name"`
+}
+
 type SosCondition string
 
 const (
