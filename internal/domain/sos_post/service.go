@@ -435,7 +435,8 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 	}, nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(userID int, sosPostID int) bool {
+func (service *SosPostService) CheckUpdatePermission(uid int, sosPostID int) bool {
+	userID, _ := service.userStore.FindUserIDByUID(uid)
 	sosPost, _ := service.sosPostStore.FindSosPostByID(sosPostID)
 	if sosPost.AuthorID != userID {
 		return false

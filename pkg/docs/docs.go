@@ -162,11 +162,6 @@ const docTemplate = `{
         },
         "/posts/sos": {
             "get": {
-                "security": [
-                    {
-                        "FirebaseAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -290,11 +285,6 @@ const docTemplate = `{
         },
         "/posts/sos/{id}": {
             "get": {
-                "security": [
-                    {
-                        "FirebaseAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],

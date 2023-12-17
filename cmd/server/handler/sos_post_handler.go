@@ -73,7 +73,6 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
-// @Security FirebaseAuth
 // @Success 200 {object} commonviews.PaginatedView[sos_post.FindSosPostResponse]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
@@ -141,11 +140,16 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Security FirebaseAuth
 // @Param id path string true "게시글 ID"
 // @Success 200 {object} sos_post.FindSosPostResponse
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
+	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	if err != nil {
+		commonviews.Unauthorized(w, nil, "unauthorized")
+		return
+	}
+
 	SosPostID, err := webutils.ParseIdFromPath(r, "id")
 	if err != nil || SosPostID <= 0 {
 		commonviews.NotFound(w, nil, "invalid sos_post ID")

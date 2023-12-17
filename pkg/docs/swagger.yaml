@@ -635,8 +635,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse'
-      security:
-      - FirebaseAuth: []
       summary: 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
@@ -699,8 +697,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/sos_post.FindSosPostResponse'
-      security:
-      - FirebaseAuth: []
       summary: 게시글 ID로 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
