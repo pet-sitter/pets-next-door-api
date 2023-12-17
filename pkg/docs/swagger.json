@@ -155,11 +155,6 @@
         },
         "/posts/sos": {
             "get": {
-                "security": [
-                    {
-                        "FirebaseAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -283,11 +278,6 @@
         },
         "/posts/sos/{id}": {
             "get": {
-                "security": [
-                    {
-                        "FirebaseAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
