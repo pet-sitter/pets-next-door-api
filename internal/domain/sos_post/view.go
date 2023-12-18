@@ -39,6 +39,8 @@ type WriteSosPostResponse struct {
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
 	ThumbnailID  int               `json:"thumbnail_id"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 }
 
 type FindSosPostResponse struct {
@@ -58,6 +60,8 @@ type FindSosPostResponse struct {
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
 	ThumbnailID  int               `json:"thumbnail_id"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 }
 
 type UpdateSosPostRequest struct {
@@ -94,4 +98,6 @@ type UpdateSosPostResponse struct {
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
 	ThumbnailID  int               `json:"thumbnail_id"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 }
