@@ -21,8 +21,8 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
-	userID, err := service.userStore.FindUserIDByUID(authorID)
+func (service *SosPostService) WriteSosPost(uid int, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
+	userID, err := service.userStore.FindUserIDByUID(uid)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +104,8 @@ func (service *SosPostService) WriteSosPost(authorID int, request *WriteSosPostR
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
 		ThumbnailID:  sosPost.ThumbnailID,
+		CreatedAt:    sosPost.CreatedAt,
+		UpdatedAt:    sosPost.UpdatedAt,
 	}, nil
 }
 
@@ -185,6 +187,8 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
 			ThumbnailID:  sosPost.ThumbnailID,
+			CreatedAt:    sosPost.CreatedAt,
+			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
 		FindSosPostResponseList = append(FindSosPostResponseList, *findByAuthorSosPostResponse)
@@ -271,6 +275,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
 			ThumbnailID:  sosPost.ThumbnailID,
+			CreatedAt:    sosPost.CreatedAt,
+			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
 		FindSosPostResponseList = append(FindSosPostResponseList, *findByAuthorSosPostResponse)
@@ -354,6 +360,8 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, er
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
 		ThumbnailID:  sosPost.ThumbnailID,
+		CreatedAt:    sosPost.CreatedAt,
+		UpdatedAt:    sosPost.UpdatedAt,
 	}, nil
 }
 
@@ -432,6 +440,8 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		CarerGender:  updateSosPost.CarerGender,
 		RewardAmount: updateSosPost.RewardAmount,
 		ThumbnailID:  updateSosPost.ThumbnailID,
+		CreatedAt:    updateSosPost.CreatedAt,
+		UpdatedAt:    updateSosPost.UpdatedAt,
 	}, nil
 }
 
