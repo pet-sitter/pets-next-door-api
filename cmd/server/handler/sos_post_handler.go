@@ -41,7 +41,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, _ := strconv.Atoi(foundUser.FirebaseUID)
+	uid := foundUser.FirebaseUID
 
 	var writeSosPostRequest sos_post.WriteSosPostRequest
 
@@ -144,12 +144,6 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} sos_post.FindSosPostResponse
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
-	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
-	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
-		return
-	}
-
 	SosPostID, err := webutils.ParseIdFromPath(r, "id")
 	if err != nil || SosPostID <= 0 {
 		commonviews.NotFound(w, nil, "invalid sos_post ID")
@@ -181,7 +175,7 @@ func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, _ := strconv.Atoi(foundUser.FirebaseUID)
+	uid := foundUser.FirebaseUID
 
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
 	if err := commonviews.ParseBody(w, r, &updateSosPostRequest); err != nil {

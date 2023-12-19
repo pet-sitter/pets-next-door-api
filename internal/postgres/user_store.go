@@ -146,7 +146,7 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUserIDByUID(uid int) (int, error) {
+func (s *UserPostgresStore) FindUserIDByUID(uid string) (int, error) {
 	var UserID int
 
 	tx, _ := s.db.Begin()
