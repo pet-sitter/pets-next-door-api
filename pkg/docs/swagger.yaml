@@ -182,6 +182,8 @@ definitions:
         type: array
       content:
         type: string
+      created_at:
+        type: string
       date_end_at:
         type: string
       date_start_at:
@@ -207,6 +209,8 @@ definitions:
       time_start_at:
         type: string
       title:
+        type: string
+      updated_at:
         type: string
     type: object
   sos_post.RewardAmount:
@@ -348,6 +352,8 @@ definitions:
         type: array
       content:
         type: string
+      created_at:
+        type: string
       date_end_at:
         type: string
       date_start_at:
@@ -373,6 +379,8 @@ definitions:
       time_start_at:
         type: string
       title:
+        type: string
+      updated_at:
         type: string
     type: object
   user.CheckNicknameRequest:

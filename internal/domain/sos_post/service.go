@@ -21,7 +21,7 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) WriteSosPost(uid int, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
+func (service *SosPostService) WriteSosPost(uid string, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
 	userID, err := service.userStore.FindUserIDByUID(uid)
 	if err != nil {
 		return nil, err
@@ -445,7 +445,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 	}, nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(uid int, sosPostID int) bool {
+func (service *SosPostService) CheckUpdatePermission(uid string, sosPostID int) bool {
 	userID, _ := service.userStore.FindUserIDByUID(uid)
 	sosPost, _ := service.sosPostStore.FindSosPostByID(sosPostID)
 	if sosPost.AuthorID != userID {
