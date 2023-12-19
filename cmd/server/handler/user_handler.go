@@ -111,7 +111,7 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Tags users
 // @Produce  json
 // @Security FirebaseAuth
-// @Success 200 {object} user.FindUserResponse
+// @Success 200 {object} user.MyProfileResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
@@ -120,7 +120,7 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commonviews.OK(w, nil, res)
+	commonviews.OK(w, nil, res.ToMyProfileResponse())
 }
 
 // UpdateMyProfile godoc
@@ -160,7 +160,6 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		Fullname:             userModel.Fullname,
 		ProfileImageURL:      userModel.ProfileImageURL,
 		FirebaseProviderType: userModel.FirebaseProviderType,
-		FirebaseUID:          userModel.FirebaseUID,
 	})
 }
 
