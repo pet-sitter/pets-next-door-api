@@ -29,6 +29,26 @@ type FindUserResponse struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
+func (r *FindUserResponse) ToMyProfileResponse() *MyProfileResponse {
+	return &MyProfileResponse{
+		ID:                   r.ID,
+		Email:                r.Email,
+		Nickname:             r.Nickname,
+		Fullname:             r.Fullname,
+		ProfileImageURL:      r.ProfileImageURL,
+		FirebaseProviderType: r.FirebaseProviderType,
+	}
+}
+
+type MyProfileResponse struct {
+	ID                   int                  `json:"id"`
+	Email                string               `json:"email"`
+	Nickname             string               `json:"nickname"`
+	Fullname             string               `json:"fullname"`
+	ProfileImageURL      string               `json:"profileImageUrl"`
+	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
+}
+
 type CheckNicknameRequest struct {
 	Nickname string `json:"nickname" validate:"required"`
 }
@@ -65,5 +85,4 @@ type UpdateUserResponse struct {
 	Fullname             string               `json:"fullname"`
 	ProfileImageURL      string               `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
-	FirebaseUID          string               `json:"fbUid"`
 }

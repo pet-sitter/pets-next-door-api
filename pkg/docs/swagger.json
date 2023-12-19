@@ -12,7 +12,7 @@
             "name": "Apache 2.0",
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         },
-        "version": "0.5.0"
+        "version": "0.6.0"
     },
     "basePath": "/api",
     "paths": {
@@ -401,7 +401,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.FindUserResponse"
+                            "$ref": "#/definitions/user.MyProfileResponse"
                         }
                     }
                 }
@@ -1125,32 +1125,6 @@
                 }
             }
         },
-        "user.FindUserResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "fbProviderType": {
-                    "$ref": "#/definitions/user.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                },
-                "profileImageUrl": {
-                    "type": "string"
-                }
-            }
-        },
         "user.FirebaseProviderType": {
             "type": "string",
             "enum": [
@@ -1165,6 +1139,29 @@
                 "FirebaseProviderTypeApple",
                 "FirebaseProviderTypeKakao"
             ]
+        },
+        "user.MyProfileResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
+                }
+            }
         },
         "user.RegisterUserRequest": {
             "type": "object",
@@ -1242,9 +1239,6 @@
                 },
                 "fbProviderType": {
                     "$ref": "#/definitions/user.FirebaseProviderType"
-                },
-                "fbUid": {
-                    "type": "string"
                 },
                 "fullname": {
                     "type": "string"
