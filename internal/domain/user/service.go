@@ -21,6 +21,7 @@ func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService med
 
 type UserServicer interface {
 	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, error)
+	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error)
 	FindUserByEmail(email string) (*UserWithProfileImage, error)
 	FindUserByUID(uid string) (*FindUserResponse, error)
 	ExistsByNickname(nickname string) (bool, error)
@@ -54,6 +55,15 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 		FirebaseProviderType: created.FirebaseProviderType,
 		FirebaseUID:          created.FirebaseUID,
 	}, nil
+}
+
+func (service *UserService) FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error) {
+	usersData, err := service.userStore.FindUsers(page, size, nickname)
+	if err != nil {
+		return nil, err
+	}
+
+	return usersData, nil
 }
 
 func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage, error) {

@@ -54,6 +54,59 @@ func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user
 	return user, nil
 }
 
+func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*user.UserWithoutPrivateInfo, error) {
+	usersData := make([]*user.UserWithoutPrivateInfo, 0)
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+	SELECT
+		users.id,	
+		users.nickname,	
+		media.url AS profile_image_url
+	FROM
+		users
+	LEFT OUTER JOIN
+		media
+	ON
+		users.profile_image_id = media.id
+	WHERE
+	    (users.nickname = $1 OR $1 IS NULL) AND
+		users.deleted_at IS NULL
+	ORDER BY
+	    users.created_at DESC
+	LIMIT $2
+	OFFSET $3
+	`
+
+	rows, err := tx.Query(query, nickname, size, (page-1)*size)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		userData := &user.UserWithoutPrivateInfo{}
+
+		err := rows.Scan(&userData.ID, &userData.Nickname, &userData.ProfileImageURL)
+		if err != nil {
+			return nil, err
+		}
+
+		usersData = append(usersData, userData)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return usersData, nil
+}
+
 func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfileImage, error) {
 	user := &user.UserWithProfileImage{}
 
