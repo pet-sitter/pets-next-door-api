@@ -37,12 +37,19 @@ type UserWithProfileImage struct {
 	DeletedAt            string               `field:"deleted_at"`
 }
 
+type UserWithoutPrivateInfo struct {
+	ID              int    `field:"id" json:"id"`
+	Nickname        string `field:"nickname" json:"nickname"`
+	ProfileImageURL string `field:"profile_image_url" json:"profileImageUrl"`
+}
+
 type UserStatus struct {
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 }
 
 type UserStore interface {
 	CreateUser(request *RegisterUserRequest) (*User, error)
+	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error)
 	FindUserByEmail(email string) (*UserWithProfileImage, error)
 	FindUserByUID(uid string) (*UserWithProfileImage, error)
 	FindUserIDByFbUID(fbUid string) (int, error)

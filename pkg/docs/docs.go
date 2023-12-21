@@ -316,6 +316,50 @@ const docTemplate = `{
             }
         },
         "/users": {
+            "get": {
+                "security": [
+                    {
+                        "FirebaseAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "사용자 목록을 조회합니다.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "페이지 번호",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "페이지 사이즈",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "닉네임 (완전 일치)",
+                        "name": "nickname",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/commonviews.PaginatedView-user_UserWithoutPrivateInfo"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -579,6 +623,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "commonviews.PaginatedView-user_UserWithoutPrivateInfo": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
                     }
                 },
                 "page": {
@@ -1296,6 +1357,20 @@ const docTemplate = `{
                     "$ref": "#/definitions/user.UserRegistrationStatus"
                 }
             }
+        },
+        "user.UserWithoutPrivateInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "profileImageUrl": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -1309,7 +1384,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.6.0",
+	Version:          "0.7.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},

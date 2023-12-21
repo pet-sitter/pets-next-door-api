@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
@@ -103,6 +104,65 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 		Status:               user.UserStatusRegistered,
 		FirebaseProviderType: userStatus.FirebaseProviderType,
 	})
+}
+
+// FindUsers godoc
+// @Summary 사용자 목록을 조회합니다.
+// @Description
+// @Tags users
+// @Produce  json
+// @Security FirebaseAuth
+// @Param page query int false "페이지 번호" default(1)
+// @Param size query int false "페이지 사이즈" default(10)
+// @Param nickname query string false "닉네임 (완전 일치)"
+// @Success 200 {object} commonviews.PaginatedView[user.UserWithoutPrivateInfo]
+// @Router /users [get]
+func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
+	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	if err != nil {
+		commonviews.Unauthorized(w, nil, "unauthorized")
+		return
+	}
+
+	pageQuery := r.URL.Query().Get("page")
+	sizeQuery := r.URL.Query().Get("size")
+	nicknameQuery := r.URL.Query().Get("nickname")
+
+	page := 1
+	size := 10
+
+	if pageQuery != "" {
+		page, err = strconv.Atoi(pageQuery)
+		if err != nil {
+			commonviews.BadRequest(w, nil, err.Error())
+			return
+		}
+	}
+
+	if sizeQuery != "" {
+		size, err = strconv.Atoi(sizeQuery)
+		if err != nil {
+			commonviews.BadRequest(w, nil, err.Error())
+			return
+		}
+	}
+
+	var res []*user.UserWithoutPrivateInfo
+
+	var nickname *string
+	if nicknameQuery == "" {
+		nickname = nil
+	} else {
+		nickname = &nicknameQuery
+	}
+
+	res, err = h.userService.FindUsers(page, size, nickname)
+	if err != nil {
+		commonviews.InternalServerError(w, nil, err.Error())
+		return
+	}
+
+	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
 }
 
 // FindMyProfile godoc

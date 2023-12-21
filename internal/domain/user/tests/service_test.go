@@ -82,6 +82,48 @@ func TestUserService(t *testing.T) {
 		})
 	})
 
+	t.Run("FindUsers", func(t *testing.T) {
+		t.Run("사용자를 닉네임으로 검색한다", func(t *testing.T) {
+			tearDown := setUp(t)
+			defer tearDown(t)
+
+			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := media_service.CreateMedia(&media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "http://example.com",
+			})
+
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+
+			targetNickname := "target"
+			targetUserRequest := &user.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             targetNickname,
+				Fullname:             "fullname",
+				ProfileImageID:       profile_image.ID,
+				FirebaseProviderType: "kakao",
+				FirebaseUID:          "uid",
+			}
+			service.RegisterUser(targetUserRequest)
+			for i := 0; i < 2; i++ {
+				service.RegisterUser(&user.RegisterUserRequest{
+					Email:                "test" + string(rune(i)) + "@example.com",
+					Nickname:             "nickname" + string(rune(i)),
+					Fullname:             "fullname" + string(rune(i)),
+					ProfileImageID:       profile_image.ID,
+					FirebaseProviderType: "kakao",
+					FirebaseUID:          "uid" + string(rune(i)),
+				})
+			}
+
+			found, _ := service.FindUsers(1, 20, &targetNickname)
+
+			if len(found) != 1 {
+				t.Errorf("got %v want %v", len(found), 1)
+			}
+		})
+	})
+
 	t.Run("FindUserByEmail", func(t *testing.T) {
 		t.Run("사용자를 이메일로 찾는다", func(t *testing.T) {
 			tearDown := setUp(t)

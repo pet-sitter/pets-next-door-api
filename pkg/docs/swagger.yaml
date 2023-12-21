@@ -35,6 +35,17 @@ definitions:
       size:
         type: integer
     type: object
+  commonviews.PaginatedView-user_UserWithoutPrivateInfo:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/user.UserWithoutPrivateInfo'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
   media.MediaType:
     enum:
     - image
@@ -505,6 +516,15 @@ definitions:
       status:
         $ref: '#/definitions/user.UserRegistrationStatus'
     type: object
+  user.UserWithoutPrivateInfo:
+    properties:
+      id:
+        type: integer
+      nickname:
+        type: string
+      profileImageUrl:
+        type: string
+    type: object
 info:
   contact:
     email: petsnextdoordev@gmail.com
@@ -515,7 +535,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.6.0
+  version: 0.7.0
 paths:
   /auth/callback/kakao:
     get:
@@ -705,6 +725,34 @@ paths:
       tags:
       - posts
   /users:
+    get:
+      parameters:
+      - default: 1
+        description: 페이지 번호
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 페이지 사이즈
+        in: query
+        name: size
+        type: integer
+      - description: 닉네임 (완전 일치)
+        in: query
+        name: nickname
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/commonviews.PaginatedView-user_UserWithoutPrivateInfo'
+      security:
+      - FirebaseAuth: []
+      summary: 사용자 목록을 조회합니다.
+      tags:
+      - users
     post:
       consumes:
       - application/json
