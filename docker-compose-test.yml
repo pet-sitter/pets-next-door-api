@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   db_test:
-    image: postgres:11.5-alpine
+    image: postgres:15-alpine
     ports:
       - "5455:5432"
     environment:
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   migrate:
-    image: migrate/migrate:v4.7.0
+    image: migrate/migrate:v4.17.0
     depends_on:
       db_test:
         condition: service_healthy
