@@ -146,7 +146,7 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUserIDByUID(uid string) (int, error) {
+func (s *UserPostgresStore) FindUserIDByFbUID(fbUid string) (int, error) {
 	var UserID int
 
 	tx, _ := s.db.Begin()
@@ -159,7 +159,7 @@ func (s *UserPostgresStore) FindUserIDByUID(uid string) (int, error) {
 		fb_uid = $1 AND
 		deleted_at IS NULL
 	`,
-		uid,
+		fbUid,
 	).Scan(&UserID)
 	tx.Commit()
 
