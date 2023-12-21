@@ -41,8 +41,6 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid := foundUser.FirebaseUID
-
 	var writeSosPostRequest sos_post.WriteSosPostRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&writeSosPostRequest); err != nil {
@@ -54,7 +52,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.sosPostService.WriteSosPost(uid, &writeSosPostRequest)
+	res, err := h.sosPostService.WriteSosPost(foundUser.FirebaseUID, &writeSosPostRequest)
 	if err != nil {
 		commonviews.InternalServerError(w, nil, err.Error())
 		return
@@ -175,14 +173,12 @@ func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid := foundUser.FirebaseUID
-
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
 	if err := commonviews.ParseBody(w, r, &updateSosPostRequest); err != nil {
 		return
 	}
 
-	permission := h.sosPostService.CheckUpdatePermission(uid, updateSosPostRequest.ID)
+	permission := h.sosPostService.CheckUpdatePermission(foundUser.FirebaseUID, updateSosPostRequest.ID)
 
 	if !permission {
 		commonviews.Forbidden(w, nil, "forbidden")

@@ -45,7 +45,7 @@ type UserStore interface {
 	CreateUser(request *RegisterUserRequest) (*User, error)
 	FindUserByEmail(email string) (*UserWithProfileImage, error)
 	FindUserByUID(uid string) (*UserWithProfileImage, error)
-	FindUserIDByUID(uid string) (int, error)
+	FindUserIDByFbUID(fbUid string) (int, error)
 	ExistsByNickname(nickname string) (bool, error)
 	FindUserStatusByEmail(email string) (*UserStatus, error)
 	UpdateUserByUID(uid string, nickname string, profileImageID int) (*User, error)
