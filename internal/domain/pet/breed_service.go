@@ -16,7 +16,7 @@ func (service *BreedService) FindBreeds(page int, size int, petType *string) ([]
 		return nil, err
 	}
 
-	var breedViews []*BreedView
+	breedViews := make([]*BreedView, 0)
 	for _, breed := range breeds {
 		breedViews = append(breedViews, &BreedView{
 			ID:      breed.ID,

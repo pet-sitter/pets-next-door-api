@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"fmt"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -32,21 +31,14 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) ([]
 	FROM
 		breeds
 	WHERE
+	    (pet_type = $1 OR $1 IS NULL) AND
 		deleted_at IS NULL
+	ORDER BY id ASC
+	LIMIT $2
+	OFFSET $3
 	`
 
-	if petType != nil {
-		query += fmt.Sprintf(" AND pet_type = '%s'", *petType)
-	}
-
-	query += `
-		ORDER BY id ASC
-	`
-
-	query += fmt.Sprintf(" LIMIT %d", size)
-	query += fmt.Sprintf(" OFFSET %d", (page-1)*size)
-
-	rows, err := tx.Query(query)
+	rows, err := tx.Query(query, petType, size, (page-1)*size)
 
 	if err != nil {
 		return nil, err
