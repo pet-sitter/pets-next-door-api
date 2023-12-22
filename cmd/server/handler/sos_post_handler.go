@@ -1,11 +1,9 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
@@ -42,13 +40,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var writeSosPostRequest sos_post.WriteSosPostRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&writeSosPostRequest); err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
-		return
-	}
-	if err := validator.New().Struct(writeSosPostRequest); err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+	if err := commonviews.ParseBody(w, r, &writeSosPostRequest); err != nil {
 		return
 	}
 
