@@ -2,9 +2,9 @@ package handler
 
 import (
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
+	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"net/http"
-	"strconv"
 )
 
 type BreedHandler struct {
@@ -27,28 +27,12 @@ func NewBreedHandler(breedService *pet.BreedService) *BreedHandler {
 // @Success 200 {object} commonviews.PaginatedView[pet.BreedView]
 // @Router /breeds [get]
 func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
-	pageQuery := r.URL.Query().Get("page")
-	sizeQuery := r.URL.Query().Get("size")
 	petTypeQuery := r.URL.Query().Get("pet_type")
 
-	page := 1
-	size := 20
-	var err error
-
-	if pageQuery != "" {
-		page, err = strconv.Atoi(pageQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
-	}
-
-	if sizeQuery != "" {
-		size, err = strconv.Atoi(sizeQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
+	page, size, err := webutils.ParsePaginationQueries(r, 1, 20)
+	if err != nil {
+		commonviews.BadRequest(w, nil, err.Error())
+		return
 	}
 
 	var petType *string
