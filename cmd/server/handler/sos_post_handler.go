@@ -75,28 +75,12 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 	authorIDQuery := r.URL.Query().Get("author_id")
-	pageQuery := r.URL.Query().Get("page")
-	sizeQuery := r.URL.Query().Get("size")
 	sortByQuery := r.URL.Query().Get("sort_by")
 
-	page := 1
-	size := 20
-
-	var err error
-	if pageQuery != "" {
-		page, err = strconv.Atoi(pageQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
-	}
-
-	if sizeQuery != "" {
-		size, err = strconv.Atoi(sizeQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
+	page, size, err := webutils.ParsePaginationQueries(r, 1, 20)
+	if err != nil {
+		commonviews.BadRequest(w, nil, err.Error())
+		return
 	}
 
 	var res []sos_post.FindSosPostResponse

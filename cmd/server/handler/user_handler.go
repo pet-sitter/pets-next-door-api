@@ -2,14 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
 	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
+	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"net/http"
 )
 
 type UserHandler struct {
@@ -124,27 +123,12 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageQuery := r.URL.Query().Get("page")
-	sizeQuery := r.URL.Query().Get("size")
 	nicknameQuery := r.URL.Query().Get("nickname")
 
-	page := 1
-	size := 10
-
-	if pageQuery != "" {
-		page, err = strconv.Atoi(pageQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
-	}
-
-	if sizeQuery != "" {
-		size, err = strconv.Atoi(sizeQuery)
-		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
+	page, size, err := webutils.ParsePaginationQueries(r, 1, 10)
+	if err != nil {
+		commonviews.BadRequest(w, nil, err.Error())
+		return
 	}
 
 	var res []*user.UserWithoutPrivateInfo
