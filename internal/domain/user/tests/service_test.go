@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -107,12 +108,12 @@ func TestUserService(t *testing.T) {
 			service.RegisterUser(targetUserRequest)
 			for i := 0; i < 2; i++ {
 				service.RegisterUser(&user.RegisterUserRequest{
-					Email:                "test" + string(rune(i)) + "@example.com",
-					Nickname:             "nickname" + string(rune(i)),
-					Fullname:             "fullname" + string(rune(i)),
+					Email:                fmt.Sprintf("test%d@example.com", i),
+					Nickname:             fmt.Sprintf("nickname%d", i),
+					Fullname:             fmt.Sprintf("fullname%d", i),
 					ProfileImageID:       profile_image.ID,
 					FirebaseProviderType: "kakao",
-					FirebaseUID:          "uid" + string(rune(i)),
+					FirebaseUID:          fmt.Sprintf("uid%d", i),
 				})
 			}
 
