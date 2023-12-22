@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"github.com/go-playground/validator"
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
 	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
@@ -34,12 +32,7 @@ func NewUserHandler(userService user.UserServicer, authService auth.AuthService)
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest user.RegisterUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&registerUserRequest); err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
-		return
-	}
-	if err := validator.New().Struct(registerUserRequest); err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+	if err := commonviews.ParseBody(w, r, &registerUserRequest); err != nil {
 		return
 	}
 
