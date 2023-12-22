@@ -24,7 +24,7 @@ func NewSosPostHandler(sosPostService sos_post.SosPostService, authService auth.
 	}
 }
 
-// writeSosPost godoc
+// WriteSosPost godoc
 // @Summary 돌봄급구 게시글을 업로드합니다.
 // @Description
 // @Tags posts
@@ -61,7 +61,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	commonviews.Created(w, nil, res)
 }
 
-// findSosPosts godoc
+// FindSosPosts godoc
 // @Summary 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
@@ -116,7 +116,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
 }
 
-// findSosPostsByID godoc
+// FindSosPostByID godoc
 // @Summary 게시글 ID로 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
@@ -140,7 +140,7 @@ func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request)
 	commonviews.OK(w, nil, res)
 }
 
-// updateSosPost godoc
+// UpdateSosPost godoc
 // @Summary 돌봄급구 게시글을 수정합니다.
 // @Description
 // @Tags posts
