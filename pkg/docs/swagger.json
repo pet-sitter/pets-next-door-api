@@ -276,6 +276,31 @@
                 }
             }
         },
+        "/posts/sos/conditions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "돌봄 조건을 조회합니다.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/sos_post.ConditionView"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/posts/sos/{id}": {
             "get": {
                 "consumes": [
