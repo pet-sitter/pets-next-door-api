@@ -53,3 +53,44 @@ func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosConditi
 
 	return "condition init success", nil
 }
+
+func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, error) {
+	conditions := make([]sos_post.Condition, 0)
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := tx.Query(`
+		SELECT 
+			id,
+			name
+		FROM 
+			sos_conditions
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		condition := sos_post.Condition{}
+
+		err := rows.Scan(
+			&condition.ID,
+			&condition.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		conditions = append(conditions, condition)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return conditions, nil
+}

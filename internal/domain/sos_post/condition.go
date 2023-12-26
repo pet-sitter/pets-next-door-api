@@ -22,3 +22,7 @@ const (
 )
 
 var ConditionName = []SosCondition{CCTVPermission, PhonePermission, PetRegistration}
+
+type ConditionStore interface {
+	FindConditions() ([]Condition, error)
+}
