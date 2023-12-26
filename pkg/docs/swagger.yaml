@@ -724,6 +724,22 @@ paths:
       summary: 게시글 ID로 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
+  /posts/sos/conditions:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/sos_post.ConditionView'
+            type: array
+      summary: 돌봄 조건을 조회합니다.
+      tags:
+      - posts
   /users:
     get:
       parameters:
