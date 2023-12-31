@@ -9,8 +9,8 @@ type Condition struct {
 }
 
 type ConditionView struct {
-	ID   int    `filed:"id"`
-	Name string `filed:"name"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type SosCondition string
