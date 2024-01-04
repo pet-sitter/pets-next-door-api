@@ -17,11 +17,11 @@ type SosCondition string
 
 const (
 	CCTVPermission  SosCondition = "CCTV, 펫캠 촬영 동의"
+	IDVerification  SosCondition = "신분증 인증"
 	PhonePermission SosCondition = "사전 통화 가능 여부"
-	PetRegistration SosCondition = "반려 동물 등록 여부"
 )
 
-var ConditionName = []SosCondition{CCTVPermission, PhonePermission, PetRegistration}
+var ConditionName = []SosCondition{CCTVPermission, IDVerification, PhonePermission}
 
 type ConditionStore interface {
 	FindConditions() ([]Condition, error)
