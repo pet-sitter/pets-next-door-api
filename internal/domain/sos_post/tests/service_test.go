@@ -18,18 +18,9 @@ var db *database.DB
 func setUp(t *testing.T) func(t *testing.T) {
 	db, _ = database.Open(tests.TestDatabaseURL)
 	postgres.NewConditionPostgresStore(db).InitConditions(sos_post.ConditionName)
+	db.Flush()
 
 	return func(t *testing.T) {
-		_, err := db.DB.Exec("DELETE FROM sos_posts_pets WHERE pet_id IN (SELECT id FROM pets)")
-		if err != nil {
-			t.Errorf("Error deleting from sos_posts_pets: %v", err)
-		}
-
-		_, err = db.DB.Exec("DELETE FROM resource_media WHERE media_id IN (SELECT id FROM media)")
-		if err != nil {
-			t.Errorf("Error deleting from resource_media: %v", err)
-		}
-		db.Flush()
 		db.Close()
 	}
 }
