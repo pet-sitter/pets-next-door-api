@@ -24,8 +24,12 @@ func (db *DB) Close() error {
 func (db *DB) Flush() error {
 	var tableNames []string = []string{
 		"users",
+		"resource_media",
+		"sos_posts_pets",
 		"media",
 		"pets",
+		"sos_posts_conditions",
+		"sos_posts",
 	}
 
 	for _, tableName := range tableNames {
