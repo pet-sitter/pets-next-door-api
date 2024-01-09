@@ -33,7 +33,7 @@ func writePayload(w http.ResponseWriter, headers map[string]string, payload inte
 
 func setHeaders(w http.ResponseWriter, headers map[string]string) {
 	if headers == nil {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return
 	}
 
