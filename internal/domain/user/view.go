@@ -4,7 +4,7 @@ type RegisterUserRequest struct {
 	Email                string               `json:"email" validate:"required,email"`
 	Nickname             string               `json:"nickname" validate:"required"`
 	Fullname             string               `json:"fullname" validate:"required"`
-	ProfileImageID       int                  `json:"profileImageId" validate:"required"`
+	ProfileImageID       *int                 `json:"profileImageId"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType" validate:"required"`
 	FirebaseUID          string               `json:"fbUid" validate:"required"`
 }
@@ -14,7 +14,7 @@ type RegisterUserResponse struct {
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
-	ProfileImageURL      string               `json:"profileImageUrl"`
+	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
 	FirebaseUID          string               `json:"fbUid"`
 }
@@ -24,7 +24,7 @@ type FindUserResponse struct {
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
-	ProfileImageURL      string               `json:"profileImageUrl"`
+	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
 	FirebaseUID          string               `json:"fbUid"`
 }
@@ -45,7 +45,7 @@ type MyProfileResponse struct {
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
-	ProfileImageURL      string               `json:"profileImageUrl"`
+	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
 }
 
@@ -75,7 +75,7 @@ type UserStatusView struct {
 
 type UpdateUserRequest struct {
 	Nickname       string `json:"nickname"`
-	ProfileImageID int    `json:"profileImageId"`
+	ProfileImageID *int   `json:"profileImageId"`
 }
 
 type UpdateUserResponse struct {
@@ -83,6 +83,6 @@ type UpdateUserResponse struct {
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
-	ProfileImageURL      string               `json:"profileImageUrl"`
+	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
 }

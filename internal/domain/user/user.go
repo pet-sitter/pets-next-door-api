@@ -15,7 +15,7 @@ type User struct {
 	Password             string               `field:"password"`
 	Nickname             string               `field:"nickname"`
 	Fullname             string               `field:"fullname"`
-	ProfileImageID       int                  `field:"profile_image_id"`
+	ProfileImageID       *int                 `field:"profile_image_id"`
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 	FirebaseUID          string               `field:"fb_uid"`
 	CreatedAt            string               `field:"created_at"`
@@ -29,7 +29,7 @@ type UserWithProfileImage struct {
 	Password             string               `field:"password"`
 	Nickname             string               `field:"nickname"`
 	Fullname             string               `field:"fullname"`
-	ProfileImageURL      string               `field:"profile_image_url"`
+	ProfileImageURL      *string              `field:"profile_image_url"`
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 	FirebaseUID          string               `field:"fb_uid"`
 	CreatedAt            string               `field:"created_at"`
@@ -38,9 +38,9 @@ type UserWithProfileImage struct {
 }
 
 type UserWithoutPrivateInfo struct {
-	ID              int    `field:"id" json:"id"`
-	Nickname        string `field:"nickname" json:"nickname"`
-	ProfileImageURL string `field:"profile_image_url" json:"profileImageUrl"`
+	ID              int     `field:"id" json:"id"`
+	Nickname        string  `field:"nickname" json:"nickname"`
+	ProfileImageURL *string `field:"profile_image_url" json:"profileImageUrl"`
 }
 
 type UserStatus struct {
@@ -55,5 +55,5 @@ type UserStore interface {
 	FindUserIDByFbUID(fbUid string) (int, error)
 	ExistsByNickname(nickname string) (bool, error)
 	FindUserStatusByEmail(email string) (*UserStatus, error)
-	UpdateUserByUID(uid string, nickname string, profileImageID int) (*User, error)
+	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*User, error)
 }
