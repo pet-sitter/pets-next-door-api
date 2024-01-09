@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 )
 
@@ -28,7 +28,7 @@ func NewMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 // @Success 200 {object} media.MediaView
 // @Router /media/{id} [get]
 func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
-	id, err := webutils.ParseIdFromPath(r, "id")
+	id, err := utils.ParseIdFromPath(r, "id")
 	if err != nil || id <= 0 {
 		commonviews.NotFound(w, nil, "invalid media ID")
 		return
