@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -50,6 +51,7 @@ func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, error) {
 		return nil, err
 	}
 
+	pet.BirthDate = utils.FormatDate(pet.BirthDate)
 	return pet, nil
 }
 
@@ -102,6 +104,7 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, error) {
 			return nil, err
 		}
 
+		pet.BirthDate = utils.FormatDate(pet.BirthDate)
 		pets = append(pets, pet)
 	}
 	tx.Commit()

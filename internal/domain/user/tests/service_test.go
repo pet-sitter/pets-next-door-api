@@ -379,7 +379,7 @@ func TestUserService(t *testing.T) {
 						Sex:        "male",
 						Neutered:   true,
 						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
+						BirthDate:  "2020-01-01",
 						WeightInKg: 10.0,
 					},
 				},
