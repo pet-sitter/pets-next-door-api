@@ -42,7 +42,33 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
+				FirebaseProviderType: "kakao",
+				FirebaseUID:          "uid",
+			}
+
+			created, _ := service.RegisterUser(user)
+
+			if created.Email != user.Email {
+				t.Errorf("got %v want %v", created.Email, user.Email)
+			}
+		})
+
+		t.Run("사용자의 프로필 이미지가 존재하지 않아도 생성한다", func(t *testing.T) {
+			tearDown := setUp(t)
+			defer tearDown(t)
+
+			service := user.NewUserService(
+				postgres.NewUserPostgresStore(db),
+				postgres.NewPetPostgresStore(db),
+				media.NewMediaService(postgres.NewMediaPostgresStore(db), nil),
+			)
+
+			user := &user.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             "nickname",
+				Fullname:             "fullname",
+				ProfileImageID:       nil,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -69,7 +95,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -101,7 +127,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             targetNickname,
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -111,7 +137,7 @@ func TestUserService(t *testing.T) {
 					Email:                fmt.Sprintf("test%d@example.com", i),
 					Nickname:             fmt.Sprintf("nickname%d", i),
 					Fullname:             fmt.Sprintf("fullname%d", i),
-					ProfileImageID:       profile_image.ID,
+					ProfileImageID:       &profile_image.ID,
 					FirebaseProviderType: "kakao",
 					FirebaseUID:          fmt.Sprintf("uid%d", i),
 				})
@@ -142,7 +168,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -191,7 +217,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -254,7 +280,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -286,7 +312,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -324,7 +350,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			}
@@ -333,7 +359,7 @@ func TestUserService(t *testing.T) {
 
 			updatedNickname := "updated"
 
-			_, err := service.UpdateUserByUID(created.FirebaseUID, updatedNickname, profile_image.ID)
+			_, err := service.UpdateUserByUID(created.FirebaseUID, updatedNickname, &profile_image.ID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -366,7 +392,7 @@ func TestUserService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profile_image.ID,
+				ProfileImageID:       &profile_image.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "uid",
 			})

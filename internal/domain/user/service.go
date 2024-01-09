@@ -26,13 +26,18 @@ type UserServicer interface {
 	FindUserByUID(uid string) (*FindUserResponse, error)
 	ExistsByNickname(nickname string) (bool, error)
 	FindUserStatusByEmail(email string) (*UserStatus, error)
-	UpdateUserByUID(uid string, nickname string, profileImageID int) (*UserWithProfileImage, error)
+	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, error)
 	AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, error)
 	FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, error)
 }
 
 func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, error) {
-	media, err := service.mediaService.FindMediaByID(registerUserRequest.ProfileImageID)
+	var media *media.Media
+	var err error
+	if registerUserRequest.ProfileImageID != nil {
+		media, err = service.mediaService.FindMediaByID(*registerUserRequest.ProfileImageID)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -46,12 +51,17 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 		return nil, err
 	}
 
+	var profileImageURL *string
+	if media != nil {
+		profileImageURL = &media.URL
+	}
+
 	return &RegisterUserResponse{
 		ID:                   created.ID,
 		Email:                created.Email,
 		Nickname:             created.Nickname,
 		Fullname:             created.Fullname,
-		ProfileImageURL:      media.URL,
+		ProfileImageURL:      profileImageURL,
 		FirebaseProviderType: created.FirebaseProviderType,
 		FirebaseUID:          created.FirebaseUID,
 	}, nil
@@ -107,23 +117,30 @@ func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, er
 	}, nil
 }
 
-func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID int) (*UserWithProfileImage, error) {
+func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, error) {
 	updated, err := service.userStore.UpdateUserByUID(uid, nickname, profileImageID)
 	if err != nil {
 		return nil, err
 	}
 
-	profileImage, err := service.mediaService.FindMediaByID(updated.ProfileImageID)
-	if err != nil {
-		return nil, err
+	var profileImage *media.Media
+	if updated.ProfileImageID != nil {
+		profileImage, err = service.mediaService.FindMediaByID(*updated.ProfileImageID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	var profileImageURL *string
+	if profileImage != nil {
+		profileImageURL = &profileImage.URL
+	}
 	return &UserWithProfileImage{
 		ID:                   updated.ID,
 		Email:                updated.Email,
 		Nickname:             updated.Nickname,
 		Fullname:             updated.Fullname,
-		ProfileImageURL:      profileImage.URL,
+		ProfileImageURL:      profileImageURL,
 		FirebaseProviderType: updated.FirebaseProviderType,
 		FirebaseUID:          updated.FirebaseUID,
 	}, nil

@@ -282,7 +282,7 @@ func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatu
 	return &userStatus, nil
 }
 
-func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profileImageID int) (*user.User, error) {
+func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*user.User, error) {
 	user := &user.User{}
 
 	tx, _ := s.db.Begin()
