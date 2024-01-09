@@ -1,4 +1,4 @@
-package webutils
+package utils
 
 import (
 	"net/http"

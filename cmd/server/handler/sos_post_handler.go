@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 )
@@ -69,7 +69,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 	authorIDQuery := r.URL.Query().Get("author_id")
 	sortByQuery := r.URL.Query().Get("sort_by")
 
-	page, size, err := webutils.ParsePaginationQueries(r, 1, 20)
+	page, size, err := utils.ParsePaginationQueries(r, 1, 20)
 	if err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
@@ -118,7 +118,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} sos_post.FindSosPostResponse
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
-	SosPostID, err := webutils.ParseIdFromPath(r, "id")
+	SosPostID, err := utils.ParseIdFromPath(r, "id")
 	if err != nil || SosPostID <= 0 {
 		commonviews.NotFound(w, nil, "invalid sos_post ID")
 		return

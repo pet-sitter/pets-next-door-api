@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	webutils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -118,7 +118,7 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 
 	nicknameQuery := r.URL.Query().Get("nickname")
 
-	page, size, err := webutils.ParsePaginationQueries(r, 1, 10)
+	page, size, err := utils.ParsePaginationQueries(r, 1, 10)
 	if err != nil {
 		commonviews.BadRequest(w, nil, err.Error())
 		return
