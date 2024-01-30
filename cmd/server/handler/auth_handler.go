@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	app "github.com/pet-sitter/pets-next-door-api/api"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
@@ -51,13 +50,13 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 	code := pnd.ParseOptionalStringQuery(r, "code")
 	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
 	if err != nil {
-		render.Render(w, r, app.ErrUnknown(err))
+		render.Render(w, r, pnd.ErrUnknown(err))
 		return
 	}
 
 	userProfile, err := h.kakaoClient.FetchUserProfile(tokenView.AccessToken)
 	if err != nil {
-		render.Render(w, r, app.ErrUnknown(err))
+		render.Render(w, r, pnd.ErrUnknown(err))
 		return
 	}
 
@@ -69,6 +68,45 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, auth.KakaoCallbackView{
+		AuthToken:            *customToken,
+		FirebaseProviderType: user.FirebaseProviderTypeKakao,
+		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
+		Email:                userProfile.KakaoAccount.Email,
+		PhotoURL:             userProfile.Properties.ProfileImage,
+	})
+}
+
+// GenerateFBCustomTokenFromKakao godoc
+// @Summary Kakao OAuth 토큰 기반 Firebase Custom Token 생성 API
+// @Description 주어진 카카오 토큰으로 사용자 기본 정보를 검증하고 Firebase Custom Token을 발급합니다.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body auth.GenerateFBCustomTokenRequest true "Firebase Custom Token 생성 요청"
+// @Success 201 {object} auth.GenerateFBCustomTokenResponse
+// @Failure 400 {object} pnd.AppError
+// @Router /auth/custom-tokens/kakao [post]
+func (h *authHandler) GenerateFBCustomTokenFromKakao(w http.ResponseWriter, r *http.Request) {
+	var tokenRequest auth.GenerateFBCustomTokenRequest
+	if err := pnd.ParseBody(r, &tokenRequest); err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	userProfile, err2 := h.kakaoClient.FetchUserProfile(tokenRequest.OAuthToken)
+	if err2 != nil {
+		render.Render(w, nil, pnd.ErrBadRequest(fmt.Errorf("유효하지 않은 Kakao 인증 정보입니다")))
+		return
+	}
+
+	customToken, err := h.authService.CustomToken(r.Context(), fmt.Sprintf("%d", userProfile.ID))
+	if err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, auth.GenerateFBCustomTokenResponse{
 		AuthToken:            *customToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
 		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),

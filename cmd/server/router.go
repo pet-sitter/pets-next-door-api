@@ -97,6 +97,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login/kakao", authHandler.KakaoLogin)
 			r.Get("/callback/kakao", authHandler.KakaoCallback)
+			r.Post("/custom-tokens/kakao", authHandler.GenerateFBCustomTokenFromKakao)
 		})
 		r.Route("/media", func(r chi.Router) {
 			r.Get("/{id}", mediaHandler.FindMediaByID)

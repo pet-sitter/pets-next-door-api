@@ -41,6 +41,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/custom-tokens/kakao": {
+            "post": {
+                "description": "주어진 카카오 토큰으로 사용자 기본 정보를 검증하고 Firebase Custom Token을 발급합니다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Kakao OAuth 토큰 기반 Firebase Custom Token 생성 API",
+                "parameters": [
+                    {
+                        "description": "Firebase Custom Token 생성 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.GenerateFBCustomTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/auth.GenerateFBCustomTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/pnd.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login/kakao": {
             "get": {
                 "tags": [
@@ -300,7 +340,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.ItemListView-sos_post_ConditionView"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/sos_post.ConditionView"
+                            }
                         }
                     }
                 }
@@ -601,6 +644,34 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.GenerateFBCustomTokenRequest": {
+            "type": "object",
+            "properties": {
+                "oauthToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.GenerateFBCustomTokenResponse": {
+            "type": "object",
+            "properties": {
+                "authToken": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fbProviderType": {
+                    "$ref": "#/definitions/user.FirebaseProviderType"
+                },
+                "fbUid": {
+                    "type": "string"
+                },
+                "photoURL": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.KakaoCallbackView": {
             "type": "object",
             "properties": {
@@ -808,16 +879,47 @@ const docTemplate = `{
                 }
             }
         },
-        "pnd.ItemListView-sos_post_ConditionView": {
+        "pnd.AppError": {
             "type": "object",
             "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/sos_post.ConditionView"
-                    }
+                "code": {
+                    "$ref": "#/definitions/pnd.AppErrorCode"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
+        },
+        "pnd.AppErrorCode": {
+            "type": "string",
+            "enum": [
+                "ERR_BAD_REQUEST",
+                "ERR_INVALID_PARAM",
+                "ERR_INVALID_PAGINATION",
+                "ERR_INVALID_QUERY",
+                "ERR_INVALID_BODY",
+                "ERR_MULTIPART_FORM",
+                "ERR_INVALID_FB_TOKEN",
+                "ERR_USER_NOT_REGISTERED",
+                "ERR_FORBIDDEN",
+                "ERR_NOT_FOUND",
+                "ERR_CONFLICT",
+                "ERR_UNKNOWN"
+            ],
+            "x-enum-varnames": [
+                "ErrCodeBadRequest",
+                "ErrCodeInvalidParam",
+                "ErrCodeInvalidPagination",
+                "ErrCodeInvalidQuery",
+                "ErrCodeInvalidBody",
+                "ErrCodeMultipartForm",
+                "ErrCodeInvalidFBToken",
+                "ErrCodeUserNotRegistered",
+                "ErrCodeForbidden",
+                "ErrCodeNotFound",
+                "ErrCodeConflict",
+                "ErrCodeUnknown"
+            ]
         },
         "sos_post.CareType": {
             "type": "string",
@@ -1314,6 +1416,9 @@ const docTemplate = `{
         },
         "user.UpdateUserRequest": {
             "type": "object",
+            "required": [
+                "nickname"
+            ],
             "properties": {
                 "nickname": {
                     "type": "string"
@@ -1425,7 +1530,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.7.0",
+	Version:          "0.8.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
