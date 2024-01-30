@@ -2,6 +2,9 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
@@ -9,8 +12,6 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
-	"testing"
-	"time"
 )
 
 var db *database.DB
@@ -65,7 +66,7 @@ func TestSosPostService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profileImage.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "1234",
 			})
@@ -206,7 +207,7 @@ func TestSosPostService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profileImage.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "1234",
 			})
@@ -354,7 +355,7 @@ func TestSosPostService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profileImage.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "1234",
 			})
@@ -502,7 +503,7 @@ func TestSosPostService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profileImage.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "1234",
 			})
@@ -649,7 +650,7 @@ func TestSosPostService(t *testing.T) {
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
-				ProfileImageID:       profileImage.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: "kakao",
 				FirebaseUID:          "1234",
 			})
