@@ -1,5 +1,23 @@
 basePath: /api
 definitions:
+  auth.GenerateFBCustomTokenRequest:
+    properties:
+      oauthToken:
+        type: string
+    type: object
+  auth.GenerateFBCustomTokenResponse:
+    properties:
+      authToken:
+        type: string
+      email:
+        type: string
+      fbProviderType:
+        $ref: '#/definitions/user.FirebaseProviderType'
+      fbUid:
+        type: string
+      photoURL:
+        type: string
+    type: object
   auth.KakaoCallbackView:
     properties:
       authToken:
@@ -136,13 +154,41 @@ definitions:
       weight_in_kg:
         type: number
     type: object
-  pnd.ItemListView-sos_post_ConditionView:
+  pnd.AppError:
     properties:
-      items:
-        items:
-          $ref: '#/definitions/sos_post.ConditionView'
-        type: array
+      code:
+        $ref: '#/definitions/pnd.AppErrorCode'
+      message:
+        type: string
     type: object
+  pnd.AppErrorCode:
+    enum:
+    - ERR_BAD_REQUEST
+    - ERR_INVALID_PARAM
+    - ERR_INVALID_PAGINATION
+    - ERR_INVALID_QUERY
+    - ERR_INVALID_BODY
+    - ERR_MULTIPART_FORM
+    - ERR_INVALID_FB_TOKEN
+    - ERR_USER_NOT_REGISTERED
+    - ERR_FORBIDDEN
+    - ERR_NOT_FOUND
+    - ERR_CONFLICT
+    - ERR_UNKNOWN
+    type: string
+    x-enum-varnames:
+    - ErrCodeBadRequest
+    - ErrCodeInvalidParam
+    - ErrCodeInvalidPagination
+    - ErrCodeInvalidQuery
+    - ErrCodeInvalidBody
+    - ErrCodeMultipartForm
+    - ErrCodeInvalidFBToken
+    - ErrCodeUserNotRegistered
+    - ErrCodeForbidden
+    - ErrCodeNotFound
+    - ErrCodeConflict
+    - ErrCodeUnknown
   sos_post.CareType:
     enum:
     - foster
@@ -477,6 +523,8 @@ definitions:
         type: string
       profileImageId:
         type: integer
+    required:
+    - nickname
     type: object
   user.UpdateUserView:
     properties:
@@ -547,7 +595,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: 이웃집멍냥 API 문서
-  version: 0.7.0
+  version: 0.8.0
 paths:
   /auth/callback/kakao:
     get:
@@ -558,6 +606,32 @@ paths:
           schema:
             $ref: '#/definitions/auth.KakaoCallbackView'
       summary: Kakao 회원가입 콜백 API
+      tags:
+      - auth
+  /auth/custom-tokens/kakao:
+    post:
+      consumes:
+      - application/json
+      description: 주어진 카카오 토큰으로 사용자 기본 정보를 검증하고 Firebase Custom Token을 발급합니다.
+      parameters:
+      - description: Firebase Custom Token 생성 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.GenerateFBCustomTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.GenerateFBCustomTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pnd.AppError'
+      summary: Kakao OAuth 토큰 기반 Firebase Custom Token 생성 API
       tags:
       - auth
   /auth/login/kakao:
@@ -746,7 +820,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pnd.ItemListView-sos_post_ConditionView'
+            items:
+              $ref: '#/definitions/sos_post.ConditionView'
+            type: array
       summary: 돌봄 조건을 조회합니다.
       tags:
       - posts
