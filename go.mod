@@ -1,6 +1,6 @@
 module github.com/pet-sitter/pets-next-door-api
 
-go 1.20
+go 1.21.6
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
