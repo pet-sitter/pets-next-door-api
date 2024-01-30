@@ -81,7 +81,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  p.BirthDate,
+			BirthDate:  datetimeToDay(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -164,7 +164,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 				Sex:        p.Sex,
 				Neutered:   p.Neutered,
 				Breed:      p.Breed,
-				BirthDate:  p.BirthDate,
+				BirthDate:  datetimeToDay(p.BirthDate),
 				WeightInKg: p.WeightInKg,
 			}
 			petsView = append(petsView, p)
@@ -252,7 +252,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 				Sex:        p.Sex,
 				Neutered:   p.Neutered,
 				Breed:      p.Breed,
-				BirthDate:  p.BirthDate,
+				BirthDate:  datetimeToDay(p.BirthDate),
 				WeightInKg: p.WeightInKg,
 			}
 			petsView = append(petsView, p)
@@ -337,7 +337,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, er
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  p.BirthDate,
+			BirthDate:  datetimeToDay(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -417,7 +417,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  p.BirthDate,
+			BirthDate:  datetimeToDay(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -456,4 +456,8 @@ func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int
 
 func datetimeToTime(datetime time.Time) string {
 	return datetime.Format("15:04")
+}
+
+func datetimeToDay(datetime string) string {
+	return datetime[:10]
 }
