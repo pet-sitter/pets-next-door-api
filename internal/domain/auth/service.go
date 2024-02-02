@@ -3,15 +3,18 @@ package auth
 import (
 	"context"
 	"fmt"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"net/http"
 	"strings"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 
 	"firebase.google.com/go/auth"
 )
 
 type AuthService interface {
-	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserResponse, error)
-	CustomToken(ctx context.Context, uid string) (string, error)
+	VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserResponse, *pnd.AppError)
+	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
 }
 
 type FirebaseBearerAuthService struct {
@@ -36,22 +39,28 @@ func (s *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHeader s
 	return authToken, err
 }
 
-func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserResponse, error) {
-	authToken, err := s.verifyAuth(ctx, authHeader)
+func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserResponse, *pnd.AppError) {
+	authToken, err := s.verifyAuth(ctx, r.Header.Get("Authorization"))
 	if err != nil {
-		return nil, err
+		return nil, pnd.ErrInvalidFBToken(fmt.Errorf("유효하지 않은 인증 토큰입니다"))
 	}
 
-	foundUser, err := s.userService.FindUserByUID(authToken.UID)
-	if err != nil {
-		return nil, err
+	var err2 *pnd.AppError
+	foundUser, err2 := s.userService.FindUserByUID(authToken.UID)
+	if err2 != nil {
+		return nil, pnd.ErrUserNotRegistered(fmt.Errorf("가입되지 않은 사용자입니다"))
 	}
 
 	return foundUser, nil
 }
 
-func (s *FirebaseBearerAuthService) CustomToken(ctx context.Context, uid string) (string, error) {
-	return s.authClient.CustomToken(ctx, uid)
+func (s *FirebaseBearerAuthService) CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError) {
+	customToken, err := s.authClient.CustomToken(ctx, uid)
+	if err != nil {
+		return nil, pnd.ErrUnknown(err)
+	}
+
+	return &customToken, nil
 }
 
 func (s *FirebaseBearerAuthService) stripBearerToken(authHeader string) (string, error) {
@@ -59,5 +68,5 @@ func (s *FirebaseBearerAuthService) stripBearerToken(authHeader string) (string,
 		return authHeader[7:], nil
 	}
 
-	return authHeader, fmt.Errorf("invalid auth header")
+	return authHeader, fmt.Errorf("유효하지 않은 인증 토큰입니다")
 }

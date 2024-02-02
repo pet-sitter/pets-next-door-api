@@ -1,11 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/go-chi/render"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 )
@@ -33,24 +34,25 @@ func NewSosPostHandler(sosPostService sos_post.SosPostService, authService auth.
 // @Success 201 {object} sos_post.WriteSosPostResponse
 // @Router /posts/sos [post]
 func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
 	var writeSosPostRequest sos_post.WriteSosPostRequest
-	if err := commonviews.ParseBody(w, r, &writeSosPostRequest); err != nil {
+	if err := utils.ParseBody(r, &writeSosPostRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	res, err := h.sosPostService.WriteSosPost(foundUser.FirebaseUID, &writeSosPostRequest)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.Created(w, nil, res)
+	pnd.Created(w, nil, res)
 }
 
 // FindSosPosts godoc
@@ -63,49 +65,43 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
-// @Success 200 {object} commonviews.PaginatedView[sos_post.FindSosPostResponse]
+// @Success 200 {object} pnd.PaginatedView[sos_post.FindSosPostResponse]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
-	authorIDQuery := r.URL.Query().Get("author_id")
-	sortByQuery := r.URL.Query().Get("sort_by")
+	authorID, err := utils.ParseOptionalIntQuery(r, "author_id")
+	if err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	sortBy := "newest"
+	if sortByQuery := utils.ParseOptionalStringQuery(r, "sort_by"); sortByQuery != nil {
+		sortBy = *sortByQuery
+	}
 
 	page, size, err := utils.ParsePaginationQueries(r, 1, 20)
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
 	var res []sos_post.FindSosPostResponse
 
-	if authorIDQuery != "" {
-		var authorID int
-		authorID, err = strconv.Atoi(authorIDQuery)
+	if authorID != nil {
+		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size)
 		if err != nil {
-			commonviews.BadRequest(w, nil, err.Error())
-			return
-		}
-
-		res, err = h.sosPostService.FindSosPostsByAuthorID(authorID, page, size)
-		if err != nil {
-			commonviews.InternalServerError(w, nil, err.Error())
+			render.Render(w, r, err)
 			return
 		}
 	} else {
-		var sortBy string
-		if sortByQuery == "" {
-			sortBy = "newest"
-		} else {
-			sortBy = sortByQuery
-		}
-
 		res, err = h.sosPostService.FindSosPosts(page, size, sortBy)
 		if err != nil {
-			commonviews.InternalServerError(w, nil, err.Error())
+			render.Render(w, r, err)
 			return
 		}
 	}
 
-	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
+	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
 }
 
 // FindSosPostByID godoc
@@ -119,17 +115,17 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
 	SosPostID, err := utils.ParseIdFromPath(r, "id")
-	if err != nil || SosPostID <= 0 {
-		commonviews.NotFound(w, nil, "invalid sos_post ID")
+	if err != nil {
+		render.Render(w, r, err)
 		return
 	}
-	res, err := h.sosPostService.FindSosPostByID(SosPostID)
+	res, err := h.sosPostService.FindSosPostByID(*SosPostID)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, res)
+	pnd.OK(w, nil, res)
 }
 
 // UpdateSosPost godoc
@@ -143,28 +139,33 @@ func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request)
 // @Success 200
 // @Router /posts/sos [put]
 func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
-	if err := commonviews.ParseBody(w, r, &updateSosPostRequest); err != nil {
+	if err := utils.ParseBody(r, &updateSosPostRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
-	permission := h.sosPostService.CheckUpdatePermission(foundUser.FirebaseUID, updateSosPostRequest.ID)
-
+	permission, err := h.sosPostService.CheckUpdatePermission(foundUser.FirebaseUID, updateSosPostRequest.ID)
+	if err != nil {
+		render.Render(w, r, err)
+		return
+	}
 	if !permission {
-		commonviews.Forbidden(w, nil, "forbidden")
+		render.Render(w, r, pnd.ErrForbidden(fmt.Errorf("해당 게시글에 대한 수정 권한이 없습니다")))
 		return
 	}
 
 	res, err := h.sosPostService.UpdateSosPost(&updateSosPostRequest)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
+		return
 	}
 
-	commonviews.OK(w, nil, res)
+	pnd.OK(w, nil, res)
 }

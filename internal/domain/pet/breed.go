@@ -1,5 +1,7 @@
 package pet
 
+import pnd "github.com/pet-sitter/pets-next-door-api/api"
+
 type Breed struct {
 	ID        int     `field:"id"`
 	Name      string  `field:"name"`
@@ -10,7 +12,7 @@ type Breed struct {
 }
 
 type BreedStore interface {
-	FindBreeds(page int, size int, petType *string) ([]*Breed, error)
-	FindBreedByPetTypeAndName(petType PetType, name string) (*Breed, error)
-	CreateBreed(breed *Breed) (*Breed, error)
+	FindBreeds(page int, size int, petType *string) ([]*Breed, *pnd.AppError)
+	FindBreedByPetTypeAndName(petType PetType, name string) (*Breed, *pnd.AppError)
+	CreateBreed(breed *Breed) (*Breed, *pnd.AppError)
 }

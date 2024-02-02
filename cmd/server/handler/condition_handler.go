@@ -1,9 +1,11 @@
 package handler
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"net/http"
+
+	"github.com/go-chi/render"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 )
 
 type ConditionHandler struct {
@@ -25,9 +27,9 @@ func NewConditionHandler(conditionService *sos_post.ConditionService) *Condition
 func (h *ConditionHandler) FindConditions(w http.ResponseWriter, r *http.Request) {
 	res, err := h.conditionService.FindConditions()
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, res)
+	pnd.OK(w, nil, res)
 }

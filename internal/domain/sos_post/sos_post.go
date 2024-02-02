@@ -3,6 +3,7 @@ package sos_post
 import (
 	"time"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
 
@@ -44,11 +45,11 @@ type SosPost struct {
 }
 
 type SosPostStore interface {
-	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, error)
-	FindSosPosts(page int, size int, sortBy string) ([]SosPost, error)
-	FindSosPostsByAuthorID(authorID int, page int, size int) ([]SosPost, error)
-	FindSosPostByID(id int) (*SosPost, error)
-	UpdateSosPost(request *UpdateSosPostRequest) (*SosPost, error)
-	FindConditionByID(id int) ([]Condition, error)
-	FindPetsByID(id int) ([]pet.Pet, error)
+	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
+	FindSosPosts(page int, size int, sortBy string) ([]SosPost, *pnd.AppError)
+	FindSosPostsByAuthorID(authorID int, page int, size int) ([]SosPost, *pnd.AppError)
+	FindSosPostByID(id int) (*SosPost, *pnd.AppError)
+	UpdateSosPost(request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
+	FindConditionByID(id int) ([]Condition, *pnd.AppError)
+	FindPetsByID(id int) ([]pet.Pet, *pnd.AppError)
 }

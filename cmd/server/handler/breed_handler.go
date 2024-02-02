@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/common"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"net/http"
+
+	"github.com/go-chi/render"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
 
 type BreedHandler struct {
@@ -24,29 +26,21 @@ func NewBreedHandler(breedService *pet.BreedService) *BreedHandler {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param pet_type query string false "펫 종류" Enums(dog, cat)
-// @Success 200 {object} commonviews.PaginatedView[pet.BreedView]
+// @Success 200 {object} pnd.PaginatedView[pet.BreedView]
 // @Router /breeds [get]
 func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
-	petTypeQuery := r.URL.Query().Get("pet_type")
-
+	petType := utils.ParseOptionalStringQuery(r, "pet_type")
 	page, size, err := utils.ParsePaginationQueries(r, 1, 20)
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
-	}
-
-	var petType *string
-	if petTypeQuery == "" {
-		petType = nil
-	} else {
-		petType = &petTypeQuery
 	}
 
 	res, err := h.breedService.FindBreeds(page, size, petType)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
+	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
 }

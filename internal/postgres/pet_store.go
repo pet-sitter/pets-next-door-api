@@ -1,7 +1,8 @@
 package postgres
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/internal/common"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -16,7 +17,7 @@ func NewPetPostgresStore(db *database.DB) *PetPostgresStore {
 	}
 }
 
-func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, error) {
+func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
 	tx, _ := s.db.Begin()
 	err := tx.QueryRow(`
 	INSERT INTO
@@ -48,14 +49,14 @@ func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, error) {
 	tx.Commit()
 
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	pet.BirthDate = utils.FormatDate(pet.BirthDate)
 	return pet, nil
 }
 
-func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, error) {
+func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, *pnd.AppError) {
 	var pets []pet.Pet
 
 	tx, _ := s.db.Begin()
@@ -81,7 +82,7 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, error) {
 		ownerID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 	defer rows.Close()
 
@@ -101,7 +102,7 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, error) {
 			&pet.CreatedAt,
 			&pet.UpdatedAt,
 		); err != nil {
-			return nil, err
+			return nil, pnd.FromPGError(err)
 		}
 
 		pet.BirthDate = utils.FormatDate(pet.BirthDate)

@@ -1,6 +1,7 @@
 package user
 
 import (
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
@@ -20,35 +21,34 @@ func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService med
 }
 
 type UserServicer interface {
-	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, error)
-	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error)
-	FindUserByEmail(email string) (*UserWithProfileImage, error)
-	FindUserByUID(uid string) (*FindUserResponse, error)
-	ExistsByNickname(nickname string) (bool, error)
-	FindUserStatusByEmail(email string) (*UserStatus, error)
-	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, error)
-	AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, error)
-	FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, error)
+	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, *pnd.AppError)
+	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError)
+	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserByUID(uid string) (*FindUserResponse, *pnd.AppError)
+	ExistsByNickname(nickname string) (bool, *pnd.AppError)
+	FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError)
+	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError)
+	AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError)
+	FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, *pnd.AppError)
 }
 
-func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, error) {
+func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, *pnd.AppError) {
 	var media *media.Media
-	var err error
+	var err *pnd.AppError
 	if registerUserRequest.ProfileImageID != nil {
 		media, err = service.mediaService.FindMediaByID(*registerUserRequest.ProfileImageID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	created, err := service.userStore.CreateUser(registerUserRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err
+	created, err2 := service.userStore.CreateUser(registerUserRequest)
+	if err2 != nil {
+		return nil, pnd.ErrUnknown(err2)
 	}
 
 	var profileImageURL *string
@@ -67,7 +67,7 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 	}, nil
 }
 
-func (service *UserService) FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error) {
+func (service *UserService) FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError) {
 	usersData, err := service.userStore.FindUsers(page, size, nickname)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (service *UserService) FindUsers(page int, size int, nickname *string) ([]*
 	return usersData, nil
 }
 
-func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage, error) {
+func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError) {
 	user, err := service.userStore.FindUserByEmail(email)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage
 	return user, nil
 }
 
-func (service *UserService) FindUserByUID(uid string) (*FindUserResponse, error) {
+func (service *UserService) FindUserByUID(uid string) (*FindUserResponse, *pnd.AppError) {
 	user, err := service.userStore.FindUserByUID(uid)
 	if err != nil {
 		return nil, err
@@ -102,11 +102,16 @@ func (service *UserService) FindUserByUID(uid string) (*FindUserResponse, error)
 	}, nil
 }
 
-func (service *UserService) ExistsByNickname(nickname string) (bool, error) {
-	return service.userStore.ExistsByNickname(nickname)
+func (service *UserService) ExistsByNickname(nickname string) (bool, *pnd.AppError) {
+	existsByNickname, err := service.userStore.ExistsByNickname(nickname)
+	if err != nil {
+		return false, pnd.ErrUnknown(err)
+	}
+
+	return existsByNickname, nil
 }
 
-func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, error) {
+func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError) {
 	userStatus, err := service.userStore.FindUserStatusByEmail(email)
 	if err != nil {
 		return nil, err
@@ -117,17 +122,18 @@ func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, er
 	}, nil
 }
 
-func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, error) {
+func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError) {
 	updated, err := service.userStore.UpdateUserByUID(uid, nickname, profileImageID)
 	if err != nil {
 		return nil, err
 	}
 
 	var profileImage *media.Media
+	var err2 *pnd.AppError
 	if updated.ProfileImageID != nil {
-		profileImage, err = service.mediaService.FindMediaByID(*updated.ProfileImageID)
+		profileImage, err2 = service.mediaService.FindMediaByID(*updated.ProfileImageID)
 		if err != nil {
-			return nil, err
+			return nil, err2
 		}
 	}
 
@@ -146,7 +152,7 @@ func (service *UserService) UpdateUserByUID(uid string, nickname string, profile
 	}, nil
 }
 
-func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, error) {
+func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
 	pets := make([]pet.Pet, len(addPetsRequest.Pets))
 
 	user, err := service.userStore.FindUserByUID(uid)
@@ -167,7 +173,7 @@ func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPet
 		}
 
 		if _, err := service.petStore.CreatePet(&pets[i]); err != nil {
-			return nil, err
+			return nil, pnd.ErrUnknown(err)
 		}
 	}
 
@@ -188,7 +194,7 @@ func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPet
 	return petViews, nil
 }
 
-func (service *UserService) FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, error) {
+func (service *UserService) FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, *pnd.AppError) {
 	user, err := service.userStore.FindUserByUID(uid)
 	if err != nil {
 		return nil, err

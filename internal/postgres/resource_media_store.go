@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -15,7 +16,7 @@ func NewResourceMediaPostgresStore(db *database.DB) *ResourceMediaPostgresStore 
 	}
 }
 
-func (s *ResourceMediaPostgresStore) CreateResourceMedia(resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, error) {
+func (s *ResourceMediaPostgresStore) CreateResourceMedia(resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
 	resourceMedia := &media.ResourceMedia{}
 
 	tx, _ := s.db.Begin()
@@ -39,13 +40,13 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(resourceID int, mediaID
 	tx.Commit()
 
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	return resourceMedia, nil
 }
 
-func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID int, resourceType string) ([]media.Media, error) {
+func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
 	var mediaList []media.Media
 
 	tx, _ := s.db.Begin()
@@ -72,7 +73,7 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID in
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	for rows.Next() {
@@ -80,7 +81,7 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID in
 
 		err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt)
 		if err != nil {
-			return nil, err
+			return nil, pnd.FromPGError(err)
 		}
 
 		mediaList = append(mediaList, mediaItem)

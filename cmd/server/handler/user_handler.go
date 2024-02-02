@@ -1,12 +1,14 @@
 package handler
 
 import (
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/common"
+	"net/http"
+
+	"github.com/go-chi/render"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"net/http"
 )
 
 type UserHandler struct {
@@ -32,17 +34,18 @@ func NewUserHandler(userService user.UserServicer, authService auth.AuthService)
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest user.RegisterUserRequest
-	if err := commonviews.ParseBody(w, r, &registerUserRequest); err != nil {
+	if err := utils.ParseBody(r, &registerUserRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	res, err := h.userService.RegisterUser(&registerUserRequest)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.Created(w, nil, res)
+	pnd.Created(w, nil, res)
 }
 
 // CheckUserNickname godoc
@@ -56,17 +59,18 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/check/nickname [post]
 func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) {
 	var checkUserNicknameRequest user.CheckNicknameRequest
-	if err := commonviews.ParseBody(w, r, &checkUserNicknameRequest); err != nil {
+	if err := utils.ParseBody(r, &checkUserNicknameRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	exists, err := h.userService.ExistsByNickname(checkUserNicknameRequest.Nickname)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, user.CheckNicknameView{IsAvailable: !exists})
+	pnd.OK(w, nil, user.CheckNicknameView{IsAvailable: !exists})
 }
 
 // FindUserStatusByEmail godoc
@@ -80,19 +84,20 @@ func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) 
 // @Router /users/status [post]
 func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Request) {
 	var providerRequest user.UserStatusRequest
-	if err := commonviews.ParseBody(w, r, &providerRequest); err != nil {
+	if err := utils.ParseBody(r, &providerRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	userStatus, err := h.userService.FindUserStatusByEmail(providerRequest.Email)
 	if err != nil || userStatus == nil {
-		commonviews.OK(w, nil, user.UserStatusView{
+		pnd.OK(w, nil, user.UserStatusView{
 			Status: user.UserStatusNotRegistered,
 		})
 		return
 	}
 
-	commonviews.OK(w, nil, user.UserStatusView{
+	pnd.OK(w, nil, user.UserStatusView{
 		Status:               user.UserStatusRegistered,
 		FirebaseProviderType: userStatus.FirebaseProviderType,
 	})
@@ -107,39 +112,31 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(10)
 // @Param nickname query string false "닉네임 (완전 일치)"
-// @Success 200 {object} commonviews.PaginatedView[user.UserWithoutPrivateInfo]
+// @Success 200 {object} pnd.PaginatedView[user.UserWithoutPrivateInfo]
 // @Router /users [get]
 func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
-	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
-	nicknameQuery := r.URL.Query().Get("nickname")
-
+	nickname := utils.ParseOptionalStringQuery(r, "nickname")
 	page, size, err := utils.ParsePaginationQueries(r, 1, 10)
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
 	var res []*user.UserWithoutPrivateInfo
 
-	var nickname *string
-	if nicknameQuery == "" {
-		nickname = nil
-	} else {
-		nickname = &nicknameQuery
-	}
-
 	res, err = h.userService.FindUsers(page, size, nickname)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, commonviews.NewPaginatedView(page, size, res))
+	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
 }
 
 // FindMyProfile godoc
@@ -151,13 +148,13 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} user.MyProfileResponse
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
-	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, res.ToMyProfileResponse())
+	pnd.OK(w, nil, res.ToMyProfileResponse())
 }
 
 // UpdateMyProfile godoc
@@ -171,26 +168,27 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} user.UpdateUserResponse
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
-	if err := commonviews.ParseBody(w, r, &updateUserRequest); err != nil {
+	if err := utils.ParseBody(r, &updateUserRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	userModel, err := h.userService.UpdateUserByUID(uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, user.UpdateUserResponse{
+	pnd.OK(w, nil, user.UpdateUserResponse{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,
@@ -211,25 +209,26 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Router /users/me/pets [put]
 func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
-	if err := commonviews.ParseBody(w, r, &addPetsToOwnerRequest); err != nil {
+	if err := utils.ParseBody(r, &addPetsToOwnerRequest); err != nil {
+		render.Render(w, r, err)
 		return
 	}
 
 	if _, err := h.userService.AddPetsToOwner(uid, addPetsToOwnerRequest); err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, nil)
+	pnd.OK(w, nil, nil)
 }
 
 // FindMyPets godoc
@@ -241,9 +240,9 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} pet.FindMyPetsView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r.Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, "unauthorized")
+		render.Render(w, r, err)
 		return
 	}
 
@@ -251,9 +250,9 @@ func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.userService.FindPetsByOwnerUID(uid)
 	if err != nil {
-		commonviews.InternalServerError(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, res)
+	pnd.OK(w, nil, res)
 }

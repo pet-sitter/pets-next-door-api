@@ -1,5 +1,7 @@
 package sos_post
 
+import pnd "github.com/pet-sitter/pets-next-door-api/api"
+
 type Condition struct {
 	ID        int    `filed:"id"`
 	Name      string `filed:"name"`
@@ -24,5 +26,5 @@ const (
 var ConditionName = []SosCondition{CCTVPermission, IDVerification, PhonePermission}
 
 type ConditionStore interface {
-	FindConditions() ([]Condition, error)
+	FindConditions() ([]Condition, *pnd.AppError)
 }
