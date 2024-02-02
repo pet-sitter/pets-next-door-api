@@ -13,39 +13,6 @@ definitions:
       photoURL:
         type: string
     type: object
-  commonviews.PaginatedView-pet_BreedView:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/pet.BreedView'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
-  commonviews.PaginatedView-sos_post_FindSosPostResponse:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/sos_post.FindSosPostResponse'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
-  commonviews.PaginatedView-user_UserWithoutPrivateInfo:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/user.UserWithoutPrivateInfo'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
   media.MediaType:
     enum:
     - image
@@ -155,6 +122,39 @@ definitions:
         $ref: '#/definitions/pet.PetSex'
       weight_in_kg:
         type: number
+    type: object
+  pnd.PaginatedView-pet_BreedView:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/pet.BreedView'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
+  pnd.PaginatedView-sos_post_FindSosPostResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/sos_post.FindSosPostResponse'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
+  pnd.PaginatedView-user_UserWithoutPrivateInfo:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/user.UserWithoutPrivateInfo'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
     type: object
   sos_post.CareType:
     enum:
@@ -453,7 +453,6 @@ definitions:
     - fbUid
     - fullname
     - nickname
-    - profileImageId
     type: object
   user.RegisterUserResponse:
     properties:
@@ -584,7 +583,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/commonviews.PaginatedView-pet_BreedView'
+            $ref: '#/definitions/pnd.PaginatedView-pet_BreedView'
       summary: 견/묘종을 조회합니다.
       tags:
       - pets
@@ -658,7 +657,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse'
+            $ref: '#/definitions/pnd.PaginatedView-sos_post_FindSosPostResponse'
       summary: 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
@@ -763,7 +762,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/commonviews.PaginatedView-user_UserWithoutPrivateInfo'
+            $ref: '#/definitions/pnd.PaginatedView-user_UserWithoutPrivateInfo'
       security:
       - FirebaseAuth: []
       summary: 사용자 목록을 조회합니다.

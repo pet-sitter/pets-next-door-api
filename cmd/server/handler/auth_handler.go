@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
+	"github.com/go-chi/render"
+	app "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -47,31 +49,30 @@ func (h *authHandler) KakaoLogin(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} auth.KakaoCallbackResponse
 // @Router /auth/callback/kakao [get]
 func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-
-	tokenView, err := h.kakaoClient.FetchAccessToken(code)
+	code := utils.ParseOptionalStringQuery(r, "code")
+	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, err.Error())
+		render.Render(w, r, app.ErrUnknown(err))
 		return
 	}
 
 	userProfile, err := h.kakaoClient.FetchUserProfile(tokenView.AccessToken)
 	if err != nil {
-		commonviews.Unauthorized(w, nil, err.Error())
+		render.Render(w, r, app.ErrUnknown(err))
 		return
 	}
 
 	ctx := r.Context()
-	customToken, err := h.authService.CustomToken(ctx, fmt.Sprintf("%d", userProfile.ID))
+	customToken, err2 := h.authService.CustomToken(ctx, fmt.Sprintf("%d", userProfile.ID))
 	if err != nil {
-		commonviews.Unauthorized(w, nil, err.Error())
+		render.Render(w, r, err2)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(auth.KakaoCallbackResponse{
-		AuthToken:            customToken,
+		AuthToken:            *customToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
 		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
 		Email:                userProfile.KakaoAccount.Email,

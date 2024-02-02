@@ -1,10 +1,12 @@
 package sos_post
 
 import (
+	"time"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"time"
 )
 
 type SosPostService struct {
@@ -21,7 +23,7 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostRequest) (*WriteSosPostResponse, error) {
+func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostRequest) (*WriteSosPostResponse, *pnd.AppError) {
 	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
 	if err != nil {
 		return nil, err
@@ -109,7 +111,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 	}, nil
 }
 
-func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) ([]FindSosPostResponse, error) {
+func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) ([]FindSosPostResponse, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPosts(page, size, sortBy)
 	if err != nil {
 		return nil, err
@@ -197,7 +199,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 	return FindSosPostResponseList, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) ([]FindSosPostResponse, error) {
+func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) ([]FindSosPostResponse, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size)
 	if err != nil {
 		return nil, err
@@ -285,7 +287,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 	return FindSosPostResponseList, nil
 }
 
-func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, error) {
+func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *pnd.AppError) {
 	sosPost, err := service.sosPostStore.FindSosPostByID(id)
 	if err != nil {
 		return nil, err
@@ -365,7 +367,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, er
 	}, nil
 }
 
-func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostResponse, error) {
+func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostResponse, *pnd.AppError) {
 	updateSosPost, err := service.sosPostStore.UpdateSosPost(request)
 	if err != nil {
 		return nil, err
@@ -445,13 +447,18 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 	}, nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int) bool {
-	userID, _ := service.userStore.FindUserIDByFbUID(fbUid)
-	sosPost, _ := service.sosPostStore.FindSosPostByID(sosPostID)
-	if sosPost.AuthorID != userID {
-		return false
+func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int) (bool, *pnd.AppError) {
+	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
+	if err != nil {
+		return false, pnd.ErrUnknown(err)
 	}
-	return true
+
+	sosPost, err := service.sosPostStore.FindSosPostByID(sosPostID)
+	if err != nil {
+		return false, pnd.ErrUnknown(err)
+	}
+
+	return userID == sosPost.AuthorID, nil
 }
 
 func datetimeToTime(datetime time.Time) string {

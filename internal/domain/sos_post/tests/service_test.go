@@ -67,7 +67,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profileImage.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "1234",
 			})
 			if err != nil {
@@ -99,7 +99,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
 
 			conditionIDs := []int{1, 2}
-			krLocation, err := time.LoadLocation("Asia/Seoul")
+			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			writeSosPostRequest := &sos_post.WriteSosPostRequest{
 				Title:        "Test Title",
@@ -208,7 +208,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profileImage.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "1234",
 			})
 			if err != nil {
@@ -240,7 +240,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
 
 			conditionIDs := []int{1, 2}
-			krLocation, err := time.LoadLocation("Asia/Seoul")
+			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			var sosPosts []sos_post.WriteSosPostResponse
 
@@ -356,7 +356,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profileImage.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "1234",
 			})
 			if err != nil {
@@ -387,7 +387,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
 
 			conditionIDs := []int{1, 2}
-			krLocation, err := time.LoadLocation("Asia/Seoul")
+			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPosts := make([]sos_post.WriteSosPostResponse, 0)
 			for i := 1; i < 4; i++ {
@@ -504,7 +504,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profileImage.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "1234",
 			})
 			if err != nil {
@@ -536,7 +536,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
 
 			conditionIDs := []int{1, 2}
-			krLocation, err := time.LoadLocation("Asia/Seoul")
+			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPosts := make([]sos_post.WriteSosPostResponse, 0)
 			for i := 1; i < 4; i++ {
@@ -651,7 +651,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profileImage.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "1234",
 			})
 			if err != nil {
@@ -683,7 +683,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
 
 			conditionIDs := []int{1, 2}
-			krLocation, err := time.LoadLocation("Asia/Seoul")
+			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
 				Title:        "Title1",

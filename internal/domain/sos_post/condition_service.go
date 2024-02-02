@@ -1,5 +1,7 @@
 package sos_post
 
+import pnd "github.com/pet-sitter/pets-next-door-api/api"
+
 type ConditionService struct {
 	conditionStore ConditionStore
 }
@@ -10,9 +12,8 @@ func NewConditionService(conditionStore ConditionStore) *ConditionService {
 	}
 }
 
-func (service *ConditionService) FindConditions() ([]ConditionView, error) {
+func (service *ConditionService) FindConditions() ([]ConditionView, *pnd.AppError) {
 	conditions, err := service.conditionStore.FindConditions()
-
 	if err != nil {
 		return nil, err
 	}

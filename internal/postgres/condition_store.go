@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -15,10 +16,10 @@ func NewConditionPostgresStore(db *database.DB) *ConditionPostgresStore {
 	}
 }
 
-func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosCondition) (string, error) {
+func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosCondition) (string, *pnd.AppError) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return "", err
+		return "", pnd.FromPGError(err)
 	}
 
 	for n, v := range conditions {
@@ -42,24 +43,24 @@ func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosConditi
 		`, n+1, string(v))
 		if err != nil {
 			tx.Rollback()
-			return "", err
+			return "", pnd.FromPGError(err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return "", err
+		return "", pnd.FromPGError(err)
 	}
 
 	return "condition init success", nil
 }
 
-func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, error) {
+func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, *pnd.AppError) {
 	conditions := make([]sos_post.Condition, 0)
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	rows, err := tx.Query(`
@@ -70,7 +71,7 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, error) 
 			sos_conditions
 	`)
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	for rows.Next() {
@@ -81,7 +82,7 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, error) 
 			&condition.Name,
 		)
 		if err != nil {
-			return nil, err
+			return nil, pnd.FromPGError(err)
 		}
 
 		conditions = append(conditions, condition)
@@ -89,7 +90,7 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, error) 
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPGError(err)
 	}
 
 	return conditions, nil

@@ -1,5 +1,7 @@
 package user
 
+import pnd "github.com/pet-sitter/pets-next-door-api/api"
+
 type FirebaseProviderType string
 
 const (
@@ -48,12 +50,12 @@ type UserStatus struct {
 }
 
 type UserStore interface {
-	CreateUser(request *RegisterUserRequest) (*User, error)
-	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, error)
-	FindUserByEmail(email string) (*UserWithProfileImage, error)
-	FindUserByUID(uid string) (*UserWithProfileImage, error)
-	FindUserIDByFbUID(fbUid string) (int, error)
-	ExistsByNickname(nickname string) (bool, error)
-	FindUserStatusByEmail(email string) (*UserStatus, error)
-	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*User, error)
+	CreateUser(request *RegisterUserRequest) (*User, *pnd.AppError)
+	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError)
+	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserByUID(uid string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserIDByFbUID(fbUid string) (int, *pnd.AppError)
+	ExistsByNickname(nickname string) (bool, *pnd.AppError)
+	FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError)
+	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
 }

@@ -43,7 +43,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -69,7 +69,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       nil,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -96,14 +96,12 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
-			_, _ = service.RegisterUser(user)
-			_, err := service.RegisterUser(user)
-
-			if err == nil {
+			service.RegisterUser(user)
+			if _, err := service.RegisterUser(user); err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 		})
@@ -128,7 +126,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             targetNickname,
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 			service.RegisterUser(targetUserRequest)
@@ -138,7 +136,7 @@ func TestUserService(t *testing.T) {
 					Nickname:             fmt.Sprintf("nickname%d", i),
 					Fullname:             fmt.Sprintf("fullname%d", i),
 					ProfileImageID:       &profile_image.ID,
-					FirebaseProviderType: "kakao",
+					FirebaseProviderType: user.FirebaseProviderTypeKakao,
 					FirebaseUID:          fmt.Sprintf("uid%d", i),
 				})
 			}
@@ -169,7 +167,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -218,7 +216,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -281,7 +279,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -313,7 +311,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -351,7 +349,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
 
@@ -393,7 +391,7 @@ func TestUserService(t *testing.T) {
 				Nickname:             "nickname",
 				Fullname:             "fullname",
 				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: "kakao",
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			})
 

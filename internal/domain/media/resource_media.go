@@ -1,6 +1,10 @@
 package media
 
-import "time"
+import (
+	"time"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type ResourceType string
 
@@ -26,6 +30,6 @@ type ResourceMediaView struct {
 }
 
 type ResourceMediaStore interface {
-	CreateResourceMedia(resourceID int, mediaID int, resourceType string) (*ResourceMedia, error)
-	FindResourceMediaByResourceID(resourceID int, resourceType string) ([]Media, error)
+	CreateResourceMedia(resourceID int, mediaID int, resourceType string) (*ResourceMedia, *pnd.AppError)
+	FindResourceMediaByResourceID(resourceID int, resourceType string) ([]Media, *pnd.AppError)
 }

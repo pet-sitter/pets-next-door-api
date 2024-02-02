@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/pet-sitter/pets-next-door-api/api/commonviews"
-	"github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/go-chi/render"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 )
 
@@ -29,18 +31,18 @@ func NewMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 // @Router /media/{id} [get]
 func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ParseIdFromPath(r, "id")
-	if err != nil || id <= 0 {
-		commonviews.NotFound(w, nil, "invalid media ID")
-		return
-	}
-
-	found, err := h.mediaService.FindMediaByID(id)
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, err)
 		return
 	}
 
-	commonviews.OK(w, nil, media.MediaView{
+	found, err := h.mediaService.FindMediaByID(*id)
+	if err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	pnd.OK(w, nil, media.MediaView{
 		ID:        found.ID,
 		MediaType: found.MediaType,
 		URL:       found.URL,
@@ -59,29 +61,29 @@ func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 // @Router /media/images [post]
 func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, pnd.ErrMultipartFormError(err))
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, pnd.ErrMultipartFormError(fmt.Errorf("file must be provided")))
 		return
 	}
 	defer file.Close()
 
 	if !isValidMimeType(header.Header.Get("Content-Type")) {
-		commonviews.BadRequest(w, nil, "invalid MIME type; supported MIME types are: ["+supportedMimeTypeString()+"]")
+		render.Render(w, r, pnd.ErrMultipartFormError(fmt.Errorf("invalid MIME type; supported MIME types are: ["+supportedMimeTypeString()+"]")))
 		return
 	}
 
-	res, err := h.mediaService.UploadMedia(file, media.IMAGE_MEDIA_TYPE, header.Filename)
+	res, err2 := h.mediaService.UploadMedia(file, media.IMAGE_MEDIA_TYPE, header.Filename)
 	if err != nil {
-		commonviews.BadRequest(w, nil, err.Error())
+		render.Render(w, r, err2)
 		return
 	}
 
-	commonviews.Created(w,
+	pnd.Created(w,
 		nil,
 		media.MediaView{
 			ID:        res.ID,

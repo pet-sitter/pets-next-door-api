@@ -88,7 +88,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/commonviews.PaginatedView-pet_BreedView"
+                            "$ref": "#/definitions/pnd.PaginatedView-pet_BreedView"
                         }
                     }
                 }
@@ -201,7 +201,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/commonviews.PaginatedView-sos_post_FindSosPostResponse"
+                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostResponse"
                         }
                     }
                 }
@@ -372,7 +372,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/commonviews.PaginatedView-user_UserWithoutPrivateInfo"
+                            "$ref": "#/definitions/pnd.PaginatedView-user_UserWithoutPrivateInfo"
                         }
                     }
                 }
@@ -616,57 +616,6 @@
                 }
             }
         },
-        "commonviews.PaginatedView-pet_BreedView": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/pet.BreedView"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "commonviews.PaginatedView-sos_post_FindSosPostResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/sos_post.FindSosPostResponse"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "commonviews.PaginatedView-user_UserWithoutPrivateInfo": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
         "media.MediaType": {
             "type": "string",
             "enum": [
@@ -831,6 +780,57 @@
                 },
                 "weight_in_kg": {
                     "type": "number"
+                }
+            }
+        },
+        "pnd.PaginatedView-pet_BreedView": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pet.BreedView"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pnd.PaginatedView-sos_post_FindSosPostResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pnd.PaginatedView-user_UserWithoutPrivateInfo": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
                 }
             }
         },
@@ -1258,8 +1258,7 @@
                 "fbProviderType",
                 "fbUid",
                 "fullname",
-                "nickname",
-                "profileImageId"
+                "nickname"
             ],
             "properties": {
                 "email": {
