@@ -33,7 +33,7 @@ func generateRandomFileName(originalFileName string) string {
 	return uuid.New().String() + extension
 }
 
-type UploadFileResponse struct {
+type UploadFileView struct {
 	FileEndpoint string
 }
 

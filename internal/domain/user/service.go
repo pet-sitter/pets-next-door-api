@@ -21,10 +21,10 @@ func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService med
 }
 
 type UserServicer interface {
-	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, *pnd.AppError)
+	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError)
 	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError)
 	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserByUID(uid string) (*FindUserResponse, *pnd.AppError)
+	FindUserByUID(uid string) (*FindUserView, *pnd.AppError)
 	ExistsByNickname(nickname string) (bool, *pnd.AppError)
 	FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError)
 	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError)
@@ -32,7 +32,7 @@ type UserServicer interface {
 	FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, *pnd.AppError)
 }
 
-func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserResponse, *pnd.AppError) {
+func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError) {
 	var media *media.Media
 	var err *pnd.AppError
 	if registerUserRequest.ProfileImageID != nil {
@@ -56,7 +56,7 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 		profileImageURL = &media.URL
 	}
 
-	return &RegisterUserResponse{
+	return &RegisterUserView{
 		ID:                   created.ID,
 		Email:                created.Email,
 		Nickname:             created.Nickname,
@@ -85,13 +85,13 @@ func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage
 	return user, nil
 }
 
-func (service *UserService) FindUserByUID(uid string) (*FindUserResponse, *pnd.AppError) {
+func (service *UserService) FindUserByUID(uid string) (*FindUserView, *pnd.AppError) {
 	user, err := service.userStore.FindUserByUID(uid)
 	if err != nil {
 		return nil, err
 	}
 
-	return &FindUserResponse{
+	return &FindUserView{
 		ID:                   user.ID,
 		Email:                user.Email,
 		Nickname:             user.Nickname,

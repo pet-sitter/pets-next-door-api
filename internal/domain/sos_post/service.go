@@ -24,7 +24,7 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostRequest) (*WriteSosPostResponse, *pnd.AppError) {
+func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostRequest) (*WriteSosPostView, *pnd.AppError) {
 	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 		petsView = append(petsView, p)
 	}
 
-	return &WriteSosPostResponse{
+	return &WriteSosPostView{
 		ID:           sosPost.ID,
 		AuthorID:     sosPost.AuthorID,
 		Title:        sosPost.Title,
@@ -112,13 +112,13 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 	}, nil
 }
 
-func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) ([]FindSosPostResponse, *pnd.AppError) {
+func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) ([]FindSosPostView, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPosts(page, size, sortBy)
 	if err != nil {
 		return nil, err
 	}
 
-	var FindSosPostResponseList []FindSosPostResponse
+	var findSosPostViews []FindSosPostView
 
 	for _, sosPost := range sosPosts {
 		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
@@ -173,7 +173,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			petsView = append(petsView, p)
 		}
 
-		findByAuthorSosPostResponse := &FindSosPostResponse{
+		findByAuthorSosPostView := &FindSosPostView{
 			ID:           sosPost.ID,
 			AuthorID:     sosPost.AuthorID,
 			Title:        sosPost.Title,
@@ -194,19 +194,19 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
-		FindSosPostResponseList = append(FindSosPostResponseList, *findByAuthorSosPostResponse)
+		findSosPostViews = append(findSosPostViews, *findByAuthorSosPostView)
 	}
 
-	return FindSosPostResponseList, nil
+	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) ([]FindSosPostResponse, *pnd.AppError) {
+func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) ([]FindSosPostView, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size)
 	if err != nil {
 		return nil, err
 	}
 
-	var FindSosPostResponseList []FindSosPostResponse
+	var findSosPostViews []FindSosPostView
 
 	for _, sosPost := range sosPosts {
 		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
@@ -261,7 +261,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			petsView = append(petsView, p)
 		}
 
-		findByAuthorSosPostResponse := &FindSosPostResponse{
+		findByAuthorSosPostView := &FindSosPostView{
 			ID:           sosPost.ID,
 			AuthorID:     sosPost.AuthorID,
 			Title:        sosPost.Title,
@@ -282,13 +282,13 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
-		FindSosPostResponseList = append(FindSosPostResponseList, *findByAuthorSosPostResponse)
+		findSosPostViews = append(findSosPostViews, *findByAuthorSosPostView)
 	}
 
-	return FindSosPostResponseList, nil
+	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *pnd.AppError) {
+func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostView, *pnd.AppError) {
 	sosPost, err := service.sosPostStore.FindSosPostByID(id)
 	if err != nil {
 		return nil, err
@@ -346,7 +346,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *p
 		petsView = append(petsView, p)
 	}
 
-	return &FindSosPostResponse{
+	return &FindSosPostView{
 		ID:           sosPost.ID,
 		AuthorID:     sosPost.AuthorID,
 		Title:        sosPost.Title,
@@ -368,7 +368,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *p
 	}, nil
 }
 
-func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostResponse, *pnd.AppError) {
+func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostView, *pnd.AppError) {
 	updateSosPost, err := service.sosPostStore.UpdateSosPost(request)
 	if err != nil {
 		return nil, err
@@ -426,7 +426,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		petsView = append(petsView, p)
 	}
 
-	return &UpdateSosPostResponse{
+	return &UpdateSosPostView{
 		ID:           updateSosPost.ID,
 		AuthorID:     updateSosPost.AuthorID,
 		Title:        updateSosPost.Title,

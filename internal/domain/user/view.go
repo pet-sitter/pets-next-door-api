@@ -9,7 +9,7 @@ type RegisterUserRequest struct {
 	FirebaseUID          string               `json:"fbUid" validate:"required"`
 }
 
-type RegisterUserResponse struct {
+type RegisterUserView struct {
 	ID                   int                  `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
@@ -19,7 +19,7 @@ type RegisterUserResponse struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
-type FindUserResponse struct {
+type FindUserView struct {
 	ID                   int                  `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
@@ -29,8 +29,8 @@ type FindUserResponse struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
-func (r *FindUserResponse) ToMyProfileResponse() *MyProfileResponse {
-	return &MyProfileResponse{
+func (r *FindUserView) ToMyProfileView() *MyProfileView {
+	return &MyProfileView{
 		ID:                   r.ID,
 		Email:                r.Email,
 		Nickname:             r.Nickname,
@@ -40,7 +40,7 @@ func (r *FindUserResponse) ToMyProfileResponse() *MyProfileResponse {
 	}
 }
 
-type MyProfileResponse struct {
+type MyProfileView struct {
 	ID                   int                  `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
@@ -78,7 +78,7 @@ type UpdateUserRequest struct {
 	ProfileImageID *int   `json:"profileImageId"`
 }
 
-type UpdateUserResponse struct {
+type UpdateUserView struct {
 	ID                   int                  `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`

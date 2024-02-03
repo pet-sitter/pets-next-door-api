@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
@@ -86,8 +86,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 
 	// Register routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		render.JSON(w, r, map[string]string{"status": "ok"})
 	})
 
 	r.Get("/swagger/*", httpSwagger.Handler(
