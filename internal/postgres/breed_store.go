@@ -39,7 +39,7 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) (*p
 	OFFSET $3
 	`
 
-	rows, err := tx.Query(query, petType, size, (page-1)*size)
+	rows, err := tx.Query(query, petType, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
