@@ -57,7 +57,7 @@ func NewSosPostList(page int, size int) *SosPostList {
 type SosPostStore interface {
 	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
 	FindSosPosts(page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
-	FindSosPostsByAuthorID(authorID int, page int, size int) (*SosPostList, *pnd.AppError)
+	FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
 	FindSosPostByID(id int) (*SosPost, *pnd.AppError)
 	UpdateSosPost(request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
 	FindConditionByID(id int) ([]Condition, *pnd.AppError)

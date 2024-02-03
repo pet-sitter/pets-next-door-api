@@ -86,7 +86,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 
 	var res *sos_post.FindSosPostListView
 	if authorID != nil {
-		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size)
+		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size, sortBy)
 		if err != nil {
 			render.Render(w, r, err)
 			return

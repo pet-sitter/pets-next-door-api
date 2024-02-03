@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -162,7 +161,22 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	query := `
+	sortColumn := ""
+	sortOrder := ""
+
+	switch sortBy {
+	case "newest":
+		sortColumn = "created_at"
+		sortOrder = "DESC"
+	case "deadline":
+		sortColumn = "date_end_at"
+		sortOrder = "ASC"
+	default:
+		sortColumn = "created_at"
+		sortOrder = "DESC"
+	}
+
+	query := fmt.Sprintf(`
 	SELECT
 	    id,
 		author_id,
@@ -183,22 +197,12 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	    sos_posts
 	WHERE
 	    deleted_at IS NULL
-	`
+    ORDER BY %s %s
+    LIMIT $1 OFFSET $2
+    `, sortColumn, sortOrder)
 
-	switch sortBy {
-	case "newest":
-		query += " ORDER BY created_at DESC"
-	case "deadline":
-		query += " ORDER BY date_end_at ASC"
-	// 기본은 최신순으로 정렬
-	default:
-		query += " ORDER BY created_at DESC"
-	}
+	rows, err := tx.Query(query, size+1, (page-1)*size)
 
-	query += fmt.Sprintf(" LIMIT %d", size+1)
-	query += fmt.Sprintf(" OFFSET %d", (page-1)*size)
-
-	rows, err := tx.Query(query)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -227,7 +231,7 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	return sosPostList, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, size int) (*sos_post.SosPostList, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	sosPostList := sos_post.NewSosPostList(page, size)
 
 	tx, err := s.db.Begin()
@@ -235,7 +239,22 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	query := `
+	sortColumn := ""
+	sortOrder := ""
+
+	switch sortBy {
+	case "newest":
+		sortColumn = "created_at"
+		sortOrder = "DESC"
+	case "deadline":
+		sortColumn = "date_end_at"
+		sortOrder = "ASC"
+	default:
+		sortColumn = "created_at"
+		sortOrder = "DESC"
+	}
+
+	query := fmt.Sprintf(`
 	SELECT
 	    id,
 		author_id,
@@ -257,16 +276,11 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 	WHERE
 	    author_id = $1 AND
 	    deleted_at IS NULL
-	`
+	ORDER BY %s %s
+    LIMIT $2 OFFSET $3
+    `, sortColumn, sortOrder)
 
-	query += `
-		ORDER BY id ASC
-	`
-
-	query += fmt.Sprintf(" LIMIT %d", size)
-	query += fmt.Sprintf(" OFFSET %d", (page-1)*size)
-
-	rows, err := tx.Query(query, authorID)
+	rows, err := tx.Query(query, authorID, size+1, (page-1)*size)
 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
