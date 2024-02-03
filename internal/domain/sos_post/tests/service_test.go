@@ -268,13 +268,13 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			findSosPosts, err := sosPostService.FindSosPosts(1, 3, "newest")
-			for i, sosPost := range findSosPosts {
+			sosPostList, err := sosPostService.FindSosPosts(1, 3, "newest")
+			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
 				assertMediaEquals(t, sosPost.Media, sosPostMedia)
 
-				idx := len(findSosPosts) - i - 1
+				idx := len(sosPostList.Items) - i - 1
 
 				if err != nil {
 					t.Errorf("got %v want %v", err, nil)
@@ -414,9 +414,8 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			findSosPostByAuthorID, err := sosPostService.FindSosPostsByAuthorID(owner.ID, 1, 3)
-
-			for i, sosPost := range findSosPostByAuthorID {
+			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(owner.ID, 1, 3)
+			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
 				assertMediaEquals(t, sosPost.Media, sosPostMedia)

@@ -112,15 +112,15 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 	}, nil
 }
 
-func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) ([]FindSosPostView, *pnd.AppError) {
+func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPosts(page, size, sortBy)
 	if err != nil {
 		return nil, err
 	}
 
-	var findSosPostViews []FindSosPostView
+	findSosPostViews := FromEmptySosPostList(sosPosts)
 
-	for _, sosPost := range sosPosts {
+	for _, sosPost := range sosPosts.Items {
 		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return nil, err
@@ -194,21 +194,21 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
-		findSosPostViews = append(findSosPostViews, *findByAuthorSosPostView)
+		findSosPostViews.Items = append(findSosPostViews.Items, *findByAuthorSosPostView)
 	}
 
 	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) ([]FindSosPostView, *pnd.AppError) {
+func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) (*FindSosPostListView, *pnd.AppError) {
 	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size)
 	if err != nil {
 		return nil, err
 	}
 
-	var findSosPostViews []FindSosPostView
+	findSosPostViews := FromEmptySosPostList(sosPosts)
 
-	for _, sosPost := range sosPosts {
+	for _, sosPost := range sosPosts.Items {
 		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return nil, err
@@ -282,7 +282,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			UpdatedAt:    sosPost.UpdatedAt,
 		}
 
-		findSosPostViews = append(findSosPostViews, *findByAuthorSosPostView)
+		findSosPostViews.Items = append(findSosPostViews.Items, *findByAuthorSosPostView)
 	}
 
 	return findSosPostViews, nil

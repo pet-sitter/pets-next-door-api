@@ -12,22 +12,13 @@ func NewBreedService(breedStore BreedStore) *BreedService {
 	}
 }
 
-func (service *BreedService) FindBreeds(page int, size int, petType *string) ([]*BreedView, *pnd.AppError) {
+func (service *BreedService) FindBreeds(page int, size int, petType *string) (*BreedListView, *pnd.AppError) {
 	breeds, err := service.breedStore.FindBreeds(page, size, petType)
 	if err != nil {
 		return nil, err
 	}
 
-	breedViews := make([]*BreedView, 0)
-	for _, breed := range breeds {
-		breedViews = append(breedViews, &BreedView{
-			ID:      breed.ID,
-			PetType: breed.PetType,
-			Name:    breed.Name,
-		})
-	}
-
-	return breedViews, nil
+	return FromBreedList(breeds), nil
 }
 
 func (service *BreedService) FindBreedByPetTypeAndName(petType PetType, name string) (*BreedView, *pnd.AppError) {

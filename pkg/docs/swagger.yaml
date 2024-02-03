@@ -72,6 +72,19 @@ definitions:
     required:
     - pets
     type: object
+  pet.BreedListView:
+    properties:
+      is_last_page:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/pet.BreedView'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
   pet.BreedView:
     properties:
       id:
@@ -130,39 +143,6 @@ definitions:
           $ref: '#/definitions/sos_post.ConditionView'
         type: array
     type: object
-  pnd.PaginatedView-pet_BreedView:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/pet.BreedView'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
-  pnd.PaginatedView-sos_post_FindSosPostView:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/sos_post.FindSosPostView'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
-  pnd.PaginatedView-user_UserWithoutPrivateInfo:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/user.UserWithoutPrivateInfo'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-    type: object
   sos_post.CareType:
     enum:
     - foster
@@ -185,6 +165,19 @@ definitions:
         type: integer
       name:
         type: string
+    type: object
+  sos_post.FindSosPostListView:
+    properties:
+      is_last_page:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/sos_post.FindSosPostView'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
     type: object
   sos_post.FindSosPostView:
     properties:
@@ -531,6 +524,19 @@ definitions:
       profileImageUrl:
         type: string
     type: object
+  user.UserWithoutPrivateInfoList:
+    properties:
+      is_last_page:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/user.UserWithoutPrivateInfo'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
 info:
   contact:
     email: petsnextdoordev@gmail.com
@@ -590,7 +596,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pnd.PaginatedView-pet_BreedView'
+            $ref: '#/definitions/pet.BreedListView'
       summary: 견/묘종을 조회합니다.
       tags:
       - pets
@@ -664,7 +670,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pnd.PaginatedView-sos_post_FindSosPostView'
+            $ref: '#/definitions/sos_post.FindSosPostListView'
       summary: 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
@@ -767,7 +773,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pnd.PaginatedView-user_UserWithoutPrivateInfo'
+            $ref: '#/definitions/user.UserWithoutPrivateInfoList'
       security:
       - FirebaseAuth: []
       summary: 사용자 목록을 조회합니다.

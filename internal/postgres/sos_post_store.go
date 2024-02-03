@@ -154,10 +154,13 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 	return sosPost, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) ([]sos_post.SosPost, *pnd.AppError) {
-	sosPosts := []sos_post.SosPost{}
+func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+	sosPostList := sos_post.NewSosPostList(page, size)
 
-	tx, _ := s.db.Begin()
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
 	query := `
 	SELECT
@@ -196,10 +199,10 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	query += fmt.Sprintf(" OFFSET %d", (page-1)*size)
 
 	rows, err := tx.Query(query)
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		sosPost := sos_post.SosPost{}
@@ -210,21 +213,27 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		sosPosts = append(sosPosts, sosPost)
+		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
+	sosPostList.CalcLastPage()
 
-	err = tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return sosPosts, nil
+	return sosPostList, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, size int) ([]sos_post.SosPost, *pnd.AppError) {
-	sosPosts := []sos_post.SosPost{}
+func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, size int) (*sos_post.SosPostList, *pnd.AppError) {
+	sosPostList := sos_post.NewSosPostList(page, size)
 
-	tx, _ := s.db.Begin()
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
 	query := `
 	SELECT
@@ -268,11 +277,10 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 
 		err := rows.Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID, &sosPost.CreatedAt, &sosPost.UpdatedAt)
 		if err != nil {
-
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		sosPosts = append(sosPosts, sosPost)
+		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
 
 	err = tx.Commit()
@@ -280,7 +288,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return sosPosts, nil
+	return sosPostList, nil
 }
 
 func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.AppError) {

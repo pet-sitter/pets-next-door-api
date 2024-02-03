@@ -142,9 +142,8 @@ func TestUserService(t *testing.T) {
 			}
 
 			found, _ := service.FindUsers(1, 20, &targetNickname)
-
-			if len(found) != 1 {
-				t.Errorf("got %v want %v", len(found), 1)
+			if len(found.Items) != 1 {
+				t.Errorf("got %v want %v", len(found.Items), 1)
 			}
 		})
 	})

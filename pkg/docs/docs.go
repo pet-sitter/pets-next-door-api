@@ -96,7 +96,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-pet_BreedView"
+                            "$ref": "#/definitions/pet.BreedListView"
                         }
                     }
                 }
@@ -209,7 +209,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostView"
+                            "$ref": "#/definitions/sos_post.FindSosPostListView"
                         }
                     }
                 }
@@ -377,7 +377,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-user_UserWithoutPrivateInfo"
+                            "$ref": "#/definitions/user.UserWithoutPrivateInfoList"
                         }
                     }
                 }
@@ -712,6 +712,26 @@ const docTemplate = `{
                 }
             }
         },
+        "pet.BreedListView": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pet.BreedView"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "pet.BreedView": {
             "type": "object",
             "properties": {
@@ -799,57 +819,6 @@ const docTemplate = `{
                 }
             }
         },
-        "pnd.PaginatedView-pet_BreedView": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/pet.BreedView"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "pnd.PaginatedView-sos_post_FindSosPostView": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/sos_post.FindSosPostView"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "pnd.PaginatedView-user_UserWithoutPrivateInfo": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
         "sos_post.CareType": {
             "type": "string",
             "enum": [
@@ -880,6 +849,26 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "sos_post.FindSosPostListView": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.FindSosPostView"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
                 }
             }
         },
@@ -1401,6 +1390,26 @@ const docTemplate = `{
                 },
                 "profileImageUrl": {
                     "type": "string"
+                }
+            }
+        },
+        "user.UserWithoutPrivateInfoList": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
                 }
             }
         }

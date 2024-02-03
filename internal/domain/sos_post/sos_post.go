@@ -44,10 +44,20 @@ type SosPost struct {
 	DeletedAt    time.Time    `field:"deleted_at"`
 }
 
+type SosPostList struct {
+	*pnd.PaginatedView[SosPost]
+}
+
+func NewSosPostList(page int, size int) *SosPostList {
+	return &SosPostList{PaginatedView: pnd.NewPaginatedView(
+		page, size, false, make([]SosPost, 0),
+	)}
+}
+
 type SosPostStore interface {
 	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
-	FindSosPosts(page int, size int, sortBy string) ([]SosPost, *pnd.AppError)
-	FindSosPostsByAuthorID(authorID int, page int, size int) ([]SosPost, *pnd.AppError)
+	FindSosPosts(page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
+	FindSosPostsByAuthorID(authorID int, page int, size int) (*SosPostList, *pnd.AppError)
 	FindSosPostByID(id int) (*SosPost, *pnd.AppError)
 	UpdateSosPost(request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
 	FindConditionByID(id int) ([]Condition, *pnd.AppError)

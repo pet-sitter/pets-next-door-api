@@ -3,6 +3,7 @@ package sos_post
 import (
 	"time"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
@@ -63,6 +64,18 @@ type FindSosPostView struct {
 	ThumbnailID  int               `json:"thumbnail_id"`
 	CreatedAt    time.Time         `json:"created_at"`
 	UpdatedAt    time.Time         `json:"updated_at"`
+}
+
+type FindSosPostListView struct {
+	*pnd.PaginatedView[FindSosPostView]
+}
+
+func FromEmptySosPostList(sosPosts *SosPostList) *FindSosPostListView {
+	return &FindSosPostListView{
+		PaginatedView: pnd.NewPaginatedView(
+			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSosPostView, 0),
+		),
+	}
 }
 
 type UpdateSosPostRequest struct {

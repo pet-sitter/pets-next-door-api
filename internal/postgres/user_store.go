@@ -55,8 +55,8 @@ func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*user.UserWithoutPrivateInfo, *pnd.AppError) {
-	usersData := make([]*user.UserWithoutPrivateInfo, 0)
+func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+	userList := user.NewUserWithoutPrivateInfoList(page, size)
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -83,29 +83,32 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*
 	OFFSET $3
 	`
 
-	rows, err := tx.Query(query, nickname, size, (page-1)*size)
-
+	rows, err := tx.Query(query, nickname, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		userData := &user.UserWithoutPrivateInfo{}
+		user := &user.UserWithoutPrivateInfo{}
 
-		err := rows.Scan(&userData.ID, &userData.Nickname, &userData.ProfileImageURL)
+		err := rows.Scan(&user.ID, &user.Nickname, &user.ProfileImageURL)
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		usersData = append(usersData, userData)
+		userList.Items = append(userList.Items, *user)
 	}
+	userList.CalcLastPage()
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return usersData, nil
+	return userList, nil
 }
 
 func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfileImage, *pnd.AppError) {

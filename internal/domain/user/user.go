@@ -45,13 +45,23 @@ type UserWithoutPrivateInfo struct {
 	ProfileImageURL *string `field:"profile_image_url" json:"profileImageUrl"`
 }
 
+type UserWithoutPrivateInfoList struct {
+	*pnd.PaginatedView[UserWithoutPrivateInfo]
+}
+
+func NewUserWithoutPrivateInfoList(page int, size int) *UserWithoutPrivateInfoList {
+	return &UserWithoutPrivateInfoList{PaginatedView: pnd.NewPaginatedView(
+		page, size, false, make([]UserWithoutPrivateInfo, 0),
+	)}
+}
+
 type UserStatus struct {
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 }
 
 type UserStore interface {
 	CreateUser(request *RegisterUserRequest) (*User, *pnd.AppError)
-	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError)
+	FindUsers(page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
 	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByUID(uid string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserIDByFbUID(fbUid string) (int, *pnd.AppError)
