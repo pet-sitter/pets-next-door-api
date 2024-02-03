@@ -74,8 +74,8 @@ type UserStatusView struct {
 }
 
 type UpdateUserRequest struct {
-	Nickname       string `json:"nickname"`
-	ProfileImageID *int   `json:"profileImageId"`
+	Nickname       string `json:"nickname" validate:"required"`
+	ProfileImageID *int   `json:"profileImageId" validate:"omitempty"`
 }
 
 type UpdateUserView struct {
