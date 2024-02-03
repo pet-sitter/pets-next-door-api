@@ -18,8 +18,7 @@ func (service *ConditionService) FindConditions() ([]ConditionView, *pnd.AppErro
 		return nil, err
 	}
 
-	var conditionViews []ConditionView
-
+	conditionViews := make([]ConditionView, 0)
 	for _, v := range conditions {
 		conditionView := ConditionView{
 			ID:   v.ID,
