@@ -49,7 +49,7 @@ func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	pet.BirthDate = utils.FormatDate(pet.BirthDate)
@@ -82,7 +82,7 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, *pnd.AppEr
 		ownerID,
 	)
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 	defer rows.Close()
 
@@ -102,7 +102,7 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, *pnd.AppEr
 			&pet.CreatedAt,
 			&pet.UpdatedAt,
 		); err != nil {
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		pet.BirthDate = utils.FormatDate(pet.BirthDate)

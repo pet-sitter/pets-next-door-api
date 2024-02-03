@@ -164,7 +164,7 @@ func ErrUnknown(err error) *AppError {
 	}
 }
 
-func FromPGError(err error) *AppError {
+func FromPostgresError(err error) *AppError {
 	errStr := err.Error()
 	if strings.Contains(errStr, "no rows in result set") {
 		return ErrCustom(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")

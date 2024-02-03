@@ -26,7 +26,7 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 	tx, err := s.db.Begin()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	err = tx.QueryRow(`
@@ -49,19 +49,19 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 			updated_at
 		)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
-	RETURNING 
-		id, 
-		author_id, 
-		title, 
-		content, 
-		reward, 
-		date_start_at, 
-		date_end_at, 
-		time_start_at, 
-		time_end_at, 
-		care_type, 
-		carer_gender, 
-		reward_amount, 
+	RETURNING
+		id,
+		author_id,
+		title,
+		content,
+		reward,
+		date_start_at,
+		date_end_at,
+		time_start_at,
+		time_end_at,
+		care_type,
+		carer_gender,
+		reward_amount,
 		thumbnail_id`,
 
 		authorID,
@@ -80,7 +80,7 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 
 	if err != nil {
 		tx.Rollback()
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, imageID := range request.ImageIDs {
@@ -101,7 +101,7 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		)
 		if err != nil {
 			tx.Rollback()
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
@@ -121,7 +121,7 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		)
 		if err != nil {
 			tx.Rollback()
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
@@ -141,14 +141,14 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		)
 		if err != nil {
 			tx.Rollback()
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return sosPost, nil
@@ -168,9 +168,9 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 		reward,
 		date_start_at,
 		date_end_at,
-		time_start_at,	
+		time_start_at,
 		time_end_at,
-		care_type,	
+		care_type,
 		carer_gender,
 		reward_amount,
 		thumbnail_id,
@@ -198,7 +198,7 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	rows, err := tx.Query(query)
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for rows.Next() {
@@ -207,7 +207,7 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 		err := rows.Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID, &sosPost.CreatedAt, &sosPost.UpdatedAt)
 		if err != nil {
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		sosPosts = append(sosPosts, sosPost)
@@ -215,7 +215,7 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 
 	err = tx.Commit()
 	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return sosPosts, nil
@@ -243,10 +243,10 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 		thumbnail_id,
 		created_at,
 		updated_at
-	FROM 
+	FROM
 	    sos_posts
-	WHERE 
-	    author_id = $1 AND 
+	WHERE
+	    author_id = $1 AND
 	    deleted_at IS NULL
 	`
 
@@ -260,7 +260,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 	rows, err := tx.Query(query, authorID)
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for rows.Next() {
@@ -269,7 +269,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 		err := rows.Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID, &sosPost.CreatedAt, &sosPost.UpdatedAt)
 		if err != nil {
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		sosPosts = append(sosPosts, sosPost)
@@ -277,7 +277,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return sosPosts, nil
@@ -328,12 +328,12 @@ func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.
 		&sos_post.UpdatedAt)
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return sos_post, nil
@@ -344,7 +344,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	_, err = tx.Exec(`
@@ -357,7 +357,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
     `, request.ID)
 	if err != nil {
 		tx.Rollback()
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, imageID := range request.ImageIDs {
@@ -379,7 +379,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 		if err != nil {
 			tx.Rollback()
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
@@ -393,7 +393,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
     `, request.ID)
 	if err != nil {
 		tx.Rollback()
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, conditionID := range request.ConditionIDs {
@@ -413,7 +413,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 		if err != nil {
 			tx.Rollback()
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
@@ -427,7 +427,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
     `, request.ID)
 	if err != nil {
 		tx.Rollback()
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, petID := range request.PetIDs {
@@ -447,7 +447,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 		if err != nil {
 			tx.Rollback()
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
@@ -486,12 +486,12 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 
 	if err != nil {
 		tx.Rollback()
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return sosPost, nil
@@ -530,7 +530,7 @@ func (s *SosPostPostgresStore) FindConditionByID(id int) ([]sos_post.Condition, 
 		)
 		if err != nil {
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 		conditions = append(conditions, condition)
 	}
@@ -538,7 +538,7 @@ func (s *SosPostPostgresStore) FindConditionByID(id int) ([]sos_post.Condition, 
 	err = tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return conditions, nil
@@ -591,7 +591,7 @@ func (s *SosPostPostgresStore) FindPetsByID(id int) ([]pet.Pet, *pnd.AppError) {
 		)
 		if err != nil {
 
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 		pets = append(pets, pet)
 	}
@@ -599,7 +599,7 @@ func (s *SosPostPostgresStore) FindPetsByID(id int) ([]pet.Pet, *pnd.AppError) {
 	err = tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return pets, nil
