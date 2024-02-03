@@ -15,12 +15,6 @@ type MediaService struct {
 	s3Client   *s3infra.S3Client
 }
 
-type MediaServicer interface {
-	UploadMedia(file io.ReadSeeker, mediaType MediaType, fileName string) (*Media, *pnd.AppError)
-	CreateMedia(media *Media) (*Media, *pnd.AppError)
-	FindMediaByID(id int) (*Media, *pnd.AppError)
-}
-
 func NewMediaService(mediaStore MediaStore, s3Client *s3infra.S3Client) *MediaService {
 	return &MediaService{
 		mediaStore: mediaStore,

@@ -7,15 +7,14 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 )
 
 type mediaHandler struct {
-	mediaService media.MediaServicer
+	mediaService media.MediaService
 }
 
-func NewMediaHandler(mediaService media.MediaServicer) *mediaHandler {
+func NewMediaHandler(mediaService media.MediaService) *mediaHandler {
 	return &mediaHandler{
 		mediaService: mediaService,
 	}
@@ -30,7 +29,7 @@ func NewMediaHandler(mediaService media.MediaServicer) *mediaHandler {
 // @Success 200 {object} media.MediaView
 // @Router /media/{id} [get]
 func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
-	id, err := utils.ParseIdFromPath(r, "id")
+	id, err := pnd.ParseIdFromPath(r, "id")
 	if err != nil {
 		render.Render(w, r, err)
 		return

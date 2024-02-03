@@ -5,15 +5,14 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 )
 
 type BreedHandler struct {
-	breedService *pet.BreedService
+	breedService pet.BreedService
 }
 
-func NewBreedHandler(breedService *pet.BreedService) *BreedHandler {
+func NewBreedHandler(breedService pet.BreedService) *BreedHandler {
 	return &BreedHandler{breedService: breedService}
 }
 
@@ -29,8 +28,8 @@ func NewBreedHandler(breedService *pet.BreedService) *BreedHandler {
 // @Success 200 {object} pnd.PaginatedView[pet.BreedView]
 // @Router /breeds [get]
 func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
-	petType := utils.ParseOptionalStringQuery(r, "pet_type")
-	page, size, err := utils.ParsePaginationQueries(r, 1, 20)
+	petType := pnd.ParseOptionalStringQuery(r, "pet_type")
+	page, size, err := pnd.ParsePaginationQueries(r, 1, 20)
 	if err != nil {
 		render.Render(w, r, err)
 		return

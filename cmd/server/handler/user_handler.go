@@ -5,18 +5,17 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
 type UserHandler struct {
-	userService user.UserServicer
+	userService user.UserService
 	authService auth.AuthService
 }
 
-func NewUserHandler(userService user.UserServicer, authService auth.AuthService) *UserHandler {
+func NewUserHandler(userService user.UserService, authService auth.AuthService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
 		authService: authService,
@@ -34,7 +33,7 @@ func NewUserHandler(userService user.UserServicer, authService auth.AuthService)
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest user.RegisterUserRequest
-	if err := utils.ParseBody(r, &registerUserRequest); err != nil {
+	if err := pnd.ParseBody(r, &registerUserRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -59,7 +58,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/check/nickname [post]
 func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) {
 	var checkUserNicknameRequest user.CheckNicknameRequest
-	if err := utils.ParseBody(r, &checkUserNicknameRequest); err != nil {
+	if err := pnd.ParseBody(r, &checkUserNicknameRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -84,7 +83,7 @@ func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) 
 // @Router /users/status [post]
 func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Request) {
 	var providerRequest user.UserStatusRequest
-	if err := utils.ParseBody(r, &providerRequest); err != nil {
+	if err := pnd.ParseBody(r, &providerRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -121,8 +120,8 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nickname := utils.ParseOptionalStringQuery(r, "nickname")
-	page, size, err := utils.ParsePaginationQueries(r, 1, 10)
+	nickname := pnd.ParseOptionalStringQuery(r, "nickname")
+	page, size, err := pnd.ParsePaginationQueries(r, 1, 10)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -177,7 +176,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
-	if err := utils.ParseBody(r, &updateUserRequest); err != nil {
+	if err := pnd.ParseBody(r, &updateUserRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -218,7 +217,7 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 	uid := foundUser.FirebaseUID
 
 	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
-	if err := utils.ParseBody(r, &addPetsToOwnerRequest); err != nil {
+	if err := pnd.ParseBody(r, &addPetsToOwnerRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}

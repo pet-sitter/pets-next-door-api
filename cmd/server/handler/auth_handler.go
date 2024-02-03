@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/render"
 	app "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -15,10 +15,10 @@ import (
 
 type authHandler struct {
 	authService auth.AuthService
-	kakaoClient kakaoinfra.IKakaoClient
+	kakaoClient kakaoinfra.KakaoClient
 }
 
-func NewAuthHandler(authService auth.AuthService, kakaoClient kakaoinfra.IKakaoClient) *authHandler {
+func NewAuthHandler(authService auth.AuthService, kakaoClient kakaoinfra.KakaoClient) *authHandler {
 	return &authHandler{
 		authService: authService,
 		kakaoClient: kakaoClient,
@@ -48,7 +48,7 @@ func (h *authHandler) KakaoLogin(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} auth.KakaoCallbackView
 // @Router /auth/callback/kakao [get]
 func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
-	code := utils.ParseOptionalStringQuery(r, "code")
+	code := pnd.ParseOptionalStringQuery(r, "code")
 	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
 	if err != nil {
 		render.Render(w, r, app.ErrUnknown(err))
