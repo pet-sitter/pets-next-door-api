@@ -200,8 +200,8 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int) (*FindSosPostListView, *pnd.AppError) {
-	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size)
+func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
+	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size, sortBy)
 	if err != nil {
 		return nil, err
 	}
