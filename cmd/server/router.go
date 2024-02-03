@@ -50,10 +50,10 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	userService := user.NewUserService(
 		postgres.NewUserPostgresStore(db),
 		postgres.NewPetPostgresStore(db),
-		mediaService,
+		*mediaService,
 	)
 
-	authService := auth.NewFirebaseBearerAuthService(authClient, userService)
+	authService := auth.NewFirebaseBearerAuthService(authClient, *userService)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
@@ -73,12 +73,12 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	)
 
 	// Initialize handlers
-	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoClient())
-	userHandler := handler.NewUserHandler(userService, authService)
-	mediaHandler := handler.NewMediaHandler(mediaService)
-	breedHandler := handler.NewBreedHandler(breedService)
+	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
+	userHandler := handler.NewUserHandler(*userService, authService)
+	mediaHandler := handler.NewMediaHandler(*mediaService)
+	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSosPostHandler(*sosPostService, authService)
-	conditionHandler := handler.NewConditionHandler(conditionService)
+	conditionHandler := handler.NewConditionHandler(*conditionService)
 
 	// Register middlewares
 	r.Use(middleware.Logger)

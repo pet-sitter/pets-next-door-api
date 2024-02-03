@@ -60,7 +60,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), mediaService)
+			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -201,7 +201,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), mediaService)
+			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -349,7 +349,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), mediaService)
+			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -497,7 +497,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), mediaService)
+			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -644,7 +644,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), mediaService)
+			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",

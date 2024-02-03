@@ -19,10 +19,10 @@ type AuthService interface {
 
 type FirebaseBearerAuthService struct {
 	authClient  *auth.Client
-	userService user.UserServicer
+	userService user.UserService
 }
 
-func NewFirebaseBearerAuthService(authClient *auth.Client, userService user.UserServicer) *FirebaseBearerAuthService {
+func NewFirebaseBearerAuthService(authClient *auth.Client, userService user.UserService) *FirebaseBearerAuthService {
 	return &FirebaseBearerAuthService{
 		authClient:  authClient,
 		userService: userService,

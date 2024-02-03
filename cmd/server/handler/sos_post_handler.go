@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 )
@@ -41,7 +40,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var writeSosPostRequest sos_post.WriteSosPostRequest
-	if err := utils.ParseBody(r, &writeSosPostRequest); err != nil {
+	if err := pnd.ParseBody(r, &writeSosPostRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -68,18 +67,18 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} pnd.PaginatedView[sos_post.FindSosPostView]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
-	authorID, err := utils.ParseOptionalIntQuery(r, "author_id")
+	authorID, err := pnd.ParseOptionalIntQuery(r, "author_id")
 	if err != nil {
 		render.Render(w, r, err)
 		return
 	}
 
 	sortBy := "newest"
-	if sortByQuery := utils.ParseOptionalStringQuery(r, "sort_by"); sortByQuery != nil {
+	if sortByQuery := pnd.ParseOptionalStringQuery(r, "sort_by"); sortByQuery != nil {
 		sortBy = *sortByQuery
 	}
 
-	page, size, err := utils.ParsePaginationQueries(r, 1, 20)
+	page, size, err := pnd.ParsePaginationQueries(r, 1, 20)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -114,7 +113,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} sos_post.FindSosPostView
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
-	SosPostID, err := utils.ParseIdFromPath(r, "id")
+	SosPostID, err := pnd.ParseIdFromPath(r, "id")
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -146,7 +145,7 @@ func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
-	if err := utils.ParseBody(r, &updateSosPostRequest); err != nil {
+	if err := pnd.ParseBody(r, &updateSosPostRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}

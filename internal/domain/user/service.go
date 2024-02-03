@@ -9,27 +9,15 @@ import (
 type UserService struct {
 	userStore    UserStore
 	petStore     pet.PetStore
-	mediaService media.MediaServicer
+	mediaService media.MediaService
 }
 
-func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService media.MediaServicer) *UserService {
+func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService media.MediaService) *UserService {
 	return &UserService{
 		userStore:    userStore,
 		petStore:     petStore,
 		mediaService: mediaService,
 	}
-}
-
-type UserServicer interface {
-	RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError)
-	FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError)
-	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserByUID(uid string) (*FindUserView, *pnd.AppError)
-	ExistsByNickname(nickname string) (bool, *pnd.AppError)
-	FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError)
-	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError)
-	AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError)
-	FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, *pnd.AppError)
 }
 
 func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError) {

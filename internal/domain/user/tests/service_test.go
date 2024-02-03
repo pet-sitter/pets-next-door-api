@@ -30,13 +30,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -61,7 +61,7 @@ func TestUserService(t *testing.T) {
 			service := user.NewUserService(
 				postgres.NewUserPostgresStore(db),
 				postgres.NewPetPostgresStore(db),
-				media.NewMediaService(postgres.NewMediaPostgresStore(db), nil),
+				*media.NewMediaService(postgres.NewMediaPostgresStore(db), nil),
 			)
 
 			user := &user.RegisterUserRequest{
@@ -84,12 +84,12 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -112,20 +112,20 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profileImage, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			targetNickname := "target"
 			targetUserRequest := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             targetNickname,
 				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
+				ProfileImageID:       &profileImage.ID,
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
@@ -135,7 +135,7 @@ func TestUserService(t *testing.T) {
 					Email:                fmt.Sprintf("test%d@example.com", i),
 					Nickname:             fmt.Sprintf("nickname%d", i),
 					Fullname:             fmt.Sprintf("fullname%d", i),
-					ProfileImageID:       &profile_image.ID,
+					ProfileImageID:       &profileImage.ID,
 					FirebaseProviderType: user.FirebaseProviderTypeKakao,
 					FirebaseUID:          fmt.Sprintf("uid%d", i),
 				})
@@ -154,13 +154,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -187,9 +187,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			_, err := service.FindUserByEmail("non-existent@example.com")
 			if err == nil {
@@ -203,13 +203,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -236,9 +236,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			_, err := service.FindUserByUID("non-existent")
 			if err == nil {
@@ -252,9 +252,9 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			exists, _ := service.ExistsByNickname("non-existent")
 			if exists {
@@ -266,13 +266,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -298,13 +298,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -336,13 +336,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -378,13 +378,13 @@ func TestUserService(t *testing.T) {
 			tearDown := setUp(t)
 			defer tearDown(t)
 
-			media_service := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := media_service.CreateMedia(&media.Media{
+			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			profile_image, _ := mediaService.CreateMedia(&media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), media_service)
+			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
 			owner, _ := service.RegisterUser(&user.RegisterUserRequest{
 				Email:                "test@example.com",

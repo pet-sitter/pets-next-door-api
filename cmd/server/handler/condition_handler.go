@@ -9,10 +9,10 @@ import (
 )
 
 type ConditionHandler struct {
-	conditionService *sos_post.ConditionService
+	conditionService sos_post.ConditionService
 }
 
-func NewConditionHandler(conditionService *sos_post.ConditionService) *ConditionHandler {
+func NewConditionHandler(conditionService sos_post.ConditionService) *ConditionHandler {
 	return &ConditionHandler{conditionService: conditionService}
 }
 
