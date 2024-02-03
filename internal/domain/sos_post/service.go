@@ -1,6 +1,7 @@
 package sos_post
 
 import (
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -83,7 +84,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  datetimeToDay(p.BirthDate),
+			BirthDate:  utils.FormatDate(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -100,8 +101,8 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 		Reward:       sosPost.Reward,
 		DateStartAt:  sosPost.DateStartAt,
 		DateEndAt:    sosPost.DateEndAt,
-		TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
-		TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
+		TimeStartAt:  utils.FormatTime(sosPost.TimeStartAt),
+		TimeEndAt:    utils.FormatTime(sosPost.TimeEndAt),
 		CareType:     sosPost.CareType,
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
@@ -166,7 +167,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 				Sex:        p.Sex,
 				Neutered:   p.Neutered,
 				Breed:      p.Breed,
-				BirthDate:  datetimeToDay(p.BirthDate),
+				BirthDate:  utils.FormatDate(p.BirthDate),
 				WeightInKg: p.WeightInKg,
 			}
 			petsView = append(petsView, p)
@@ -183,8 +184,8 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			Reward:       sosPost.Reward,
 			DateStartAt:  sosPost.DateStartAt,
 			DateEndAt:    sosPost.DateEndAt,
-			TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
-			TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
+			TimeStartAt:  utils.FormatTime(sosPost.TimeStartAt),
+			TimeEndAt:    utils.FormatTime(sosPost.TimeEndAt),
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -254,7 +255,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 				Sex:        p.Sex,
 				Neutered:   p.Neutered,
 				Breed:      p.Breed,
-				BirthDate:  datetimeToDay(p.BirthDate),
+				BirthDate:  utils.FormatDate(p.BirthDate),
 				WeightInKg: p.WeightInKg,
 			}
 			petsView = append(petsView, p)
@@ -271,8 +272,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			Reward:       sosPost.Reward,
 			DateStartAt:  sosPost.DateStartAt,
 			DateEndAt:    sosPost.DateEndAt,
-			TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
-			TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
+			TimeStartAt:  utils.FormatTime(sosPost.TimeStartAt),
+			TimeEndAt:    utils.FormatTime(sosPost.TimeEndAt),
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -339,7 +340,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *p
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  datetimeToDay(p.BirthDate),
+			BirthDate:  utils.FormatDate(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -356,8 +357,8 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostResponse, *p
 		Reward:       sosPost.Reward,
 		DateStartAt:  sosPost.DateStartAt,
 		DateEndAt:    sosPost.DateEndAt,
-		TimeStartAt:  datetimeToTime(sosPost.TimeStartAt),
-		TimeEndAt:    datetimeToTime(sosPost.TimeEndAt),
+		TimeStartAt:  utils.FormatTime(sosPost.TimeStartAt),
+		TimeEndAt:    utils.FormatTime(sosPost.TimeEndAt),
 		CareType:     sosPost.CareType,
 		CarerGender:  sosPost.CarerGender,
 		RewardAmount: sosPost.RewardAmount,
@@ -419,7 +420,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 			Sex:        p.Sex,
 			Neutered:   p.Neutered,
 			Breed:      p.Breed,
-			BirthDate:  datetimeToDay(p.BirthDate),
+			BirthDate:  utils.FormatDate(p.BirthDate),
 			WeightInKg: p.WeightInKg,
 		}
 		petsView = append(petsView, p)
@@ -436,8 +437,8 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		Reward:       updateSosPost.Reward,
 		DateStartAt:  updateSosPost.DateStartAt,
 		DateEndAt:    updateSosPost.DateEndAt,
-		TimeStartAt:  datetimeToTime(updateSosPost.TimeStartAt),
-		TimeEndAt:    datetimeToTime(updateSosPost.TimeEndAt),
+		TimeStartAt:  utils.FormatTime(updateSosPost.TimeStartAt),
+		TimeEndAt:    utils.FormatTime(updateSosPost.TimeEndAt),
 		CareType:     updateSosPost.CareType,
 		CarerGender:  updateSosPost.CarerGender,
 		RewardAmount: updateSosPost.RewardAmount,
@@ -459,12 +460,4 @@ func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int
 	}
 
 	return userID == sosPost.AuthorID, nil
-}
-
-func datetimeToTime(datetime time.Time) string {
-	return datetime.Format("15:04")
-}
-
-func datetimeToDay(datetime string) string {
-	return datetime[:10]
 }
