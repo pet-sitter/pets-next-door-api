@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -46,7 +45,7 @@ func (h *authHandler) KakaoLogin(w http.ResponseWriter, r *http.Request) {
 // @Summary Kakao 회원가입 콜백 API
 // @Description Kakao 로그인 콜백을 처리하고, 사용자 기본 정보와 함께 Firebase Custom Token을 발급합니다.
 // @Tags auth
-// @Success 200 {object} auth.KakaoCallbackResponse
+// @Success 200 {object} auth.KakaoCallbackView
 // @Router /auth/callback/kakao [get]
 func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 	code := utils.ParseOptionalStringQuery(r, "code")
@@ -69,9 +68,7 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(auth.KakaoCallbackResponse{
+	render.JSON(w, r, auth.KakaoCallbackView{
 		AuthToken:            *customToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
 		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),

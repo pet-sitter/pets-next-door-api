@@ -31,7 +31,7 @@ func NewSosPostHandler(sosPostService sos_post.SosPostService, authService auth.
 // @Produce  json
 // @Param request body sos_post.WriteSosPostRequest true "돌봄급구 게시글 업로드 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} sos_post.WriteSosPostResponse
+// @Success 201 {object} sos_post.WriteSosPostView
 // @Router /posts/sos [post]
 func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
@@ -65,7 +65,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
-// @Success 200 {object} pnd.PaginatedView[sos_post.FindSosPostResponse]
+// @Success 200 {object} pnd.PaginatedView[sos_post.FindSosPostView]
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 	authorID, err := utils.ParseOptionalIntQuery(r, "author_id")
@@ -85,7 +85,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res []sos_post.FindSosPostResponse
+	var res []sos_post.FindSosPostView
 
 	if authorID != nil {
 		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size)
@@ -111,7 +111,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "게시글 ID"
-// @Success 200 {object} sos_post.FindSosPostResponse
+// @Success 200 {object} sos_post.FindSosPostView
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
 	SosPostID, err := utils.ParseIdFromPath(r, "id")

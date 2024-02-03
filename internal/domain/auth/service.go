@@ -13,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserResponse, *pnd.AppError)
+	VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError)
 	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
 }
 
@@ -39,7 +39,7 @@ func (s *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHeader s
 	return authToken, err
 }
 
-func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserResponse, *pnd.AppError) {
+func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError) {
 	authToken, err := s.verifyAuth(ctx, r.Header.Get("Authorization"))
 	if err != nil {
 		return nil, pnd.ErrInvalidFBToken(fmt.Errorf("유효하지 않은 인증 토큰입니다"))

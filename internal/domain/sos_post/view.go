@@ -1,9 +1,10 @@
 package sos_post
 
 import (
+	"time"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"time"
 )
 
 type WriteSosPostRequest struct {
@@ -22,7 +23,7 @@ type WriteSosPostRequest struct {
 	PetIDs       []int        `json:"pet_ids"`
 }
 
-type WriteSosPostResponse struct {
+type WriteSosPostView struct {
 	ID           int               `json:"id"`
 	AuthorID     int               `json:"author_id"`
 	Title        string            `json:"title"`
@@ -43,7 +44,7 @@ type WriteSosPostResponse struct {
 	UpdatedAt    time.Time         `json:"updated_at"`
 }
 
-type FindSosPostResponse struct {
+type FindSosPostView struct {
 	ID           int               `json:"id"`
 	AuthorID     int               `json:"author_id"`
 	Title        string            `json:"title"`
@@ -81,7 +82,7 @@ type UpdateSosPostRequest struct {
 	PetIDs       []int        `json:"pet_ids"`
 }
 
-type UpdateSosPostResponse struct {
+type UpdateSosPostView struct {
 	ID           int               `json:"id"`
 	AuthorID     int               `json:"author_id"`
 	Title        string            `json:"title"`

@@ -27,7 +27,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.KakaoCallbackResponse"
+                            "$ref": "#/definitions/auth.KakaoCallbackView"
                         }
                     }
                 }
@@ -201,7 +201,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostResponse"
+                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostView"
                         }
                     }
                 }
@@ -270,7 +270,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.WriteSosPostResponse"
+                            "$ref": "#/definitions/sos_post.WriteSosPostView"
                         }
                     }
                 }
@@ -292,10 +292,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/sos_post.ConditionView"
-                            }
+                            "$ref": "#/definitions/pnd.ItemListView-sos_post_ConditionView"
                         }
                     }
                 }
@@ -326,7 +323,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                            "$ref": "#/definitions/sos_post.FindSosPostView"
                         }
                     }
                 }
@@ -403,7 +400,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/user.RegisterUserResponse"
+                            "$ref": "#/definitions/user.RegisterUserView"
                         }
                     }
                 }
@@ -460,7 +457,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MyProfileResponse"
+                            "$ref": "#/definitions/user.MyProfileView"
                         }
                     }
                 }
@@ -496,7 +493,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.UpdateUserResponse"
+                            "$ref": "#/definitions/user.UpdateUserView"
                         }
                     }
                 }
@@ -596,7 +593,7 @@
         }
     },
     "definitions": {
-        "auth.KakaoCallbackResponse": {
+        "auth.KakaoCallbackView": {
             "type": "object",
             "properties": {
                 "authToken": {
@@ -783,6 +780,17 @@
                 }
             }
         },
+        "pnd.ItemListView-sos_post_ConditionView": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.ConditionView"
+                    }
+                }
+            }
+        },
         "pnd.PaginatedView-pet_BreedView": {
             "type": "object",
             "properties": {
@@ -800,13 +808,13 @@
                 }
             }
         },
-        "pnd.PaginatedView-sos_post_FindSosPostResponse": {
+        "pnd.PaginatedView-sos_post_FindSosPostView": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                        "$ref": "#/definitions/sos_post.FindSosPostView"
                     }
                 },
                 "page": {
@@ -867,7 +875,7 @@
                 }
             }
         },
-        "sos_post.FindSosPostResponse": {
+        "sos_post.FindSosPostView": {
             "type": "object",
             "properties": {
                 "author_id": {
@@ -1126,7 +1134,7 @@
                 }
             }
         },
-        "sos_post.WriteSosPostResponse": {
+        "sos_post.WriteSosPostView": {
             "type": "object",
             "properties": {
                 "author_id": {
@@ -1228,7 +1236,7 @@
                 "FirebaseProviderTypeKakao"
             ]
         },
-        "user.MyProfileResponse": {
+        "user.MyProfileView": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1281,7 +1289,7 @@
                 }
             }
         },
-        "user.RegisterUserResponse": {
+        "user.RegisterUserView": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1318,7 +1326,7 @@
                 }
             }
         },
-        "user.UpdateUserResponse": {
+        "user.UpdateUserView": {
             "type": "object",
             "properties": {
                 "email": {

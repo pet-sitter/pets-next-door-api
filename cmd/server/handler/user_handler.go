@@ -30,7 +30,7 @@ func NewUserHandler(userService user.UserServicer, authService auth.AuthService)
 // @Accept  json
 // @Produce  json
 // @Param request body user.RegisterUserRequest true "사용자 회원가입 요청"
-// @Success 201 {object} user.RegisterUserResponse
+// @Success 201 {object} user.RegisterUserView
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerUserRequest user.RegisterUserRequest
@@ -145,7 +145,7 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Produce  json
 // @Security FirebaseAuth
-// @Success 200 {object} user.MyProfileResponse
+// @Success 200 {object} user.MyProfileView
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
@@ -154,7 +154,7 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.OK(w, nil, res.ToMyProfileResponse())
+	render.JSON(w, r, res.ToMyProfileView())
 }
 
 // UpdateMyProfile godoc
@@ -165,7 +165,7 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Produce  json
 // @Security FirebaseAuth
 // @Param request body user.UpdateUserRequest true "사용자 프로필 수정 요청"
-// @Success 200 {object} user.UpdateUserResponse
+// @Success 200 {object} user.UpdateUserView
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
@@ -188,7 +188,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.OK(w, nil, user.UpdateUserResponse{
+	render.JSON(w, r, user.UpdateUserView{
 		ID:                   userModel.ID,
 		Email:                userModel.Email,
 		Nickname:             userModel.Nickname,

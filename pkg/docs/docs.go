@@ -35,7 +35,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.KakaoCallbackResponse"
+                            "$ref": "#/definitions/auth.KakaoCallbackView"
                         }
                     }
                 }
@@ -209,7 +209,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostResponse"
+                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostView"
                         }
                     }
                 }
@@ -278,7 +278,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.WriteSosPostResponse"
+                            "$ref": "#/definitions/sos_post.WriteSosPostView"
                         }
                     }
                 }
@@ -300,10 +300,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/sos_post.ConditionView"
-                            }
+                            "$ref": "#/definitions/pnd.ItemListView-sos_post_ConditionView"
                         }
                     }
                 }
@@ -334,7 +331,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                            "$ref": "#/definitions/sos_post.FindSosPostView"
                         }
                     }
                 }
@@ -411,7 +408,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/user.RegisterUserResponse"
+                            "$ref": "#/definitions/user.RegisterUserView"
                         }
                     }
                 }
@@ -468,7 +465,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MyProfileResponse"
+                            "$ref": "#/definitions/user.MyProfileView"
                         }
                     }
                 }
@@ -504,7 +501,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.UpdateUserResponse"
+                            "$ref": "#/definitions/user.UpdateUserView"
                         }
                     }
                 }
@@ -604,7 +601,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "auth.KakaoCallbackResponse": {
+        "auth.KakaoCallbackView": {
             "type": "object",
             "properties": {
                 "authToken": {
@@ -791,6 +788,17 @@ const docTemplate = `{
                 }
             }
         },
+        "pnd.ItemListView-sos_post_ConditionView": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.ConditionView"
+                    }
+                }
+            }
+        },
         "pnd.PaginatedView-pet_BreedView": {
             "type": "object",
             "properties": {
@@ -808,13 +816,13 @@ const docTemplate = `{
                 }
             }
         },
-        "pnd.PaginatedView-sos_post_FindSosPostResponse": {
+        "pnd.PaginatedView-sos_post_FindSosPostView": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/sos_post.FindSosPostResponse"
+                        "$ref": "#/definitions/sos_post.FindSosPostView"
                     }
                 },
                 "page": {
@@ -875,7 +883,7 @@ const docTemplate = `{
                 }
             }
         },
-        "sos_post.FindSosPostResponse": {
+        "sos_post.FindSosPostView": {
             "type": "object",
             "properties": {
                 "author_id": {
@@ -1134,7 +1142,7 @@ const docTemplate = `{
                 }
             }
         },
-        "sos_post.WriteSosPostResponse": {
+        "sos_post.WriteSosPostView": {
             "type": "object",
             "properties": {
                 "author_id": {
@@ -1236,7 +1244,7 @@ const docTemplate = `{
                 "FirebaseProviderTypeKakao"
             ]
         },
-        "user.MyProfileResponse": {
+        "user.MyProfileView": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1289,7 +1297,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.RegisterUserResponse": {
+        "user.RegisterUserView": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1326,7 +1334,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.UpdateUserResponse": {
+        "user.UpdateUserView": {
             "type": "object",
             "properties": {
                 "email": {

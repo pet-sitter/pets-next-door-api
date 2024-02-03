@@ -242,7 +242,7 @@ func TestSosPostService(t *testing.T) {
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
-			var sosPosts []sos_post.WriteSosPostResponse
+			var sosPosts []sos_post.WriteSosPostView
 
 			for i := 1; i < 4; i++ {
 				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
@@ -389,7 +389,7 @@ func TestSosPostService(t *testing.T) {
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
-			sosPosts := make([]sos_post.WriteSosPostResponse, 0)
+			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
 				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
 					Title:        fmt.Sprintf("Title%d", i),
@@ -538,7 +538,7 @@ func TestSosPostService(t *testing.T) {
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
-			sosPosts := make([]sos_post.WriteSosPostResponse, 0)
+			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
 				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
 					Title:        fmt.Sprintf("Title%d", i),

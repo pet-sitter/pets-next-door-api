@@ -1,6 +1,6 @@
 basePath: /api
 definitions:
-  auth.KakaoCallbackResponse:
+  auth.KakaoCallbackView:
     properties:
       authToken:
         type: string
@@ -123,6 +123,13 @@ definitions:
       weight_in_kg:
         type: number
     type: object
+  pnd.ItemListView-sos_post_ConditionView:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/sos_post.ConditionView'
+        type: array
+    type: object
   pnd.PaginatedView-pet_BreedView:
     properties:
       items:
@@ -134,11 +141,11 @@ definitions:
       size:
         type: integer
     type: object
-  pnd.PaginatedView-sos_post_FindSosPostResponse:
+  pnd.PaginatedView-sos_post_FindSosPostView:
     properties:
       items:
         items:
-          $ref: '#/definitions/sos_post.FindSosPostResponse'
+          $ref: '#/definitions/sos_post.FindSosPostView'
         type: array
       page:
         type: integer
@@ -179,7 +186,7 @@ definitions:
       name:
         type: string
     type: object
-  sos_post.FindSosPostResponse:
+  sos_post.FindSosPostView:
     properties:
       author_id:
         type: integer
@@ -349,7 +356,7 @@ definitions:
     - time_start_at
     - title
     type: object
-  sos_post.WriteSosPostResponse:
+  sos_post.WriteSosPostView:
     properties:
       author_id:
         type: integer
@@ -418,7 +425,7 @@ definitions:
     - FirebaseProviderTypeGoogle
     - FirebaseProviderTypeApple
     - FirebaseProviderTypeKakao
-  user.MyProfileResponse:
+  user.MyProfileView:
     properties:
       email:
         type: string
@@ -454,7 +461,7 @@ definitions:
     - fullname
     - nickname
     type: object
-  user.RegisterUserResponse:
+  user.RegisterUserView:
     properties:
       email:
         type: string
@@ -478,7 +485,7 @@ definitions:
       profileImageId:
         type: integer
     type: object
-  user.UpdateUserResponse:
+  user.UpdateUserView:
     properties:
       email:
         type: string
@@ -543,7 +550,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.KakaoCallbackResponse'
+            $ref: '#/definitions/auth.KakaoCallbackView'
       summary: Kakao 회원가입 콜백 API
       tags:
       - auth
@@ -657,7 +664,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pnd.PaginatedView-sos_post_FindSosPostResponse'
+            $ref: '#/definitions/pnd.PaginatedView-sos_post_FindSosPostView'
       summary: 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
@@ -677,7 +684,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/sos_post.WriteSosPostResponse'
+            $ref: '#/definitions/sos_post.WriteSosPostView'
       security:
       - FirebaseAuth: []
       summary: 돌봄급구 게시글을 업로드합니다.
@@ -719,7 +726,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/sos_post.FindSosPostResponse'
+            $ref: '#/definitions/sos_post.FindSosPostView'
       summary: 게시글 ID로 돌봄급구 게시글을 조회합니다.
       tags:
       - posts
@@ -733,9 +740,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/sos_post.ConditionView'
-            type: array
+            $ref: '#/definitions/pnd.ItemListView-sos_post_ConditionView'
       summary: 돌봄 조건을 조회합니다.
       tags:
       - posts
@@ -784,7 +789,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/user.RegisterUserResponse'
+            $ref: '#/definitions/user.RegisterUserView'
       summary: 파이어베이스 가입 이후 정보를 입력 받아 유저를 생성합니다.
       tags:
       - users
@@ -817,7 +822,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MyProfileResponse'
+            $ref: '#/definitions/user.MyProfileView'
       security:
       - FirebaseAuth: []
       summary: 내 프로필 정보를 조회합니다.
@@ -839,7 +844,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.UpdateUserResponse'
+            $ref: '#/definitions/user.UpdateUserView'
       security:
       - FirebaseAuth: []
       summary: 내 프로필 정보를 수정합니다.
