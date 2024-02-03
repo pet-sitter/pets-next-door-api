@@ -11,8 +11,18 @@ type Breed struct {
 	DeletedAt string  `field:"deleted_at"`
 }
 
+type BreedList struct {
+	*pnd.PaginatedView[Breed]
+}
+
+func NewBreedList(page int, size int) *BreedList {
+	return &BreedList{PaginatedView: pnd.NewPaginatedView(
+		page, size, false, make([]Breed, 0),
+	)}
+}
+
 type BreedStore interface {
-	FindBreeds(page int, size int, petType *string) ([]*Breed, *pnd.AppError)
+	FindBreeds(page int, size int, petType *string) (*BreedList, *pnd.AppError)
 	FindBreedByPetTypeAndName(petType PetType, name string) (*Breed, *pnd.AppError)
 	CreateBreed(breed *Breed) (*Breed, *pnd.AppError)
 }

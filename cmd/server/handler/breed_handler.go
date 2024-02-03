@@ -25,7 +25,7 @@ func NewBreedHandler(breedService pet.BreedService) *BreedHandler {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param pet_type query string false "펫 종류" Enums(dog, cat)
-// @Success 200 {object} pnd.PaginatedView[pet.BreedView]
+// @Success 200 {object} pet.BreedListView
 // @Router /breeds [get]
 func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
 	petType := pnd.ParseOptionalStringQuery(r, "pet_type")
@@ -41,5 +41,5 @@ func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
+	render.JSON(w, r, res)
 }

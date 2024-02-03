@@ -14,8 +14,8 @@ func NewBreedPostgresStore(db *database.DB) *BreedPostgresStore {
 	return &BreedPostgresStore{db: db}
 }
 
-func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) ([]*pet.Breed, *pnd.AppError) {
-	var breeds []*pet.Breed
+func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
+	breedList := pet.NewBreedList(page, size)
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -40,10 +40,10 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) ([]
 	`
 
 	rows, err := tx.Query(query, petType, size, (page-1)*size)
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		breed := &pet.Breed{}
@@ -53,15 +53,18 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) ([]
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		breeds = append(breeds, breed)
+		breedList.Items = append(breedList.Items, *breed)
 	}
+	breedList.CalcLastPage()
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return breeds, nil
+	return breedList, nil
 }
 
 func (s *BreedPostgresStore) FindBreedByPetTypeAndName(petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {

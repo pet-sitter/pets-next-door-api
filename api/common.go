@@ -6,16 +6,29 @@ import (
 )
 
 type PaginatedView[T interface{}] struct {
-	Page  int `json:"page"`
-	Size  int `json:"size"`
-	Items []T `json:"items"`
+	Page       int  `json:"page"`
+	Size       int  `json:"size"`
+	IsLastPage bool `json:"is_last_page"`
+	Items      []T  `json:"items"`
 }
 
-func NewPaginatedView[T interface{}](page int, size int, items []T) *PaginatedView[T] {
+func NewPaginatedView[T interface{}](page int, size int, isLastPage bool, items []T) *PaginatedView[T] {
 	return &PaginatedView[T]{
-		Page:  page,
-		Size:  size,
-		Items: items,
+		Page:       page,
+		Size:       size,
+		IsLastPage: isLastPage,
+		Items:      items,
+	}
+}
+
+// CalcLastPage는 현재 페이지가 마지막 페이지인지를 items의 개수를 통해 계산한다.
+// 마지막 페이지가 아니라면 items를 size만큼 잘라서 마지막 페이지로 만든다.
+func (l *PaginatedView[T]) CalcLastPage() {
+	if len(l.Items) > l.Size {
+		l.IsLastPage = false
+		l.Items = l.Items[:l.Size]
+	} else {
+		l.IsLastPage = true
 	}
 }
 

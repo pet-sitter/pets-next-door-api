@@ -111,7 +111,7 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(10)
 // @Param nickname query string false "닉네임 (완전 일치)"
-// @Success 200 {object} pnd.PaginatedView[user.UserWithoutPrivateInfo]
+// @Success 200 {object} user.UserWithoutPrivateInfoList
 // @Router /users [get]
 func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
@@ -127,15 +127,14 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res []*user.UserWithoutPrivateInfo
-
+	var res *user.UserWithoutPrivateInfoList
 	res, err = h.userService.FindUsers(page, size, nickname)
 	if err != nil {
 		render.Render(w, r, err)
 		return
 	}
 
-	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
+	render.JSON(w, r, res)
 }
 
 // FindMyProfile godoc

@@ -55,13 +55,13 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 	}, nil
 }
 
-func (service *UserService) FindUsers(page int, size int, nickname *string) ([]*UserWithoutPrivateInfo, *pnd.AppError) {
-	usersData, err := service.userStore.FindUsers(page, size, nickname)
+func (service *UserService) FindUsers(page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError) {
+	userList, err := service.userStore.FindUsers(page, size, nickname)
 	if err != nil {
 		return nil, err
 	}
 
-	return usersData, nil
+	return userList, nil
 }
 
 func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError) {

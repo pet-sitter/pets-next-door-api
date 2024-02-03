@@ -88,7 +88,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-pet_BreedView"
+                            "$ref": "#/definitions/pet.BreedListView"
                         }
                     }
                 }
@@ -201,7 +201,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-sos_post_FindSosPostView"
+                            "$ref": "#/definitions/sos_post.FindSosPostListView"
                         }
                     }
                 }
@@ -369,7 +369,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pnd.PaginatedView-user_UserWithoutPrivateInfo"
+                            "$ref": "#/definitions/user.UserWithoutPrivateInfoList"
                         }
                     }
                 }
@@ -704,6 +704,26 @@
                 }
             }
         },
+        "pet.BreedListView": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pet.BreedView"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "pet.BreedView": {
             "type": "object",
             "properties": {
@@ -791,57 +811,6 @@
                 }
             }
         },
-        "pnd.PaginatedView-pet_BreedView": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/pet.BreedView"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "pnd.PaginatedView-sos_post_FindSosPostView": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/sos_post.FindSosPostView"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "pnd.PaginatedView-user_UserWithoutPrivateInfo": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
         "sos_post.CareType": {
             "type": "string",
             "enum": [
@@ -872,6 +841,26 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "sos_post.FindSosPostListView": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sos_post.FindSosPostView"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
                 }
             }
         },
@@ -1393,6 +1382,26 @@
                 },
                 "profileImageUrl": {
                     "type": "string"
+                }
+            }
+        },
+        "user.UserWithoutPrivateInfoList": {
+            "type": "object",
+            "properties": {
+                "is_last_page": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.UserWithoutPrivateInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
                 }
             }
         }

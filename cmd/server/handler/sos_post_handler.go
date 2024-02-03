@@ -64,7 +64,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
-// @Success 200 {object} pnd.PaginatedView[sos_post.FindSosPostView]
+// @Success 200 {object} sos_post.FindSosPostListView
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 	authorID, err := pnd.ParseOptionalIntQuery(r, "author_id")
@@ -84,8 +84,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res []sos_post.FindSosPostView
-
+	var res *sos_post.FindSosPostListView
 	if authorID != nil {
 		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size)
 		if err != nil {
@@ -100,7 +99,7 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	pnd.OK(w, nil, pnd.NewPaginatedView(page, size, res))
+	render.JSON(w, r, res)
 }
 
 // FindSosPostByID godoc
