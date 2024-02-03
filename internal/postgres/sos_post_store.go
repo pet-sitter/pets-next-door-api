@@ -195,7 +195,7 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 		query += " ORDER BY created_at DESC"
 	}
 
-	query += fmt.Sprintf(" LIMIT %d", size)
+	query += fmt.Sprintf(" LIMIT %d", size+1)
 	query += fmt.Sprintf(" OFFSET %d", (page-1)*size)
 
 	rows, err := tx.Query(query)
