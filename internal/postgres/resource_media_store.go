@@ -40,7 +40,7 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(resourceID int, mediaID
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return resourceMedia, nil
@@ -73,7 +73,7 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID in
 	)
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for rows.Next() {
@@ -81,7 +81,7 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(resourceID in
 
 		err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt)
 		if err != nil {
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		mediaList = append(mediaList, mediaItem)

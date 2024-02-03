@@ -36,7 +36,7 @@ func (s *MediaPostgresStore) CreateMedia(media *media.Media) (*media.Media, *pnd
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return media, nil
@@ -70,7 +70,7 @@ func (s *MediaPostgresStore) FindMediaByID(id int) (*media.Media, *pnd.AppError)
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return media, nil

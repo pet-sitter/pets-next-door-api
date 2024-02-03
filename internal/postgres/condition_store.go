@@ -19,37 +19,37 @@ func NewConditionPostgresStore(db *database.DB) *ConditionPostgresStore {
 func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosCondition) (string, *pnd.AppError) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return "", pnd.FromPGError(err)
+		return "", pnd.FromPostgresError(err)
 	}
 
 	for n, v := range conditions {
 		_, err := tx.Exec(`
-			INSERT INTO sos_conditions 
+			INSERT INTO sos_conditions
 				(
 				 	id,
-					name, 
-					created_at, 
+					name,
+					created_at,
 					updated_at
 				)
 				SELECT $1, $2, now(), now()
 				WHERE NOT EXISTS (
-					SELECT 
-						1 
-					FROM 
-						sos_conditions 
-					WHERE 
+					SELECT
+						1
+					FROM
+						sos_conditions
+					WHERE
 						name = $2::VARCHAR(50)
 				);
 		`, n+1, string(v))
 		if err != nil {
 			tx.Rollback()
-			return "", pnd.FromPGError(err)
+			return "", pnd.FromPostgresError(err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return "", pnd.FromPGError(err)
+		return "", pnd.FromPostgresError(err)
 	}
 
 	return "condition init success", nil
@@ -60,18 +60,18 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, *pnd.Ap
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	rows, err := tx.Query(`
-		SELECT 
+		SELECT
 			id,
 			name
-		FROM 
+		FROM
 			sos_conditions
 	`)
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for rows.Next() {
@@ -82,7 +82,7 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, *pnd.Ap
 			&condition.Name,
 		)
 		if err != nil {
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		conditions = append(conditions, condition)
@@ -90,7 +90,7 @@ func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, *pnd.Ap
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return conditions, nil

@@ -49,7 +49,7 @@ func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return user, nil
@@ -60,13 +60,13 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	query := `
 	SELECT
-		users.id,	
-		users.nickname,	
+		users.id,
+		users.nickname,
 		media.url AS profile_image_url
 	FROM
 		users
@@ -86,7 +86,7 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*
 	rows, err := tx.Query(query, nickname, size, (page-1)*size)
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	for rows.Next() {
@@ -94,7 +94,7 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*
 
 		err := rows.Scan(&userData.ID, &userData.Nickname, &userData.ProfileImageURL)
 		if err != nil {
-			return nil, pnd.FromPGError(err)
+			return nil, pnd.FromPostgresError(err)
 		}
 
 		usersData = append(usersData, userData)
@@ -102,7 +102,7 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) ([]*
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return usersData, nil
@@ -148,7 +148,7 @@ func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfile
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return user, nil
@@ -194,7 +194,7 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return user, nil
@@ -218,7 +218,7 @@ func (s *UserPostgresStore) FindUserIDByFbUID(fbUid string) (int, *pnd.AppError)
 	tx.Commit()
 
 	if err != nil {
-		return 0, pnd.FromPGError(err)
+		return 0, pnd.FromPostgresError(err)
 	}
 
 	return UserID, nil
@@ -246,12 +246,12 @@ func (s *UserPostgresStore) ExistsByNickname(nickname string) (bool, *pnd.AppErr
 		nickname,
 	).Scan(&exists)
 	if err != nil {
-		return false, pnd.FromPGError(err)
+		return false, pnd.FromPostgresError(err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return false, pnd.FromPGError(err)
+		return false, pnd.FromPostgresError(err)
 	}
 
 	return exists, nil
@@ -277,7 +277,7 @@ func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatu
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return &userStatus, nil
@@ -316,7 +316,7 @@ func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profile
 	tx.Commit()
 
 	if err != nil {
-		return nil, pnd.FromPGError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return user, nil
