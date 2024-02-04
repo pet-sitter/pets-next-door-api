@@ -511,7 +511,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
             thumbnail_id = $9,
             updated_at = NOW()
         WHERE
-            id = $12
+            id = $10
         RETURNING id, author_id, title, content, reward, date_start_at, date_end_at, care_type, carer_gender, reward_amount, thumbnail_id`,
 		request.Title,
 		request.Content,
@@ -527,7 +527,7 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 		&sosPost.ID,
 		&sosPost.AuthorID,
 		&sosPost.Title,
-		sosPost.Content,
+		&sosPost.Content,
 		&sosPost.Reward,
 		&sosPost.DateStartAt,
 		&sosPost.DateEndAt,

@@ -382,7 +382,6 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		}
 		mediaView = append(mediaView, view)
 	}
-
 	conditions, err := service.sosPostStore.FindConditionByID(updateSosPost.ID)
 	if err != nil {
 		return nil, err
@@ -417,7 +416,6 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		}
 		petsView = append(petsView, p)
 	}
-
 	return &UpdateSosPostView{
 		ID:           updateSosPost.ID,
 		AuthorID:     updateSosPost.AuthorID,
