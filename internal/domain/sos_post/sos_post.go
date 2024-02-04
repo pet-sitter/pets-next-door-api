@@ -33,8 +33,6 @@ type SosPost struct {
 	Reward       string       `field:"reward"`
 	DateStartAt  string       `field:"date_start_at"`
 	DateEndAt    string       `field:"date_end_at"`
-	TimeStartAt  time.Time    `field:"time_start_at"`
-	TimeEndAt    time.Time    `field:"time_end_at"`
 	CareType     CareType     `field:"care_type"`
 	CarerGender  CarerGender  `field:"carer_gender"`
 	RewardAmount RewardAmount `field:"reward_amount"`
