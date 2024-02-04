@@ -46,7 +46,7 @@ func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r 
 	}
 
 	var err2 *pnd.AppError
-	foundUser, err2 := s.userService.FindUserByUID(authToken.UID)
+	foundUser, err2 := s.userService.FindUserByUID(ctx, authToken.UID)
 	if err2 != nil {
 		return nil, pnd.ErrUserNotRegistered(fmt.Errorf("가입되지 않은 사용자입니다"))
 	}

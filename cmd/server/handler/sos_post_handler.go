@@ -45,7 +45,7 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.sosPostService.WriteSosPost(foundUser.FirebaseUID, &writeSosPostRequest)
+	res, err := h.sosPostService.WriteSosPost(r.Context(), foundUser.FirebaseUID, &writeSosPostRequest)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -86,13 +86,13 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 
 	var res *sos_post.FindSosPostListView
 	if authorID != nil {
-		res, err = h.sosPostService.FindSosPostsByAuthorID(*authorID, page, size, sortBy)
+		res, err = h.sosPostService.FindSosPostsByAuthorID(r.Context(), *authorID, page, size, sortBy)
 		if err != nil {
 			render.Render(w, r, err)
 			return
 		}
 	} else {
-		res, err = h.sosPostService.FindSosPosts(page, size, sortBy)
+		res, err = h.sosPostService.FindSosPosts(r.Context(), page, size, sortBy)
 		if err != nil {
 			render.Render(w, r, err)
 			return
@@ -117,7 +117,7 @@ func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request)
 		render.Render(w, r, err)
 		return
 	}
-	res, err := h.sosPostService.FindSosPostByID(*SosPostID)
+	res, err := h.sosPostService.FindSosPostByID(r.Context(), *SosPostID)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -149,7 +149,7 @@ func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permission, err := h.sosPostService.CheckUpdatePermission(foundUser.FirebaseUID, updateSosPostRequest.ID)
+	permission, err := h.sosPostService.CheckUpdatePermission(r.Context(), foundUser.FirebaseUID, updateSosPostRequest.ID)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -159,7 +159,7 @@ func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.sosPostService.UpdateSosPost(&updateSosPostRequest)
+	res, err := h.sosPostService.UpdateSosPost(r.Context(), &updateSosPostRequest)
 	if err != nil {
 		render.Render(w, r, err)
 		return

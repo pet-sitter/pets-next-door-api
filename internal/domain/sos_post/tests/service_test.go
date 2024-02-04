@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -16,10 +17,10 @@ import (
 
 var db *database.DB
 
-func setUp(t *testing.T) func(t *testing.T) {
+func setUp(ctx context.Context, t *testing.T) func(t *testing.T) {
 	db, _ = database.Open(tests.TestDatabaseURL)
 	db.Flush()
-	postgres.NewConditionPostgresStore(db).InitConditions(sos_post.ConditionName)
+	postgres.NewConditionPostgresStore(db).InitConditions(ctx, sos_post.ConditionName)
 	return func(t *testing.T) {
 		db.Close()
 	}
@@ -29,19 +30,20 @@ func TestSosPostService(t *testing.T) {
 
 	t.Run("CreateSosPost", func(t *testing.T) {
 		t.Run("돌봄 급구 게시글을 작성합니다.", func(t *testing.T) {
-			tearDown := setUp(t)
+			ctx := context.Background()
+			tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
 			})
-			sosPostImage, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test2.com",
 			})
-			sosPostImage2, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
@@ -62,7 +64,7 @@ func TestSosPostService(t *testing.T) {
 
 			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -91,7 +93,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			addPets, err := userService.AddPetsToOwner(uid, pets)
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -115,7 +117,7 @@ func TestSosPostService(t *testing.T) {
 				PetIDs:       []int{addPets[0].ID},
 			}
 
-			sosPost, err := sosPostService.WriteSosPost(uid, writeSosPostRequest)
+			sosPost, err := sosPostService.WriteSosPost(ctx, uid, writeSosPostRequest)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -162,19 +164,20 @@ func TestSosPostService(t *testing.T) {
 
 	t.Run("FindSosPosts", func(t *testing.T) {
 		t.Run("전체 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
-			tearDown := setUp(t)
+			ctx := context.Background()
+			tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
 			})
-			sosPostImage, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test2.com",
 			})
-			sosPostImage2, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
@@ -195,7 +198,7 @@ func TestSosPostService(t *testing.T) {
 
 			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -224,7 +227,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			addPets, err := userService.AddPetsToOwner(uid, pets)
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -237,7 +240,7 @@ func TestSosPostService(t *testing.T) {
 			var sosPosts []sos_post.WriteSosPostView
 
 			for i := 1; i < 4; i++ {
-				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
+				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
 					Title:        fmt.Sprintf("Title%d", i),
 					Content:      fmt.Sprintf("Test Content%d", i),
 					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
@@ -258,7 +261,7 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			sosPostList, err := sosPostService.FindSosPosts(1, 3, "newest")
+			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest")
 			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
@@ -302,19 +305,20 @@ func TestSosPostService(t *testing.T) {
 			}
 		})
 		t.Run("작성자 ID로 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
-			tearDown := setUp(t)
+			ctx := context.Background()
+			tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
 			})
-			sosPostImage, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test2.com",
 			})
-			sosPostImage2, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
@@ -335,7 +339,7 @@ func TestSosPostService(t *testing.T) {
 
 			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -363,7 +367,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			addPets, err := userService.AddPetsToOwner(uid, pets)
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -375,7 +379,7 @@ func TestSosPostService(t *testing.T) {
 
 			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
-				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
+				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
 					Title:        fmt.Sprintf("Title%d", i),
 					Content:      fmt.Sprintf("Test Content%d", i),
 					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
@@ -396,7 +400,7 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(owner.ID, 1, 3, "newest")
+			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(ctx, owner.ID, 1, 3, "newest")
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
@@ -443,19 +447,20 @@ func TestSosPostService(t *testing.T) {
 
 	t.Run("FindSosPostByID", func(t *testing.T) {
 		t.Run("게시글 ID로 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
-			tearDown := setUp(t)
+			ctx := context.Background()
+			tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
 			})
-			sosPostImage, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test2.com",
 			})
-			sosPostImage2, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
@@ -476,7 +481,7 @@ func TestSosPostService(t *testing.T) {
 
 			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -505,7 +510,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			addPets, err := userService.AddPetsToOwner(uid, pets)
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -517,7 +522,7 @@ func TestSosPostService(t *testing.T) {
 
 			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
-				sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
+				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
 					Title:        fmt.Sprintf("Title%d", i),
 					Content:      fmt.Sprintf("Test Content%d", i),
 					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
@@ -538,7 +543,7 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			findSosPostByID, err := sosPostService.FindSosPostByID(sosPosts[0].ID)
+			findSosPostByID, err := sosPostService.FindSosPostByID(ctx, sosPosts[0].ID)
 
 			assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
 			assertPetEquals(t, sosPosts[0].Pets[0], addPets[0])
@@ -582,19 +587,20 @@ func TestSosPostService(t *testing.T) {
 
 	t.Run("UpdateSosPost", func(t *testing.T) {
 		t.Run("돌봄 급구 게시글을 수정합니다.", func(t *testing.T) {
-			tearDown := setUp(t)
+			ctx := context.Background()
+			tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
 			})
-			sosPostImage, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test2.com",
 			})
-			sosPostImage2, _ := mediaService.CreateMedia(&media.Media{
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
@@ -615,7 +621,7 @@ func TestSosPostService(t *testing.T) {
 
 			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			owner, err := userService.RegisterUser(&user.RegisterUserRequest{
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -644,7 +650,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			addPets, err := userService.AddPetsToOwner(uid, pets)
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
@@ -654,7 +660,7 @@ func TestSosPostService(t *testing.T) {
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
-			sosPost, err := sosPostService.WriteSosPost(uid, &sos_post.WriteSosPostRequest{
+			sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
 				Title:        "Title1",
 				Content:      "Test Content1",
 				ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
@@ -687,7 +693,7 @@ func TestSosPostService(t *testing.T) {
 				PetIDs:       []int{addPets[0].ID},
 			}
 
-			updateSosPost, err := sosPostService.UpdateSosPost(updateSosPostData)
+			updateSosPost, err := sosPostService.UpdateSosPost(ctx, updateSosPostData)
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])

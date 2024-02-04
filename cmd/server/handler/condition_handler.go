@@ -25,7 +25,7 @@ func NewConditionHandler(conditionService sos_post.ConditionService) *ConditionH
 // @Success 200 {object} []sos_post.ConditionView
 // @Router /posts/sos/conditions [get]
 func (h *ConditionHandler) FindConditions(w http.ResponseWriter, r *http.Request) {
-	res, err := h.conditionService.FindConditions()
+	res, err := h.conditionService.FindConditions(r.Context())
 	if err != nil {
 		render.Render(w, r, err)
 		return

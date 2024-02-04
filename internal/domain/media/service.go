@@ -1,6 +1,7 @@
 package media
 
 import (
+	"context"
 	"io"
 	"path/filepath"
 
@@ -31,7 +32,7 @@ type UploadFileView struct {
 	FileEndpoint string
 }
 
-func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType MediaType, fileName string) (*Media, *pnd.AppError) {
+func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, mediaType MediaType, fileName string) (*Media, *pnd.AppError) {
 	randomFileName := generateRandomFileName(fileName)
 	fullPath := "media/" + randomFileName
 
@@ -45,7 +46,7 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType MediaType, file
 		return nil, pnd.ErrUnknown(err)
 	}
 
-	created, err := s.CreateMedia(&Media{
+	created, err := s.CreateMedia(ctx, &Media{
 		MediaType: mediaType,
 		URL:       req.HTTPRequest.URL.String(),
 	})
@@ -57,8 +58,8 @@ func (s *MediaService) UploadMedia(file io.ReadSeeker, mediaType MediaType, file
 	return created, nil
 }
 
-func (s *MediaService) CreateMedia(media *Media) (*Media, *pnd.AppError) {
-	created, err := s.mediaStore.CreateMedia(media)
+func (s *MediaService) CreateMedia(ctx context.Context, media *Media) (*Media, *pnd.AppError) {
+	created, err := s.mediaStore.CreateMedia(ctx, media)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +67,8 @@ func (s *MediaService) CreateMedia(media *Media) (*Media, *pnd.AppError) {
 	return created, nil
 }
 
-func (s *MediaService) FindMediaByID(id int) (*Media, *pnd.AppError) {
-	media, err := s.mediaStore.FindMediaByID(id)
+func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*Media, *pnd.AppError) {
+	media, err := s.mediaStore.FindMediaByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

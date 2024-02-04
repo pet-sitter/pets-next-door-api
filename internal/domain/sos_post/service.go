@@ -1,8 +1,10 @@
 package sos_post
 
 import (
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"context"
 	"time"
+
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -24,8 +26,8 @@ func NewSosPostService(sosPostStore SosPostStore, resourceMediaStore media.Resou
 	}
 }
 
-func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostRequest) (*WriteSosPostView, *pnd.AppError) {
-	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
+func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, request *WriteSosPostRequest) (*WriteSosPostView, *pnd.AppError) {
+	userID, err := service.userStore.FindUserIDByFbUID(ctx, fbUid)
 	if err != nil {
 		return nil, err
 	}
@@ -33,12 +35,12 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 	utcDateStart := request.DateStartAt.UTC().Format(time.RFC3339)
 	utcDateEnd := request.DateEndAt.UTC().Format(time.RFC3339)
 
-	sosPost, err := service.sosPostStore.WriteSosPost(userID, utcDateStart, utcDateEnd, request)
+	sosPost, err := service.sosPostStore.WriteSosPost(ctx, userID, utcDateStart, utcDateEnd, request)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
+	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +57,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 		mediaView = append(mediaView, view)
 	}
 
-	conditions, err := service.sosPostStore.FindConditionByID(sosPost.ID)
+	conditions, err := service.sosPostStore.FindConditionByID(ctx, sosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 		conditionsView = append(conditionsView, view)
 	}
 
-	pets, err := service.sosPostStore.FindPetsByID(sosPost.ID)
+	pets, err := service.sosPostStore.FindPetsByID(ctx, sosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +112,8 @@ func (service *SosPostService) WriteSosPost(fbUid string, request *WriteSosPostR
 	}, nil
 }
 
-func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
-	sosPosts, err := service.sosPostStore.FindSosPosts(page, size, sortBy)
+func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
+	sosPosts, err := service.sosPostStore.FindSosPosts(ctx, page, size, sortBy)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +121,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 	findSosPostViews := FromEmptySosPostList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
-		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
+		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +138,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			mediaView = append(mediaView, view)
 		}
 
-		conditions, err := service.sosPostStore.FindConditionByID(sosPost.ID)
+		conditions, err := service.sosPostStore.FindConditionByID(ctx, sosPost.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +153,7 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 			conditionsView = append(conditionsView, view)
 		}
 
-		pets, err := service.sosPostStore.FindPetsByID(sosPost.ID)
+		pets, err := service.sosPostStore.FindPetsByID(ctx, sosPost.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -196,8 +198,8 @@ func (service *SosPostService) FindSosPosts(page int, size int, sortBy string) (
 	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
-	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(authorID, page, size, sortBy)
+func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*FindSosPostListView, *pnd.AppError) {
+	sosPosts, err := service.sosPostStore.FindSosPostsByAuthorID(ctx, authorID, page, size, sortBy)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +207,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 	findSosPostViews := FromEmptySosPostList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
-		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
+		mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return nil, err
 		}
@@ -222,7 +224,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			mediaView = append(mediaView, view)
 		}
 
-		conditions, err := service.sosPostStore.FindConditionByID(sosPost.ID)
+		conditions, err := service.sosPostStore.FindConditionByID(ctx, sosPost.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +239,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 			conditionsView = append(conditionsView, view)
 		}
 
-		pets, err := service.sosPostStore.FindPetsByID(sosPost.ID)
+		pets, err := service.sosPostStore.FindPetsByID(ctx, sosPost.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -282,13 +284,13 @@ func (service *SosPostService) FindSosPostsByAuthorID(authorID int, page int, si
 	return findSosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostView, *pnd.AppError) {
-	sosPost, err := service.sosPostStore.FindSosPostByID(id)
+func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*FindSosPostView, *pnd.AppError) {
+	sosPost, err := service.sosPostStore.FindSosPostByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(sosPost.ID, string(media.SosResourceType))
+	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +307,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostView, *pnd.A
 		mediaView = append(mediaView, view)
 	}
 
-	conditions, err := service.sosPostStore.FindConditionByID(sosPost.ID)
+	conditions, err := service.sosPostStore.FindConditionByID(ctx, sosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +322,7 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostView, *pnd.A
 		conditionsView = append(conditionsView, view)
 	}
 
-	pets, err := service.sosPostStore.FindPetsByID(sosPost.ID)
+	pets, err := service.sosPostStore.FindPetsByID(ctx, sosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -360,13 +362,13 @@ func (service *SosPostService) FindSosPostByID(id int) (*FindSosPostView, *pnd.A
 	}, nil
 }
 
-func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*UpdateSosPostView, *pnd.AppError) {
-	updateSosPost, err := service.sosPostStore.UpdateSosPost(request)
+func (service *SosPostService) UpdateSosPost(ctx context.Context, request *UpdateSosPostRequest) (*UpdateSosPostView, *pnd.AppError) {
+	updateSosPost, err := service.sosPostStore.UpdateSosPost(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(updateSosPost.ID, string(media.SosResourceType))
+	mediaData, err := service.resourceMediaStore.FindResourceMediaByResourceID(ctx, updateSosPost.ID, string(media.SosResourceType))
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +384,8 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		}
 		mediaView = append(mediaView, view)
 	}
-	conditions, err := service.sosPostStore.FindConditionByID(updateSosPost.ID)
+
+	conditions, err := service.sosPostStore.FindConditionByID(ctx, updateSosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +400,7 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 		conditionsView = append(conditionsView, view)
 	}
 
-	pets, err := service.sosPostStore.FindPetsByID(updateSosPost.ID)
+	pets, err := service.sosPostStore.FindPetsByID(ctx, updateSosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -436,13 +439,13 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 	}, nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int) (bool, *pnd.AppError) {
-	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
+func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid string, sosPostID int) (bool, *pnd.AppError) {
+	userID, err := service.userStore.FindUserIDByFbUID(ctx, fbUid)
 	if err != nil {
 		return false, pnd.ErrUnknown(err)
 	}
 
-	sosPost, err := service.sosPostStore.FindSosPostByID(sosPostID)
+	sosPost, err := service.sosPostStore.FindSosPostByID(ctx, sosPostID)
 	if err != nil {
 		return false, pnd.ErrUnknown(err)
 	}

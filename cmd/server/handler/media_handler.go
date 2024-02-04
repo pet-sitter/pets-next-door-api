@@ -35,7 +35,7 @@ func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found, err := h.mediaService.FindMediaByID(*id)
+	found, err := h.mediaService.FindMediaByID(r.Context(), *id)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -76,7 +76,7 @@ func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err2 := h.mediaService.UploadMedia(file, media.IMAGE_MEDIA_TYPE, header.Filename)
+	res, err2 := h.mediaService.UploadMedia(r.Context(), file, media.IMAGE_MEDIA_TYPE, header.Filename)
 	if err != nil {
 		render.Render(w, r, err2)
 		return

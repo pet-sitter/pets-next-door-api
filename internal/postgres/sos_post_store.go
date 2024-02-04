@@ -1,7 +1,9 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -19,10 +21,10 @@ func NewSosPostPostgresStore(db *database.DB) *SosPostPostgresStore {
 	}
 }
 
-func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -157,10 +159,10 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 	return sosPost, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	sosPostList := sos_post.NewSosPostList(page, size)
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -246,10 +248,10 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	return sosPostList, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	sosPostList := sos_post.NewSosPostList(page, size)
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -332,10 +334,10 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 	return sosPostList, nil
 }
 
-func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindSosPostByID(ctx context.Context, id int) (*sos_post.SosPost, *pnd.AppError) {
 	sos_post := &sos_post.SosPost{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 
 	err := tx.QueryRow(`
 	SELECT
@@ -384,10 +386,10 @@ func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.
 	return sos_post, nil
 }
 
-func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -549,10 +551,10 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
 	return sosPost, nil
 }
 
-func (s *SosPostPostgresStore) FindConditionByID(id int) ([]sos_post.Condition, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([]sos_post.Condition, *pnd.AppError) {
 	conditions := []sos_post.Condition{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 
 	rows, err := tx.Query(`
 	SELECT
@@ -595,10 +597,10 @@ func (s *SosPostPostgresStore) FindConditionByID(id int) ([]sos_post.Condition, 
 	return conditions, nil
 }
 
-func (s *SosPostPostgresStore) FindPetsByID(id int) ([]pet.Pet, *pnd.AppError) {
+func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError) {
 	pets := []pet.Pet{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 
 	rows, err := tx.Query(`
 	SELECT

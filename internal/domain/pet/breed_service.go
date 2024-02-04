@@ -1,6 +1,10 @@
 package pet
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	"context"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type BreedService struct {
 	breedStore BreedStore
@@ -12,8 +16,8 @@ func NewBreedService(breedStore BreedStore) *BreedService {
 	}
 }
 
-func (service *BreedService) FindBreeds(page int, size int, petType *string) (*BreedListView, *pnd.AppError) {
-	breeds, err := service.breedStore.FindBreeds(page, size, petType)
+func (service *BreedService) FindBreeds(ctx context.Context, page int, size int, petType *string) (*BreedListView, *pnd.AppError) {
+	breeds, err := service.breedStore.FindBreeds(ctx, page, size, petType)
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +25,8 @@ func (service *BreedService) FindBreeds(page int, size int, petType *string) (*B
 	return FromBreedList(breeds), nil
 }
 
-func (service *BreedService) FindBreedByPetTypeAndName(petType PetType, name string) (*BreedView, *pnd.AppError) {
-	breed, err := service.breedStore.FindBreedByPetTypeAndName(petType, name)
+func (service *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType PetType, name string) (*BreedView, *pnd.AppError) {
+	breed, err := service.breedStore.FindBreedByPetTypeAndName(ctx, petType, name)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
@@ -62,10 +63,10 @@ func (db *DB) Migrate(migrationPath string) error {
 	return nil
 }
 
-func (db *DB) Begin() (*Tx, error) {
-	tx, err := db.DB.Begin()
+func (db *DB) BeginTx(ctx context.Context) (*Tx, error) {
+	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &Tx{tx}, nil
+	return &Tx{Tx: tx}, nil
 }

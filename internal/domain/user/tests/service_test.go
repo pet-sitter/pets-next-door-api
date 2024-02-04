@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -31,7 +32,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -46,8 +48,7 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
-
-			created, _ := service.RegisterUser(user)
+			created, _ := service.RegisterUser(ctx, user)
 
 			if created.Email != user.Email {
 				t.Errorf("got %v want %v", created.Email, user.Email)
@@ -73,7 +74,8 @@ func TestUserService(t *testing.T) {
 				FirebaseUID:          "uid",
 			}
 
-			created, _ := service.RegisterUser(user)
+			ctx := context.Background()
+			created, _ := service.RegisterUser(ctx, user)
 
 			if created.Email != user.Email {
 				t.Errorf("got %v want %v", created.Email, user.Email)
@@ -85,7 +87,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -100,8 +103,8 @@ func TestUserService(t *testing.T) {
 				FirebaseUID:          "uid",
 			}
 
-			service.RegisterUser(user)
-			if _, err := service.RegisterUser(user); err == nil {
+			service.RegisterUser(ctx, user)
+			if _, err := service.RegisterUser(ctx, user); err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 		})
@@ -113,7 +116,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profileImage, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -129,9 +133,9 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
-			service.RegisterUser(targetUserRequest)
+			service.RegisterUser(ctx, targetUserRequest)
 			for i := 0; i < 2; i++ {
-				service.RegisterUser(&user.RegisterUserRequest{
+				service.RegisterUser(ctx, &user.RegisterUserRequest{
 					Email:                fmt.Sprintf("test%d@example.com", i),
 					Nickname:             fmt.Sprintf("nickname%d", i),
 					Fullname:             fmt.Sprintf("fullname%d", i),
@@ -141,7 +145,7 @@ func TestUserService(t *testing.T) {
 				})
 			}
 
-			found, _ := service.FindUsers(1, 20, &targetNickname)
+			found, _ := service.FindUsers(ctx, 1, 20, &targetNickname)
 			if len(found.Items) != 1 {
 				t.Errorf("got %v want %v", len(found.Items), 1)
 			}
@@ -154,7 +158,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -169,10 +174,9 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
+			created, _ := service.RegisterUser(ctx, user)
 
-			created, _ := service.RegisterUser(user)
-
-			found, err := service.FindUserByEmail(created.Email)
+			found, err := service.FindUserByEmail(ctx, created.Email)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -190,7 +194,8 @@ func TestUserService(t *testing.T) {
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			_, err := service.FindUserByEmail("non-existent@example.com")
+			ctx := context.Background()
+			_, err := service.FindUserByEmail(ctx, "non-existent@example.com")
 			if err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -203,7 +208,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -218,10 +224,9 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
+			created, _ := service.RegisterUser(ctx, user)
 
-			created, _ := service.RegisterUser(user)
-
-			found, err := service.FindUserByUID(created.FirebaseUID)
+			found, err := service.FindUserByUID(ctx, created.FirebaseUID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -239,7 +244,8 @@ func TestUserService(t *testing.T) {
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			_, err := service.FindUserByUID("non-existent")
+			ctx := context.Background()
+			_, err := service.FindUserByUID(ctx, "non-existent")
 			if err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -255,7 +261,8 @@ func TestUserService(t *testing.T) {
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
 
-			exists, _ := service.ExistsByNickname("non-existent")
+			ctx := context.Background()
+			exists, _ := service.ExistsByNickname(ctx, "non-existent")
 			if exists {
 				t.Errorf("got %v want %v", exists, false)
 			}
@@ -266,7 +273,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -281,11 +289,9 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
+			_, _ = service.RegisterUser(ctx, user)
 
-			_, _ = service.RegisterUser(user)
-
-			exists, _ := service.ExistsByNickname(user.Nickname)
-
+			exists, _ := service.ExistsByNickname(ctx, user.Nickname)
 			if !exists {
 				t.Errorf("got %v want %v", exists, true)
 			}
@@ -298,7 +304,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -313,13 +320,12 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
-
-			created, err := service.RegisterUser(user)
+			created, err := service.RegisterUser(ctx, user)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			status, err := service.FindUserStatusByEmail(created.Email)
+			status, err := service.FindUserStatusByEmail(ctx, created.Email)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -336,7 +342,8 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
@@ -351,17 +358,15 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
-
-			created, _ := service.RegisterUser(user)
+			created, _ := service.RegisterUser(ctx, user)
 
 			updatedNickname := "updated"
-
-			_, err := service.UpdateUserByUID(created.FirebaseUID, updatedNickname, &profile_image.ID)
+			_, err := service.UpdateUserByUID(ctx, created.FirebaseUID, updatedNickname, &profile_image.ID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			found, err := service.FindUserByUID(created.FirebaseUID)
+			found, err := service.FindUserByUID(ctx, created.FirebaseUID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -378,14 +383,14 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 
 			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
-			profile_image, _ := mediaService.CreateMedia(&media.Media{
+			ctx := context.Background()
+			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
 			service := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
-
-			owner, _ := service.RegisterUser(&user.RegisterUserRequest{
+			owner, _ := service.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -408,12 +413,13 @@ func TestUserService(t *testing.T) {
 				},
 			}
 
-			_, err := service.AddPetsToOwner(owner.FirebaseUID, pets)
+			ctx = context.Background()
+			_, err := service.AddPetsToOwner(ctx, owner.FirebaseUID, pets)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			found, err := service.FindPetsByOwnerUID(owner.FirebaseUID)
+			found, err := service.FindPetsByOwnerUID(ctx, owner.FirebaseUID)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}

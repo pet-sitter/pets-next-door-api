@@ -1,6 +1,7 @@
 package sos_post
 
 import (
+	"context"
 	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -53,11 +54,11 @@ func NewSosPostList(page int, size int) *SosPostList {
 }
 
 type SosPostStore interface {
-	WriteSosPost(authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
-	FindSosPosts(page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
-	FindSosPostsByAuthorID(authorID int, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
-	FindSosPostByID(id int) (*SosPost, *pnd.AppError)
-	UpdateSosPost(request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
-	FindConditionByID(id int) ([]Condition, *pnd.AppError)
-	FindPetsByID(id int) ([]pet.Pet, *pnd.AppError)
+	WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
+	FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
+	FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
+	FindSosPostByID(ctx context.Context, id int) (*SosPost, *pnd.AppError)
+	UpdateSosPost(ctx context.Context, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
+	FindConditionByID(ctx context.Context, id int) ([]Condition, *pnd.AppError)
+	FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError)
 }

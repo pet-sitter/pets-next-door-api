@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -20,23 +22,19 @@ func NewUserService(userStore UserStore, petStore pet.PetStore, mediaService med
 	}
 }
 
-func (service *UserService) RegisterUser(registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError) {
+func (service *UserService) RegisterUser(ctx context.Context, registerUserRequest *RegisterUserRequest) (*RegisterUserView, *pnd.AppError) {
 	var media *media.Media
 	var err *pnd.AppError
 	if registerUserRequest.ProfileImageID != nil {
-		media, err = service.mediaService.FindMediaByID(*registerUserRequest.ProfileImageID)
+		media, err = service.mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	created, err := service.userStore.CreateUser(ctx, registerUserRequest)
 	if err != nil {
-		return nil, err
-	}
-
-	created, err2 := service.userStore.CreateUser(registerUserRequest)
-	if err2 != nil {
-		return nil, pnd.ErrUnknown(err2)
+		return nil, pnd.ErrUnknown(err)
 	}
 
 	var profileImageURL *string
@@ -55,8 +53,8 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 	}, nil
 }
 
-func (service *UserService) FindUsers(page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError) {
-	userList, err := service.userStore.FindUsers(page, size, nickname)
+func (service *UserService) FindUsers(ctx context.Context, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError) {
+	userList, err := service.userStore.FindUsers(ctx, page, size, nickname)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +62,8 @@ func (service *UserService) FindUsers(page int, size int, nickname *string) (*Us
 	return userList, nil
 }
 
-func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError) {
-	user, err := service.userStore.FindUserByEmail(email)
+func (service *UserService) FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError) {
+	user, err := service.userStore.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +71,8 @@ func (service *UserService) FindUserByEmail(email string) (*UserWithProfileImage
 	return user, nil
 }
 
-func (service *UserService) FindUserByUID(uid string) (*FindUserView, *pnd.AppError) {
-	user, err := service.userStore.FindUserByUID(uid)
+func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*FindUserView, *pnd.AppError) {
+	user, err := service.userStore.FindUserByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +88,8 @@ func (service *UserService) FindUserByUID(uid string) (*FindUserView, *pnd.AppEr
 	}, nil
 }
 
-func (service *UserService) ExistsByNickname(nickname string) (bool, *pnd.AppError) {
-	existsByNickname, err := service.userStore.ExistsByNickname(nickname)
+func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
+	existsByNickname, err := service.userStore.ExistsByNickname(ctx, nickname)
 	if err != nil {
 		return false, pnd.ErrUnknown(err)
 	}
@@ -99,8 +97,8 @@ func (service *UserService) ExistsByNickname(nickname string) (bool, *pnd.AppErr
 	return existsByNickname, nil
 }
 
-func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError) {
-	userStatus, err := service.userStore.FindUserStatusByEmail(email)
+func (service *UserService) FindUserStatusByEmail(ctx context.Context, email string) (*UserStatus, *pnd.AppError) {
+	userStatus, err := service.userStore.FindUserStatusByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +108,8 @@ func (service *UserService) FindUserStatusByEmail(email string) (*UserStatus, *p
 	}, nil
 }
 
-func (service *UserService) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError) {
-	updated, err := service.userStore.UpdateUserByUID(uid, nickname, profileImageID)
+func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*UserWithProfileImage, *pnd.AppError) {
+	updated, err := service.userStore.UpdateUserByUID(ctx, uid, nickname, profileImageID)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +117,7 @@ func (service *UserService) UpdateUserByUID(uid string, nickname string, profile
 	var profileImage *media.Media
 	var err2 *pnd.AppError
 	if updated.ProfileImageID != nil {
-		profileImage, err2 = service.mediaService.FindMediaByID(*updated.ProfileImageID)
+		profileImage, err2 = service.mediaService.FindMediaByID(ctx, *updated.ProfileImageID)
 		if err != nil {
 			return nil, err2
 		}
@@ -140,10 +138,10 @@ func (service *UserService) UpdateUserByUID(uid string, nickname string, profile
 	}, nil
 }
 
-func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
+func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
 	pets := make([]pet.Pet, len(addPetsRequest.Pets))
 
-	user, err := service.userStore.FindUserByUID(uid)
+	user, err := service.userStore.FindUserByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +158,7 @@ func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPet
 			WeightInKg: item.WeightInKg,
 		}
 
-		if _, err := service.petStore.CreatePet(&pets[i]); err != nil {
+		if _, err := service.petStore.CreatePet(ctx, &pets[i]); err != nil {
 			return nil, pnd.ErrUnknown(err)
 		}
 	}
@@ -182,13 +180,13 @@ func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPet
 	return petViews, nil
 }
 
-func (service *UserService) FindPetsByOwnerUID(uid string) (*pet.FindMyPetsView, *pnd.AppError) {
-	user, err := service.userStore.FindUserByUID(uid)
+func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
+	user, err := service.userStore.FindUserByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 
-	pets, err := service.petStore.FindPetsByOwnerID(user.ID)
+	pets, err := service.petStore.FindPetsByOwnerID(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}

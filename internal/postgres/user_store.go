@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -16,10 +18,10 @@ func NewUserPostgresStore(db *database.DB) *UserPostgresStore {
 	}
 }
 
-func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
+func (s *UserPostgresStore) CreateUser(ctx context.Context, request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
 	user := &user.User{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 
 	err := tx.QueryRow(`
 	INSERT INTO
@@ -55,10 +57,10 @@ func (s *UserPostgresStore) CreateUser(request *user.RegisterUserRequest) (*user
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+func (s *UserPostgresStore) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	userList := user.NewUserWithoutPrivateInfoList(page, size)
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -111,10 +113,10 @@ func (s *UserPostgresStore) FindUsers(page int, size int, nickname *string) (*us
 	return userList, nil
 }
 
-func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfileImage, *pnd.AppError) {
+func (s *UserPostgresStore) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
 	user := &user.UserWithProfileImage{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		users.id,
@@ -157,10 +159,10 @@ func (s *UserPostgresStore) FindUserByEmail(email string) (*user.UserWithProfile
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImage, *pnd.AppError) {
+func (s *UserPostgresStore) FindUserByUID(ctx context.Context, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
 	user := &user.UserWithProfileImage{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		users.id,
@@ -203,10 +205,10 @@ func (s *UserPostgresStore) FindUserByUID(uid string) (*user.UserWithProfileImag
 	return user, nil
 }
 
-func (s *UserPostgresStore) FindUserIDByFbUID(fbUid string) (int, *pnd.AppError) {
+func (s *UserPostgresStore) FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError) {
 	var UserID int
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		id
@@ -227,10 +229,10 @@ func (s *UserPostgresStore) FindUserIDByFbUID(fbUid string) (int, *pnd.AppError)
 	return UserID, nil
 }
 
-func (s *UserPostgresStore) ExistsByNickname(nickname string) (bool, *pnd.AppError) {
+func (s *UserPostgresStore) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
 	var exists bool
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		CASE
@@ -260,10 +262,10 @@ func (s *UserPostgresStore) ExistsByNickname(nickname string) (bool, *pnd.AppErr
 	return exists, nil
 }
 
-func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatus, *pnd.AppError) {
+func (s *UserPostgresStore) FindUserStatusByEmail(ctx context.Context, email string) (*user.UserStatus, *pnd.AppError) {
 	var userStatus user.UserStatus
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		fb_provider_type
@@ -286,10 +288,10 @@ func (s *UserPostgresStore) FindUserStatusByEmail(email string) (*user.UserStatu
 	return &userStatus, nil
 }
 
-func (s *UserPostgresStore) UpdateUserByUID(uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
+func (s *UserPostgresStore) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
 	user := &user.User{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	UPDATE
 		users
