@@ -19,8 +19,13 @@ func NewMediaPostgresStore(db *database.DB) *MediaPostgresStore {
 }
 
 func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
-	tx, _ := s.db.BeginTx(ctx)
-	err := tx.QueryRow(`
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
+
+	err = tx.QueryRowContext(ctx, `
 	INSERT INTO
 		media
 		(
@@ -35,9 +40,11 @@ func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media
 		media.MediaType,
 		media.URL,
 	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt)
-	tx.Commit()
-
 	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -45,10 +52,14 @@ func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media
 }
 
 func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	media := &media.Media{}
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
 
-	tx, _ := s.db.BeginTx(ctx)
-	err := tx.QueryRow(`
+	media := &media.Media{}
+	err = tx.QueryRowContext(ctx, `
 	SELECT
 		id,
 		media_type,
@@ -69,9 +80,11 @@ func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.
 		&media.CreatedAt,
 		&media.UpdatedAt,
 	)
-	tx.Commit()
-
 	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

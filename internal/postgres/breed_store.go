@@ -17,14 +17,14 @@ func NewBreedPostgresStore(db *database.DB) *BreedPostgresStore {
 }
 
 func (s *BreedPostgresStore) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
-	breedList := pet.NewBreedList(page, size)
-
 	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
-	query := `
+	breedList := pet.NewBreedList(page, size)
+	rows, err := tx.QueryContext(ctx, `
 	SELECT
 		id,
 		name,
@@ -39,9 +39,7 @@ func (s *BreedPostgresStore) FindBreeds(ctx context.Context, page int, size int,
 	ORDER BY id ASC
 	LIMIT $2
 	OFFSET $3
-	`
-
-	rows, err := tx.QueryContext(ctx, query, petType, size+1, (page-1)*size)
+	`, petType, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -49,23 +47,20 @@ func (s *BreedPostgresStore) FindBreeds(ctx context.Context, page int, size int,
 
 	for rows.Next() {
 		breed := &pet.Breed{}
-
-		err := rows.Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt)
-		if err != nil {
+		if err := rows.Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		breedList.Items = append(breedList.Items, *breed)
-	}
-	breedList.CalcLastPage()
-
-	if err := tx.Commit(); err != nil {
-		return nil, pnd.FromPostgresError(err)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	breedList.CalcLastPage()
 	return breedList, nil
 }
 
@@ -74,10 +69,10 @@ func (s *BreedPostgresStore) FindBreedByPetTypeAndName(ctx context.Context, petT
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
 	breed := &pet.Breed{}
-
-	err = tx.QueryRow(`
+	err = tx.QueryRowContext(ctx, `
 	SELECT
 		id,
 		name,
@@ -91,17 +86,11 @@ func (s *BreedPostgresStore) FindBreedByPetTypeAndName(ctx context.Context, petT
 		name = $2 AND
 		deleted_at IS NULL
 	`, petType, name).Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt)
-
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-		}
-
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -113,8 +102,9 @@ func (s *BreedPostgresStore) CreateBreed(ctx context.Context, breed *pet.Breed) 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
-	err = tx.QueryRow(`
+	err = tx.QueryRowContext(ctx, `
 	INSERT INTO
 		breeds
 		(id, name, pet_type, created_at, updated_at)
@@ -123,18 +113,11 @@ func (s *BreedPostgresStore) CreateBreed(ctx context.Context, breed *pet.Breed) 
 	RETURNING
 		id, pet_type, name, created_at, updated_at
 	`, breed.Name, breed.PetType).Scan(&breed.ID, &breed.PetType, &breed.Name, &breed.CreatedAt, &breed.UpdatedAt)
-
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
