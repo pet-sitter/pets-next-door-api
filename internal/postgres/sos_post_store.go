@@ -38,8 +38,6 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 			reward,
 			date_start_at,
 			date_end_at,
-			time_start_at,
-			time_end_at,
 			care_type,
 		 	carer_gender,
 		 	reward_amount,
@@ -47,7 +45,7 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 			created_at,
 			updated_at
 		)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
 	RETURNING
 		id,
 		author_id,
@@ -56,8 +54,6 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		reward,
 		date_start_at,
 		date_end_at,
-		time_start_at,
-		time_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -69,13 +65,21 @@ func (s *SosPostPostgresStore) WriteSosPost(authorID int, utcDateStart string, u
 		request.Reward,
 		utcDateStart,
 		utcDateEnd,
-		request.TimeStartAt,
-		request.TimeEndAt,
 		request.CareType,
 		request.CarerGender,
 		request.RewardAmount,
 		request.ImageIDs[0],
-	).Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID)
+	).Scan(&sosPost.ID,
+		&sosPost.AuthorID,
+		&sosPost.Title,
+		&sosPost.Content,
+		&sosPost.Reward,
+		&sosPost.DateStartAt,
+		&sosPost.DateEndAt,
+		&sosPost.CareType,
+		&sosPost.CarerGender,
+		&sosPost.RewardAmount,
+		&sosPost.ThumbnailID)
 
 	if err != nil {
 		tx.Rollback()
@@ -185,8 +189,6 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 		reward,
 		date_start_at,
 		date_end_at,
-		time_start_at,
-		time_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -211,9 +213,22 @@ func (s *SosPostPostgresStore) FindSosPosts(page int, size int, sortBy string) (
 	for rows.Next() {
 		sosPost := sos_post.SosPost{}
 
-		err := rows.Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID, &sosPost.CreatedAt, &sosPost.UpdatedAt)
-		if err != nil {
+		err := rows.Scan(
+			&sosPost.ID,
+			&sosPost.AuthorID,
+			&sosPost.Title,
+			&sosPost.Content,
+			&sosPost.Reward,
+			&sosPost.DateStartAt,
+			&sosPost.DateEndAt,
+			&sosPost.CareType,
+			&sosPost.CarerGender,
+			&sosPost.RewardAmount,
+			&sosPost.ThumbnailID,
+			&sosPost.CreatedAt,
+			&sosPost.UpdatedAt)
 
+		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 
@@ -263,8 +278,6 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 		reward,
 		date_start_at,
 		date_end_at,
-		time_start_at,
-		time_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -289,7 +302,21 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(authorID int, page int, si
 	for rows.Next() {
 		sosPost := sos_post.SosPost{}
 
-		err := rows.Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID, &sosPost.CreatedAt, &sosPost.UpdatedAt)
+		err := rows.Scan(
+			&sosPost.ID,
+			&sosPost.AuthorID,
+			&sosPost.Title,
+			&sosPost.Content,
+			&sosPost.Reward,
+			&sosPost.DateStartAt,
+			&sosPost.DateEndAt,
+			&sosPost.CareType,
+			&sosPost.CarerGender,
+			&sosPost.RewardAmount,
+			&sosPost.ThumbnailID,
+			&sosPost.CreatedAt,
+			&sosPost.UpdatedAt)
+
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
@@ -319,8 +346,6 @@ func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.
 		reward,
 		date_start_at,
 		date_end_at,
-		time_start_at,
-		time_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -340,8 +365,6 @@ func (s *SosPostPostgresStore) FindSosPostByID(id int) (*sos_post.SosPost, *pnd.
 		&sos_post.Reward,
 		&sos_post.DateStartAt,
 		&sos_post.DateEndAt,
-		&sos_post.TimeStartAt,
-		&sos_post.TimeEndAt,
 		&sos_post.CareType,
 		&sos_post.CarerGender,
 		&sos_post.RewardAmount,
@@ -482,29 +505,36 @@ func (s *SosPostPostgresStore) UpdateSosPost(request *sos_post.UpdateSosPostRequ
             reward = $3,
             date_start_at = $4,
             date_end_at = $5,
-            time_start_at = $6,
-            time_end_at = $7,
-            care_type = $8,
-            carer_gender = $9,
-            reward_amount = $10,
-            thumbnail_id = $11,
+            care_type = $6,
+            carer_gender = $7,
+            reward_amount = $8,
+            thumbnail_id = $9,
             updated_at = NOW()
         WHERE
             id = $12
-        RETURNING id, author_id, title, content, reward, date_start_at, date_end_at, time_start_at, time_end_at, care_type, carer_gender, reward_amount, thumbnail_id`,
+        RETURNING id, author_id, title, content, reward, date_start_at, date_end_at, care_type, carer_gender, reward_amount, thumbnail_id`,
 		request.Title,
 		request.Content,
 		request.Reward,
 		request.DateStartAt,
 		request.DateEndAt,
-		request.TimeStartAt,
-		request.TimeEndAt,
 		request.CareType,
 		request.CarerGender,
 		request.RewardAmount,
 		request.ImageIDs[0],
 		request.ID,
-	).Scan(&sosPost.ID, &sosPost.AuthorID, &sosPost.Title, &sosPost.Content, &sosPost.Reward, &sosPost.DateStartAt, &sosPost.DateEndAt, &sosPost.TimeStartAt, &sosPost.TimeEndAt, &sosPost.CareType, &sosPost.CarerGender, &sosPost.RewardAmount, &sosPost.ThumbnailID)
+	).Scan(
+		&sosPost.ID,
+		&sosPost.AuthorID,
+		&sosPost.Title,
+		sosPost.Content,
+		&sosPost.Reward,
+		&sosPost.DateStartAt,
+		&sosPost.DateEndAt,
+		&sosPost.CareType,
+		&sosPost.CarerGender,
+		&sosPost.RewardAmount,
+		&sosPost.ThumbnailID)
 
 	if err != nil {
 		tx.Rollback()
@@ -551,7 +581,6 @@ func (s *SosPostPostgresStore) FindConditionByID(id int) ([]sos_post.Condition, 
 			&condition.UpdatedAt,
 		)
 		if err != nil {
-
 			return nil, pnd.FromPostgresError(err)
 		}
 		conditions = append(conditions, condition)
@@ -612,7 +641,6 @@ func (s *SosPostPostgresStore) FindPetsByID(id int) ([]pet.Pet, *pnd.AppError) {
 			&pet.UpdatedAt,
 		)
 		if err != nil {
-
 			return nil, pnd.FromPostgresError(err)
 		}
 		pets = append(pets, pet)

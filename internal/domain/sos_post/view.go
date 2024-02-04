@@ -15,8 +15,6 @@ type WriteSosPostRequest struct {
 	Reward       string       `json:"reward" validate:"required"`
 	DateStartAt  time.Time    `json:"date_start_at" validate:"required"`
 	DateEndAt    time.Time    `json:"date_end_at" validate:"required"`
-	TimeStartAt  string       `json:"time_start_at" validate:"required"`
-	TimeEndAt    string       `json:"time_end_at" validate:"required"`
 	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
 	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female"`
 	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
@@ -35,8 +33,6 @@ type WriteSosPostView struct {
 	Reward       string            `json:"reward"`
 	DateStartAt  string            `json:"date_start_at"`
 	DateEndAt    string            `json:"date_end_at"`
-	TimeStartAt  string            `json:"time_start_at"`
-	TimeEndAt    string            `json:"time_end_at"`
 	CareType     CareType          `json:"care_type"`
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
@@ -56,8 +52,6 @@ type FindSosPostView struct {
 	Reward       string            `json:"reward"`
 	DateStartAt  string            `json:"date_start_at"`
 	DateEndAt    string            `json:"date_end_at"`
-	TimeStartAt  string            `json:"time_start_at"`
-	TimeEndAt    string            `json:"time_end_at"`
 	CareType     CareType          `json:"care_type"`
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
@@ -86,8 +80,6 @@ type UpdateSosPostRequest struct {
 	Reward       string       `json:"reward" validate:"required"`
 	DateStartAt  string       `json:"date_start_at" validate:"required"`
 	DateEndAt    string       `json:"date_end_at" validate:"required"`
-	TimeStartAt  string       `json:"time_start_at" validate:"required"`
-	TimeEndAt    string       `json:"time_end_at" validate:"required"`
 	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
 	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female"`
 	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
@@ -106,8 +98,6 @@ type UpdateSosPostView struct {
 	Reward       string            `json:"reward"`
 	DateStartAt  string            `json:"date_start_at"`
 	DateEndAt    string            `json:"date_end_at"`
-	TimeStartAt  string            `json:"time_start_at"`
-	TimeEndAt    string            `json:"time_end_at"`
 	CareType     CareType          `json:"care_type"`
 	CarerGender  CarerGender       `json:"carer_gender"`
 	RewardAmount RewardAmount      `json:"reward_amount"`
