@@ -35,7 +35,7 @@ func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.breedService.FindBreeds(page, size, petType)
+	res, err := h.breedService.FindBreeds(r.Context(), page, size, petType)
 	if err != nil {
 		render.Render(w, r, err)
 		return

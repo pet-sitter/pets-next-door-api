@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"log"
+
 	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breeds_importer_service"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
-	"log"
 )
 
 func main() {
@@ -34,22 +35,23 @@ func main() {
 	}
 
 	spreadsheet, err := client.GetSpreadsheet(configs.BreedsGoogleSheetsID)
+	if err != nil {
+		log.Fatalf("error getting spreadsheet: %v\n", err)
+	}
 
 	switch flags.petTypeToImport {
 	case Cat:
 		var catRows = client.GetCatNames(spreadsheet)
-		importBreeds(breedStore, pet.PetTypeCat, &catRows)
-		break
+		importBreeds(ctx, breedStore, pet.PetTypeCat, &catRows)
 	case Dog:
 		var dogRows = client.GetDogNames(spreadsheet)
-		importBreeds(breedStore, pet.PetTypeDog, &dogRows)
-		break
+		importBreeds(ctx, breedStore, pet.PetTypeDog, &dogRows)
 	case All:
 		var catRows = client.GetCatNames(spreadsheet)
 		var dogRows = client.GetDogNames(spreadsheet)
 
-		importBreeds(breedStore, pet.PetTypeCat, &catRows)
-		importBreeds(breedStore, pet.PetTypeDog, &dogRows)
+		importBreeds(ctx, breedStore, pet.PetTypeCat, &catRows)
+		importBreeds(ctx, breedStore, pet.PetTypeDog, &dogRows)
 	}
 
 	log.Println("Completed importing pet types to database")
@@ -89,10 +91,10 @@ func parseFlags() Flags {
 	return Flags{petTypeToImport: petTypeToImport}
 }
 
-func importBreed(breedStore pet.BreedStore, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, error) {
+func importBreed(ctx context.Context, breedStore pet.BreedStore, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, error) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
-	existing, err := breedStore.FindBreedByPetTypeAndName(petType, row.Breed)
+	existing, err := breedStore.FindBreedByPetTypeAndName(ctx, petType, row.Breed)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
@@ -102,11 +104,7 @@ func importBreed(breedStore pet.BreedStore, petType pet.PetType, row breeds_impo
 		return existing, nil
 	}
 
-	breed, err := breedStore.CreateBreed(&pet.Breed{
-		PetType: petType,
-		Name:    row.Breed,
-	})
-
+	breed, err := breedStore.CreateBreed(ctx, &pet.Breed{PetType: petType, Name: row.Breed})
 	if err != nil {
 		return breed, err
 	}
@@ -115,9 +113,9 @@ func importBreed(breedStore pet.BreedStore, petType pet.PetType, row breeds_impo
 	return breed, nil
 }
 
-func importBreeds(breedStore pet.BreedStore, petType pet.PetType, rows *[]breeds_importer_service.Row) {
+func importBreeds(ctx context.Context, breedStore pet.BreedStore, petType pet.PetType, rows *[]breeds_importer_service.Row) {
 	for _, row := range *rows {
-		breed, err := importBreed(breedStore, petType, row)
+		breed, err := importBreed(ctx, breedStore, petType, row)
 		if err != nil {
 			log.Printf("Failed to import breed with pet_type: %s, name: %s to database", breed.PetType, breed.Name)
 		}

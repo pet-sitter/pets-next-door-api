@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -17,8 +19,8 @@ func NewPetPostgresStore(db *database.DB) *PetPostgresStore {
 	}
 }
 
-func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
-	tx, _ := s.db.Begin()
+func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	INSERT INTO
 		pets
@@ -56,10 +58,10 @@ func (s *PetPostgresStore) CreatePet(pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
 	return pet, nil
 }
 
-func (s *PetPostgresStore) FindPetsByOwnerID(ownerID int) ([]pet.Pet, *pnd.AppError) {
+func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) ([]pet.Pet, *pnd.AppError) {
 	var pets []pet.Pet
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	rows, err := tx.Query(`
 	SELECT
 		id,

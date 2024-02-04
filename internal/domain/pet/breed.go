@@ -1,6 +1,10 @@
 package pet
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	"context"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type Breed struct {
 	ID        int     `field:"id"`
@@ -22,7 +26,7 @@ func NewBreedList(page int, size int) *BreedList {
 }
 
 type BreedStore interface {
-	FindBreeds(page int, size int, petType *string) (*BreedList, *pnd.AppError)
-	FindBreedByPetTypeAndName(petType PetType, name string) (*Breed, *pnd.AppError)
-	CreateBreed(breed *Breed) (*Breed, *pnd.AppError)
+	FindBreeds(ctx context.Context, page int, size int, petType *string) (*BreedList, *pnd.AppError)
+	FindBreedByPetTypeAndName(ctx context.Context, petType PetType, name string) (*Breed, *pnd.AppError)
+	CreateBreed(ctx context.Context, breed *Breed) (*Breed, *pnd.AppError)
 }

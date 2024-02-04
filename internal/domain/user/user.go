@@ -1,6 +1,10 @@
 package user
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	"context"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type FirebaseProviderType string
 
@@ -60,12 +64,12 @@ type UserStatus struct {
 }
 
 type UserStore interface {
-	CreateUser(request *RegisterUserRequest) (*User, *pnd.AppError)
-	FindUsers(page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
-	FindUserByEmail(email string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserByUID(uid string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserIDByFbUID(fbUid string) (int, *pnd.AppError)
-	ExistsByNickname(nickname string) (bool, *pnd.AppError)
-	FindUserStatusByEmail(email string) (*UserStatus, *pnd.AppError)
-	UpdateUserByUID(uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
+	CreateUser(ctx context.Context, request *RegisterUserRequest) (*User, *pnd.AppError)
+	FindUsers(ctx context.Context, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
+	FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserByUID(ctx context.Context, uid string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError)
+	ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError)
+	FindUserStatusByEmail(ctx context.Context, email string) (*UserStatus, *pnd.AppError)
+	UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
 }

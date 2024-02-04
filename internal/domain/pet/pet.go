@@ -1,6 +1,10 @@
 package pet
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	"context"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type Pet struct {
 	ID         int     `field:"id"`
@@ -18,8 +22,8 @@ type Pet struct {
 }
 
 type PetStore interface {
-	CreatePet(pet *Pet) (*Pet, *pnd.AppError)
-	FindPetsByOwnerID(ownerID int) ([]Pet, *pnd.AppError)
+	CreatePet(ctx context.Context, pet *Pet) (*Pet, *pnd.AppError)
+	FindPetsByOwnerID(ctx context.Context, ownerID int) ([]Pet, *pnd.AppError)
 }
 
 type PetType string

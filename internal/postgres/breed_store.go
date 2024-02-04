@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -14,10 +16,10 @@ func NewBreedPostgresStore(db *database.DB) *BreedPostgresStore {
 	return &BreedPostgresStore{db: db}
 }
 
-func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
+func (s *BreedPostgresStore) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
 	breedList := pet.NewBreedList(page, size)
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -39,7 +41,7 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) (*p
 	OFFSET $3
 	`
 
-	rows, err := tx.Query(query, petType, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, petType, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -67,8 +69,8 @@ func (s *BreedPostgresStore) FindBreeds(page int, size int, petType *string) (*p
 	return breedList, nil
 }
 
-func (s *BreedPostgresStore) FindBreedByPetTypeAndName(petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
-	tx, err := s.db.Begin()
+func (s *BreedPostgresStore) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -106,8 +108,8 @@ func (s *BreedPostgresStore) FindBreedByPetTypeAndName(petType pet.PetType, name
 	return breed, nil
 }
 
-func (s *BreedPostgresStore) CreateBreed(breed *pet.Breed) (*pet.Breed, *pnd.AppError) {
-	tx, err := s.db.Begin()
+func (s *BreedPostgresStore) CreateBreed(ctx context.Context, breed *pet.Breed) (*pet.Breed, *pnd.AppError) {
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

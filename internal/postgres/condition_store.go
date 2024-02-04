@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -16,8 +18,8 @@ func NewConditionPostgresStore(db *database.DB) *ConditionPostgresStore {
 	}
 }
 
-func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosCondition) (string, *pnd.AppError) {
-	tx, err := s.db.Begin()
+func (s *ConditionPostgresStore) InitConditions(ctx context.Context, conditions []sos_post.SosCondition) (string, *pnd.AppError) {
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return "", pnd.FromPostgresError(err)
 	}
@@ -55,10 +57,10 @@ func (s *ConditionPostgresStore) InitConditions(conditions []sos_post.SosConditi
 	return "condition init success", nil
 }
 
-func (s *ConditionPostgresStore) FindConditions() ([]sos_post.Condition, *pnd.AppError) {
+func (s *ConditionPostgresStore) FindConditions(ctx context.Context) ([]sos_post.Condition, *pnd.AppError) {
 	conditions := make([]sos_post.Condition, 0)
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

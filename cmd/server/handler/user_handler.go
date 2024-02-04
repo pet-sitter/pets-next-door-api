@@ -38,7 +38,8 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.userService.RegisterUser(&registerUserRequest)
+	ctx := r.Context()
+	res, err := h.userService.RegisterUser(ctx, &registerUserRequest)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -63,7 +64,8 @@ func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	exists, err := h.userService.ExistsByNickname(checkUserNicknameRequest.Nickname)
+	ctx := r.Context()
+	exists, err := h.userService.ExistsByNickname(ctx, checkUserNicknameRequest.Nickname)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -88,7 +90,8 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userStatus, err := h.userService.FindUserStatusByEmail(providerRequest.Email)
+	ctx := r.Context()
+	userStatus, err := h.userService.FindUserStatusByEmail(ctx, providerRequest.Email)
 	if err != nil || userStatus == nil {
 		pnd.OK(w, nil, user.UserStatusView{
 			Status: user.UserStatusNotRegistered,
@@ -128,7 +131,9 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var res *user.UserWithoutPrivateInfoList
-	res, err = h.userService.FindUsers(page, size, nickname)
+
+	ctx := r.Context()
+	res, err = h.userService.FindUsers(ctx, page, size, nickname)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -180,7 +185,8 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userModel, err := h.userService.UpdateUserByUID(uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
+	ctx := r.Context()
+	userModel, err := h.userService.UpdateUserByUID(ctx, uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
 	if err != nil {
 		render.Render(w, r, err)
 		return
@@ -221,7 +227,8 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.userService.AddPetsToOwner(uid, addPetsToOwnerRequest); err != nil {
+	ctx := r.Context()
+	if _, err := h.userService.AddPetsToOwner(ctx, uid, addPetsToOwnerRequest); err != nil {
 		render.Render(w, r, err)
 		return
 	}
@@ -246,7 +253,8 @@ func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
 
 	uid := foundUser.FirebaseUID
 
-	res, err := h.userService.FindPetsByOwnerUID(uid)
+	ctx := r.Context()
+	res, err := h.userService.FindPetsByOwnerUID(ctx, uid)
 	if err != nil {
 		render.Render(w, r, err)
 		return

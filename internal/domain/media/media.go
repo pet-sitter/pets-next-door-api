@@ -1,6 +1,10 @@
 package media
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	"context"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+)
 
 type MediaType string
 
@@ -18,8 +22,8 @@ type Media struct {
 }
 
 type MediaStore interface {
-	CreateMedia(media *Media) (*Media, *pnd.AppError)
-	FindMediaByID(id int) (*Media, *pnd.AppError)
+	CreateMedia(ctx context.Context, media *Media) (*Media, *pnd.AppError)
+	FindMediaByID(ctx context.Context, id int) (*Media, *pnd.AppError)
 }
 
 type MediaView struct {

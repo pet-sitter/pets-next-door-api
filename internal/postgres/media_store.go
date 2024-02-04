@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -16,8 +18,8 @@ func NewMediaPostgresStore(db *database.DB) *MediaPostgresStore {
 	}
 }
 
-func (s *MediaPostgresStore) CreateMedia(media *media.Media) (*media.Media, *pnd.AppError) {
-	tx, _ := s.db.Begin()
+func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	INSERT INTO
 		media
@@ -42,10 +44,10 @@ func (s *MediaPostgresStore) CreateMedia(media *media.Media) (*media.Media, *pnd
 	return media, nil
 }
 
-func (s *MediaPostgresStore) FindMediaByID(id int) (*media.Media, *pnd.AppError) {
+func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
 	media := &media.Media{}
 
-	tx, _ := s.db.Begin()
+	tx, _ := s.db.BeginTx(ctx)
 	err := tx.QueryRow(`
 	SELECT
 		id,
