@@ -414,44 +414,46 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(owner.ID, 1, 3)
+			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(owner.ID, 1, 3, "newest")
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
 				assertMediaEquals(t, sosPost.Media, sosPostMedia)
 
+				idx := len(sosPostListByAuthorID.Items) - i - 1
+
 				if err != nil {
 					t.Errorf("got %v want %v", err, nil)
 				}
-				if sosPost.Title != sosPosts[i].Title {
-					t.Errorf("got %v want %v", sosPost.Title, sosPosts[i].Title)
+				if sosPost.Title != sosPosts[idx].Title {
+					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
 				}
-				if sosPost.Content != sosPosts[i].Content {
-					t.Errorf("got %v want %v", sosPost.Content, sosPosts[i].Content)
+				if sosPost.Content != sosPosts[idx].Content {
+					t.Errorf("got %v want %v", sosPost.Content, sosPosts[idx].Content)
 				}
-				if sosPost.Reward != sosPosts[i].Reward {
-					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[i].Reward)
+				if sosPost.Reward != sosPosts[idx].Reward {
+					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[idx].Reward)
 				}
-				if sosPost.DateStartAt != sosPosts[i].DateStartAt {
-					t.Errorf("got %v want %v", sosPost.DateStartAt, sosPosts[i].DateStartAt)
+				if sosPost.DateStartAt != sosPosts[idx].DateStartAt {
+					t.Errorf("got %v want %v", sosPost.DateStartAt, sosPosts[idx].DateStartAt)
 				}
-				if sosPost.DateEndAt != sosPosts[i].DateEndAt {
-					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[i].DateEndAt)
+				if sosPost.DateEndAt != sosPosts[idx].DateEndAt {
+					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[idx].DateEndAt)
 				}
-				if sosPost.TimeStartAt != sosPosts[i].TimeStartAt {
-					t.Errorf("got %v want %v", sosPost.TimeStartAt, sosPosts[i].TimeStartAt)
+				if sosPost.TimeStartAt != sosPosts[idx].TimeStartAt {
+					t.Errorf("got %v want %v", sosPost.TimeStartAt, sosPosts[idx].TimeStartAt)
 				}
-				if sosPost.TimeEndAt != sosPosts[i].TimeEndAt {
-					t.Errorf("got %v want %v", sosPost.TimeEndAt, sosPosts[i].TimeEndAt)
+				if sosPost.TimeEndAt != sosPosts[idx].TimeEndAt {
+					t.Errorf("got %v want %v", sosPost.TimeEndAt, sosPosts[idx].TimeEndAt)
 				}
-				if sosPost.CareType != sosPosts[i].CareType {
-					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[i].CareType)
+				if sosPost.CareType != sosPosts[idx].CareType {
+					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
 				}
-				if sosPost.CarerGender != sosPosts[i].CarerGender {
-					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[i].CarerGender)
+				if sosPost.CarerGender != sosPosts[idx].CarerGender {
+					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[idx].CarerGender)
 				}
-				if sosPost.RewardAmount != sosPosts[i].RewardAmount {
-					t.Errorf("got %v want %v", sosPost.RewardAmount, sosPosts[i].RewardAmount)
+				if sosPost.RewardAmount != sosPosts[idx].RewardAmount {
+					t.Errorf("got %v want %v", sosPost.RewardAmount, sosPosts[idx].RewardAmount)
 				}
 				if sosPost.ThumbnailID != sosPostImage.ID {
 					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
