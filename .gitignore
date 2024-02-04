@@ -33,6 +33,9 @@ go.work
 ### Credentials ###
 .env
 
+### Swagger ###
+pkg/docs
+
 ### macOS ###
 .DS_Store
 
