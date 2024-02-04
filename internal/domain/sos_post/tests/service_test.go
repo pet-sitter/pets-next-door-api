@@ -108,8 +108,6 @@ func TestSosPostService(t *testing.T) {
 				Reward:       "Test Reward",
 				DateStartAt:  time.Date(2023, time.December, 18, 8, 00, 0, 0, krLocation),
 				DateEndAt:    time.Date(2023, time.December, 20, 18, 00, 0, 0, krLocation),
-				TimeStartAt:  "10:00",
-				TimeEndAt:    "18:00",
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -143,12 +141,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if sosPost.DateEndAt != "2023-12-20T00:00:00Z" {
 				t.Errorf("got %v want %v", sosPost.DateEndAt, writeSosPostRequest.DateEndAt)
-			}
-			if sosPost.TimeStartAt != "10:00" {
-				t.Errorf("got %v want %v", sosPost.TimeStartAt, writeSosPostRequest.TimeStartAt)
-			}
-			if sosPost.TimeEndAt != "18:00" {
-				t.Errorf("got %v want %v", sosPost.TimeEndAt, writeSosPostRequest.TimeEndAt)
 			}
 			if sosPost.CareType != sos_post.CareTypeFoster {
 				t.Errorf("got %v want %v", sosPost.CareType, sos_post.CareTypeFoster)
@@ -252,8 +244,6 @@ func TestSosPostService(t *testing.T) {
 					Reward:       fmt.Sprintf("Test Reward%d", i),
 					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
 					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
-					TimeStartAt:  fmt.Sprintf("10:0%d", i),
-					TimeEndAt:    fmt.Sprintf("18:0%d", i),
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -293,12 +283,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.DateEndAt != sosPosts[idx].DateEndAt {
 					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[idx].DateEndAt)
-				}
-				if sosPost.TimeStartAt != sosPosts[idx].TimeStartAt {
-					t.Errorf("got %v want %v", sosPost.TimeStartAt, sosPosts[idx].TimeStartAt)
-				}
-				if sosPost.TimeEndAt != sosPosts[idx].TimeEndAt {
-					t.Errorf("got %v want %v", sosPost.TimeEndAt, sosPosts[idx].TimeEndAt)
 				}
 				if sosPost.CareType != sosPosts[idx].CareType {
 					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
@@ -398,8 +382,6 @@ func TestSosPostService(t *testing.T) {
 					Reward:       fmt.Sprintf("Test Reward%d", i),
 					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
 					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
-					TimeStartAt:  fmt.Sprintf("10:0%d", i),
-					TimeEndAt:    fmt.Sprintf("18:0%d", i),
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -439,12 +421,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.DateEndAt != sosPosts[idx].DateEndAt {
 					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[idx].DateEndAt)
-				}
-				if sosPost.TimeStartAt != sosPosts[idx].TimeStartAt {
-					t.Errorf("got %v want %v", sosPost.TimeStartAt, sosPosts[idx].TimeStartAt)
-				}
-				if sosPost.TimeEndAt != sosPosts[idx].TimeEndAt {
-					t.Errorf("got %v want %v", sosPost.TimeEndAt, sosPosts[idx].TimeEndAt)
 				}
 				if sosPost.CareType != sosPosts[idx].CareType {
 					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
@@ -548,8 +524,6 @@ func TestSosPostService(t *testing.T) {
 					Reward:       fmt.Sprintf("Test Reward%d", i),
 					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
 					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
-					TimeStartAt:  fmt.Sprintf("10:0%d", i),
-					TimeEndAt:    fmt.Sprintf("18:0%d", i),
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -587,12 +561,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if findSosPostByID.DateEndAt != sosPosts[0].DateEndAt {
 				t.Errorf("got %v want %v", findSosPostByID.DateEndAt, sosPosts[0].DateEndAt)
-			}
-			if findSosPostByID.TimeStartAt != sosPosts[0].TimeStartAt {
-				t.Errorf("got %v want %v", findSosPostByID.TimeStartAt, sosPosts[0].TimeStartAt)
-			}
-			if findSosPostByID.TimeEndAt != sosPosts[0].TimeEndAt {
-				t.Errorf("got %v want %v", findSosPostByID.TimeEndAt, sosPosts[0].TimeEndAt)
 			}
 			if findSosPostByID.CareType != sosPosts[0].CareType {
 				t.Errorf("got %v want %v", findSosPostByID.CareType, sosPosts[0].CareType)
@@ -693,8 +661,6 @@ func TestSosPostService(t *testing.T) {
 				Reward:       "Test Reward1",
 				DateStartAt:  time.Date(2023, time.December, 0, 8, 00, 0, 0, krLocation),
 				DateEndAt:    time.Date(2023, time.December, 0, 18, 00, 0, 0, krLocation),
-				TimeStartAt:  "10:00",
-				TimeEndAt:    "18:00",
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -714,8 +680,6 @@ func TestSosPostService(t *testing.T) {
 				Reward:       "Test Reward2",
 				DateStartAt:  "2023-12-01T00:00:00Z",
 				DateEndAt:    "2023-12-05T00:00:00Z",
-				TimeStartAt:  "10:01",
-				TimeEndAt:    "18:01",
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -746,12 +710,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if updateSosPost.DateEndAt != updateSosPostData.DateEndAt {
 				t.Errorf("got %v want %v", updateSosPost.DateEndAt, updateSosPostData.DateEndAt)
-			}
-			if updateSosPost.TimeStartAt != updateSosPostData.TimeStartAt {
-				t.Errorf("got %v want %v", updateSosPost.TimeStartAt, updateSosPostData.TimeStartAt)
-			}
-			if updateSosPost.TimeEndAt != updateSosPostData.TimeEndAt {
-				t.Errorf("got %v want %v", updateSosPost.TimeEndAt, updateSosPostData.TimeEndAt)
 			}
 			if updateSosPost.CareType != updateSosPostData.CareType {
 				t.Errorf("got %v want %v", updateSosPost.CareType, updateSosPostData.CareType)
