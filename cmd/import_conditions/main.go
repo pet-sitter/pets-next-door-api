@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -18,10 +19,21 @@ func main() {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	conditionStore := postgres.NewConditionPostgresStore(db)
+	var result string
+	var err2 *pnd.AppError
 
 	ctx := context.Background()
-	result, err2 := conditionStore.InitConditions(ctx, sos_post.ConditionName)
+	err2 = database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
+		conditionStore := postgres.NewConditionPostgresStore(tx)
+
+		result, err2 = conditionStore.InitConditions(ctx, sos_post.ConditionName)
+		if err2 != nil {
+			return err2
+		}
+
+		return nil
+	})
+
 	if err2 != nil {
 		log.Fatalf("error initializing condition: %v\n", err2)
 	}

@@ -8,13 +8,14 @@ import (
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type mediaHandler struct {
-	mediaService media.MediaService
+	mediaService service.MediaService
 }
 
-func NewMediaHandler(mediaService media.MediaService) *mediaHandler {
+func NewMediaHandler(mediaService service.MediaService) *mediaHandler {
 	return &mediaHandler{
 		mediaService: mediaService,
 	}

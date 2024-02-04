@@ -5,14 +5,14 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type ConditionHandler struct {
-	conditionService sos_post.ConditionService
+	conditionService service.ConditionService
 }
 
-func NewConditionHandler(conditionService sos_post.ConditionService) *ConditionHandler {
+func NewConditionHandler(conditionService service.ConditionService) *ConditionHandler {
 	return &ConditionHandler{conditionService: conditionService}
 }
 

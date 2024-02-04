@@ -9,24 +9,29 @@ import (
 )
 
 type ResourceMediaPostgresStore struct {
-	db *database.DB
+	conn *database.Tx
 }
 
-func NewResourceMediaPostgresStore(db *database.DB) *ResourceMediaPostgresStore {
+func NewResourceMediaPostgresStore(conn *database.Tx) *ResourceMediaPostgresStore {
 	return &ResourceMediaPostgresStore{
-		db: db,
+		conn: conn,
 	}
 }
 
 func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
+	return (&resourceMediaQueries{conn: s.conn}).CreateResourceMedia(ctx, resourceID, mediaID, resourceType)
+}
 
-	resourceMedia := &media.ResourceMedia{}
-	err = tx.QueryRowContext(ctx, `
+func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
+	return (&resourceMediaQueries{conn: s.conn}).FindResourceMediaByResourceID(ctx, resourceID, resourceType)
+}
+
+type resourceMediaQueries struct {
+	conn database.DBTx
+}
+
+func (s *resourceMediaQueries) CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
+	const sql = `
 	INSERT INTO
 		resource_media
 		(
@@ -38,7 +43,10 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, re
 		)
 	VALUES ($1, $2, $3, NOW(), NOW())
 	RETURNING id, resource_id, media_id, created_at, updated_at
-	`,
+	`
+
+	resourceMedia := &media.ResourceMedia{}
+	err := s.conn.QueryRowContext(ctx, sql,
 		resourceID,
 		mediaID,
 		resourceType,
@@ -47,22 +55,11 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, re
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
 	return resourceMedia, nil
 }
 
-func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
-
-	var mediaList []media.Media
-	rows, err := tx.QueryContext(ctx, `
+func (s *resourceMediaQueries) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
+	const sql = `
 	SELECT
 		m.id,
 		m.media_type,
@@ -79,7 +76,10 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.C
 		rm.resource_id = $1 AND
 		rm.resource_type = $2 AND
 		rm.deleted_at IS NULL
-	`,
+	`
+
+	var mediaList []media.Media
+	rows, err := s.conn.QueryContext(ctx, sql,
 		resourceID,
 		resourceType,
 	)
@@ -96,10 +96,6 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.C
 		mediaList = append(mediaList, mediaItem)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

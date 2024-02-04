@@ -10,23 +10,29 @@ import (
 )
 
 type PetPostgresStore struct {
-	db *database.DB
+	conn *database.Tx
 }
 
-func NewPetPostgresStore(db *database.DB) *PetPostgresStore {
+func NewPetPostgresStore(conn *database.Tx) *PetPostgresStore {
 	return &PetPostgresStore{
-		db: db,
+		conn: conn,
 	}
 }
 
 func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
+	return (&petQueries{conn: s.conn}).CreatePet(ctx, pet)
+}
 
-	err = tx.QueryRowContext(ctx, `
+func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) ([]pet.Pet, *pnd.AppError) {
+	return (&petQueries{conn: s.conn}).FindPetsByOwnerID(ctx, ownerID)
+}
+
+type petQueries struct {
+	conn database.DBTx
+}
+
+func (s *petQueries) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
+	const sql = `
 	INSERT INTO
 		pets
 		(
@@ -43,7 +49,9 @@ func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pe
 		)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
 	RETURNING id, created_at, updated_at
-	`,
+	`
+
+	if err := s.conn.QueryRowContext(ctx, sql,
 		pet.OwnerID,
 		pet.Name,
 		pet.PetType,
@@ -52,12 +60,7 @@ func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pe
 		pet.Breed,
 		pet.BirthDate,
 		pet.WeightInKg,
-	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	if tx.Commit(); err != nil {
+	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -65,15 +68,8 @@ func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pe
 	return pet, nil
 }
 
-func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) ([]pet.Pet, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
-
-	var pets []pet.Pet
-	rows, err := tx.QueryContext(ctx, `
+func (s *petQueries) FindPetsByOwnerID(ctx context.Context, ownerID int) ([]pet.Pet, *pnd.AppError) {
+	const sql = `
 	SELECT
 		id,
 		owner_id,
@@ -91,7 +87,10 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) (
 	WHERE
 		owner_id = $1 AND
 		deleted_at IS NULL
-	`,
+	`
+
+	var pets []pet.Pet
+	rows, err := s.conn.QueryContext(ctx, sql,
 		ownerID,
 	)
 	if err != nil {
@@ -120,10 +119,6 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) (
 		pets = append(pets, pet)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

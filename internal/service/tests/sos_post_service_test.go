@@ -1,4 +1,4 @@
-package tests
+package service_test
 
 import (
 	"context"
@@ -6,35 +6,41 @@ import (
 	"testing"
 	"time"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
 
-var db *database.DB
-
-func setUp(ctx context.Context, t *testing.T) func(t *testing.T) {
-	db, _ = database.Open(tests.TestDatabaseURL)
-	db.Flush()
-	postgres.NewConditionPostgresStore(db).InitConditions(ctx, sos_post.ConditionName)
-	return func(t *testing.T) {
-		db.Close()
-	}
-}
-
 func TestSosPostService(t *testing.T) {
+	setUp := func(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T)) {
+		db, _ := database.Open(tests.TestDatabaseURL)
+		db.Flush()
+
+		if err := database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
+			postgres.NewConditionPostgresStore(tx).InitConditions(ctx, sos_post.ConditionName)
+			return nil
+		}); err != nil {
+			t.Errorf("InitConditions failed: %v", err)
+		}
+
+		return db, func(t *testing.T) {
+			db.Close()
+		}
+	}
 
 	t.Run("CreateSosPost", func(t *testing.T) {
 		t.Run("돌봄 급구 게시글을 작성합니다.", func(t *testing.T) {
 			ctx := context.Background()
-			tearDown := setUp(ctx, t)
+			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -62,7 +68,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
+			userService := service.NewUserService(db, nil)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -98,7 +104,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
+			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
@@ -165,10 +171,10 @@ func TestSosPostService(t *testing.T) {
 	t.Run("FindSosPosts", func(t *testing.T) {
 		t.Run("전체 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
 			ctx := context.Background()
-			tearDown := setUp(ctx, t)
+			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -196,8 +202,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
-
+			userService := service.NewUserService(db, nil)
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -232,7 +237,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
+			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
@@ -262,6 +267,10 @@ func TestSosPostService(t *testing.T) {
 			}
 
 			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest")
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
 			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
@@ -269,9 +278,6 @@ func TestSosPostService(t *testing.T) {
 
 				idx := len(sosPostList.Items) - i - 1
 
-				if err != nil {
-					t.Errorf("got %v want %v", err, nil)
-				}
 				if sosPost.Title != sosPosts[idx].Title {
 					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
 				}
@@ -306,10 +312,10 @@ func TestSosPostService(t *testing.T) {
 		})
 		t.Run("작성자 ID로 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
 			ctx := context.Background()
-			tearDown := setUp(ctx, t)
+			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -337,7 +343,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
+			userService := service.NewUserService(db, nil)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -372,7 +378,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
+			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
@@ -401,6 +407,10 @@ func TestSosPostService(t *testing.T) {
 			}
 
 			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(ctx, owner.ID, 1, 3, "newest")
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
@@ -408,9 +418,6 @@ func TestSosPostService(t *testing.T) {
 
 				idx := len(sosPostListByAuthorID.Items) - i - 1
 
-				if err != nil {
-					t.Errorf("got %v want %v", err, nil)
-				}
 				if sosPost.Title != sosPosts[idx].Title {
 					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
 				}
@@ -448,10 +455,10 @@ func TestSosPostService(t *testing.T) {
 	t.Run("FindSosPostByID", func(t *testing.T) {
 		t.Run("게시글 ID로 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
 			ctx := context.Background()
-			tearDown := setUp(ctx, t)
+			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -479,7 +486,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
+			userService := service.NewUserService(db, nil)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -515,7 +522,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
+			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
@@ -588,10 +595,10 @@ func TestSosPostService(t *testing.T) {
 	t.Run("UpdateSosPost", func(t *testing.T) {
 		t.Run("돌봄 급구 게시글을 수정합니다.", func(t *testing.T) {
 			ctx := context.Background()
-			tearDown := setUp(ctx, t)
+			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := media.NewMediaService(postgres.NewMediaPostgresStore(db), nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -619,7 +626,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := user.NewUserService(postgres.NewUserPostgresStore(db), postgres.NewPetPostgresStore(db), *mediaService)
+			userService := service.NewUserService(db, nil)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -655,7 +662,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			sosPostService := sos_post.NewSosPostService(postgres.NewSosPostPostgresStore(db), postgres.NewResourceMediaPostgresStore(db), postgres.NewUserPostgresStore(db))
+			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
 			krLocation, _ := time.LoadLocation("Asia/Seoul")
