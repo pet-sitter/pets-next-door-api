@@ -23,9 +23,10 @@ func (s *ConditionPostgresStore) InitConditions(ctx context.Context, conditions 
 	if err != nil {
 		return "", pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
 	for n, v := range conditions {
-		_, err := tx.Exec(`
+		_, err := tx.ExecContext(ctx, `
 			INSERT INTO sos_conditions
 				(
 				 	id,
@@ -44,13 +45,11 @@ func (s *ConditionPostgresStore) InitConditions(ctx context.Context, conditions 
 				);
 		`, n+1, string(v))
 		if err != nil {
-			tx.Rollback()
 			return "", pnd.FromPostgresError(err)
 		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return "", pnd.FromPostgresError(err)
 	}
 
@@ -58,14 +57,14 @@ func (s *ConditionPostgresStore) InitConditions(ctx context.Context, conditions 
 }
 
 func (s *ConditionPostgresStore) FindConditions(ctx context.Context) ([]sos_post.Condition, *pnd.AppError) {
-	conditions := make([]sos_post.Condition, 0)
-
 	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
-	rows, err := tx.Query(`
+	conditions := make([]sos_post.Condition, 0)
+	rows, err := tx.QueryContext(ctx, `
 		SELECT
 			id,
 			name
@@ -75,23 +74,18 @@ func (s *ConditionPostgresStore) FindConditions(ctx context.Context) ([]sos_post
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-
 	for rows.Next() {
 		condition := sos_post.Condition{}
-
-		err := rows.Scan(
-			&condition.ID,
-			&condition.Name,
-		)
-		if err != nil {
+		if err := rows.Scan(&condition.ID, &condition.Name); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		conditions = append(conditions, condition)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

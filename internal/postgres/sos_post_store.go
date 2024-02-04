@@ -22,15 +22,14 @@ func NewSosPostPostgresStore(db *database.DB) *SosPostPostgresStore {
 }
 
 func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
-	sosPost := &sos_post.SosPost{}
-
 	tx, err := s.db.BeginTx(ctx)
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
-	err = tx.QueryRow(`
+	sosPost := &sos_post.SosPost{}
+	err = tx.QueryRowContext(ctx, `
 	INSERT INTO
 		sos_posts
 		(
@@ -84,12 +83,11 @@ func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, u
 		&sosPost.ThumbnailID)
 
 	if err != nil {
-		tx.Rollback()
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, imageID := range request.ImageIDs {
-		_, err = tx.Exec(`
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			resource_media
 			(
@@ -103,15 +101,13 @@ func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, u
 			imageID,
 			sosPost.ID,
 			media.SosResourceType,
-		)
-		if err != nil {
-			tx.Rollback()
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		_, err = tx.Exec(`
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_conditions
 			(
@@ -123,15 +119,13 @@ func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, u
 		VALUES ($1, $2, NOW(), NOW())`,
 			sosPost.ID,
 			conditionID,
-		)
-		if err != nil {
-			tx.Rollback()
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
 	for _, petID := range request.PetIDs {
-		_, err = tx.Exec(`
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_pets
 			(
@@ -143,16 +137,12 @@ func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, u
 		VALUES ($1, $2, NOW(), NOW())`,
 			sosPost.ID,
 			petID,
-		)
-		if err != nil {
-			tx.Rollback()
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
-	err = tx.Commit()
-
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -160,12 +150,11 @@ func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, u
 }
 
 func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
-	sosPostList := sos_post.NewSosPostList(page, size)
-
 	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
 	sortColumn := ""
 	sortOrder := ""
@@ -212,6 +201,7 @@ func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size 
 	}
 	defer rows.Close()
 
+	sosPostList := sos_post.NewSosPostList(page, size)
 	for rows.Next() {
 		sosPost := sos_post.SosPost{}
 
@@ -233,18 +223,17 @@ func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size 
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		sosPostList.Items = append(sosPostList.Items, sosPost)
-	}
-	sosPostList.CalcLastPage()
-
-	if err := tx.Commit(); err != nil {
-		return nil, pnd.FromPostgresError(err)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	sosPostList.CalcLastPage()
 	return sosPostList, nil
 }
 
@@ -255,6 +244,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, autho
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
 	sortColumn := ""
 	sortOrder := ""
@@ -300,6 +290,7 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, autho
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		sosPost := sos_post.SosPost{}
@@ -322,12 +313,10 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, autho
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -335,11 +324,14 @@ func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, autho
 }
 
 func (s *SosPostPostgresStore) FindSosPostByID(ctx context.Context, id int) (*sos_post.SosPost, *pnd.AppError) {
-	sos_post := &sos_post.SosPost{}
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
 
-	tx, _ := s.db.BeginTx(ctx)
-
-	err := tx.QueryRow(`
+	sosPost := &sos_post.SosPost{}
+	err = tx.QueryRowContext(ctx, `
 	SELECT
 		id,
 		author_id,
@@ -360,41 +352,40 @@ func (s *SosPostPostgresStore) FindSosPostByID(ctx context.Context, id int) (*so
 	    id = $1 AND
 	    deleted_at IS NULL
 	`, id).Scan(
-		&sos_post.ID,
-		&sos_post.AuthorID,
-		&sos_post.Title,
-		&sos_post.Content,
-		&sos_post.Reward,
-		&sos_post.DateStartAt,
-		&sos_post.DateEndAt,
-		&sos_post.CareType,
-		&sos_post.CarerGender,
-		&sos_post.RewardAmount,
-		&sos_post.ThumbnailID,
-		&sos_post.CreatedAt,
-		&sos_post.UpdatedAt)
+		&sosPost.ID,
+		&sosPost.AuthorID,
+		&sosPost.Title,
+		&sosPost.Content,
+		&sosPost.Reward,
+		&sosPost.DateStartAt,
+		&sosPost.DateEndAt,
+		&sosPost.CareType,
+		&sosPost.CarerGender,
+		&sosPost.RewardAmount,
+		&sosPost.ThumbnailID,
+		&sosPost.CreatedAt,
+		&sosPost.UpdatedAt)
 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return sos_post, nil
+	return sosPost, nil
 }
 
 func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
-	sosPost := &sos_post.SosPost{}
-
 	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer tx.Rollback()
 
-	_, err = tx.Exec(`
+	sosPost := &sos_post.SosPost{}
+	_, err = tx.ExecContext(ctx, `
         UPDATE
             resource_media
         SET
@@ -403,82 +394,71 @@ func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_p
             resource_id = $1
     `, request.ID)
 	if err != nil {
-		tx.Rollback()
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, imageID := range request.ImageIDs {
-		_, err := tx.Exec(`
-            INSERT INTO
-                resource_media
-                (
-                    media_id,
-                    resource_id,
-                    resource_type,
-                    created_at,
-                    updated_at
-                )
-            VALUES ($1, $2, $3, NOW(), NOW())`,
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+				resource_media
+				(
+						media_id,
+						resource_id,
+						resource_type,
+						created_at,
+						updated_at
+				)
+		VALUES ($1, $2, $3, NOW(), NOW())`,
 			imageID,
 			request.ID,
 			media.SosResourceType,
-		)
-		if err != nil {
-			tx.Rollback()
-
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
-	_, err = tx.Exec(`
+	if _, err = tx.ExecContext(ctx, `
         UPDATE
             sos_posts_conditions
         SET
             deleted_at = NOW()
         WHERE
             sos_post_id = $1
-    `, request.ID)
-	if err != nil {
-		tx.Rollback()
+    `, request.ID); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		_, err := tx.Exec(`
-            INSERT INTO
-                sos_posts_conditions
-                (
-                    sos_post_id,
-                    sos_condition_id,
-                    created_at,
-                    updated_at
-                )
-            VALUES ($1, $2, NOW(), NOW())`,
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+				sos_posts_conditions
+				(
+						sos_post_id,
+						sos_condition_id,
+						created_at,
+						updated_at
+				)
+		VALUES ($1, $2, NOW(), NOW())`,
 			request.ID,
 			conditionID,
-		)
-		if err != nil {
-			tx.Rollback()
-
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
-	_, err = tx.Exec(`
+	if _, err = tx.ExecContext(ctx, `
         UPDATE
             sos_posts_pets
         SET
             deleted_at = NOW()
         WHERE
             sos_post_id = $1
-    `, request.ID)
-	if err != nil {
-		tx.Rollback()
+    `, request.ID); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	for _, petID := range request.PetIDs {
-		_, err := tx.Exec(`
+		_, err := tx.ExecContext(ctx, `
             INSERT INTO
                 sos_posts_pets
                 (
@@ -492,13 +472,11 @@ func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_p
 			petID,
 		)
 		if err != nil {
-			tx.Rollback()
-
 			return nil, pnd.FromPostgresError(err)
 		}
 	}
 
-	err = tx.QueryRow(`
+	err = tx.QueryRowContext(ctx, `
         UPDATE
             sos_posts
         SET
@@ -539,12 +517,10 @@ func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_p
 		&sosPost.ThumbnailID)
 
 	if err != nil {
-		tx.Rollback()
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -552,11 +528,14 @@ func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_p
 }
 
 func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([]sos_post.Condition, *pnd.AppError) {
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
+
 	conditions := []sos_post.Condition{}
-
-	tx, _ := s.db.BeginTx(ctx)
-
-	rows, err := tx.Query(`
+	rows, err := tx.QueryContext(ctx, `
 	SELECT
 		sos_conditions.id,
 		sos_conditions.name,
@@ -571,7 +550,9 @@ func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([
 	    sos_posts_conditions.sos_post_id = $1 AND
 		sos_posts_conditions.deleted_at IS NULL
 	`, id)
-
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -587,10 +568,11 @@ func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([
 		}
 		conditions = append(conditions, condition)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
-	err = tx.Commit()
-
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -598,11 +580,14 @@ func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([
 }
 
 func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError) {
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
+
 	pets := []pet.Pet{}
-
-	tx, _ := s.db.BeginTx(ctx)
-
-	rows, err := tx.Query(`
+	rows, err := tx.QueryContext(ctx, `
 	SELECT
 		pets.id,
 		pets.owner_id,
@@ -624,7 +609,9 @@ func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.
 		sos_posts_pets.sos_post_id = $1 AND
 		sos_posts_pets.deleted_at IS NULL
 	`, id)
-
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -647,10 +634,11 @@ func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.
 		}
 		pets = append(pets, pet)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
-	err = tx.Commit()
-
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

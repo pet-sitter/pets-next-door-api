@@ -19,10 +19,14 @@ func NewResourceMediaPostgresStore(db *database.DB) *ResourceMediaPostgresStore 
 }
 
 func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
-	resourceMedia := &media.ResourceMedia{}
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
 
-	tx, _ := s.db.BeginTx(ctx)
-	err := tx.QueryRow(`
+	resourceMedia := &media.ResourceMedia{}
+	err = tx.QueryRowContext(ctx, `
 	INSERT INTO
 		resource_media
 		(
@@ -39,9 +43,11 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, re
 		mediaID,
 		resourceType,
 	).Scan(&resourceMedia.ID, &resourceMedia.ResourceID, &resourceMedia.MediaID, &resourceMedia.CreatedAt, &resourceMedia.UpdatedAt)
-	tx.Commit()
-
 	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -49,10 +55,14 @@ func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, re
 }
 
 func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
-	var mediaList []media.Media
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
 
-	tx, _ := s.db.BeginTx(ctx)
-	rows, err := tx.Query(`
+	var mediaList []media.Media
+	rows, err := tx.QueryContext(ctx, `
 	SELECT
 		m.id,
 		m.media_type,
@@ -73,20 +83,24 @@ func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.C
 		resourceID,
 		resourceType,
 	)
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		mediaItem := media.Media{}
-
-		err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt)
-		if err != nil {
+		if err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		mediaList = append(mediaList, mediaItem)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	return mediaList, nil

@@ -20,8 +20,13 @@ func NewPetPostgresStore(db *database.DB) *PetPostgresStore {
 }
 
 func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pet, *pnd.AppError) {
-	tx, _ := s.db.BeginTx(ctx)
-	err := tx.QueryRow(`
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
+
+	err = tx.QueryRowContext(ctx, `
 	INSERT INTO
 		pets
 		(
@@ -48,9 +53,11 @@ func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pe
 		pet.BirthDate,
 		pet.WeightInKg,
 	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt)
-	tx.Commit()
-
 	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if tx.Commit(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -59,10 +66,14 @@ func (s *PetPostgresStore) CreatePet(ctx context.Context, pet *pet.Pet) (*pet.Pe
 }
 
 func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) ([]pet.Pet, *pnd.AppError) {
-	var pets []pet.Pet
+	tx, err := s.db.BeginTx(ctx)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer tx.Rollback()
 
-	tx, _ := s.db.BeginTx(ctx)
-	rows, err := tx.Query(`
+	var pets []pet.Pet
+	rows, err := tx.QueryContext(ctx, `
 	SELECT
 		id,
 		owner_id,
@@ -90,7 +101,6 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) (
 
 	for rows.Next() {
 		var pet pet.Pet
-
 		if err := rows.Scan(
 			&pet.ID,
 			&pet.OwnerID,
@@ -106,11 +116,16 @@ func (s *PetPostgresStore) FindPetsByOwnerID(ctx context.Context, ownerID int) (
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		pet.BirthDate = utils.FormatDate(pet.BirthDate)
 		pets = append(pets, pet)
 	}
-	tx.Commit()
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 
 	return pets, nil
 }
