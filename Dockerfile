@@ -4,6 +4,10 @@ WORKDIR /app
 COPY go.mod *go.sum ./
 RUN go mod download
 COPY . .
+# Swagger
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN ./swagger-gen.sh
+# Server
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./server ./cmd/server/*.go
 # migration script
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./migrate ./cmd/migrate/*.go

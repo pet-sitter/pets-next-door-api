@@ -12,6 +12,12 @@
 $ cp .env.template .env
 ```
 
+필요에 따라 swagger-gen.sh 파일에 exec 권한을 부여합니다.
+
+```bash
+$ chmod +x ./swagger-gen.sh
+```
+
 추가로, 파이어베이스 프로젝트의 서비스 계정 키를 다운로드하여 `firebase-credentials.json` 파일로 루트 디렉토리에 저장합니다.
 
 ## How to run

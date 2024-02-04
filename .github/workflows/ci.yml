@@ -21,6 +21,9 @@ jobs:
         with:
           go-version: '1.21.6'
 
+      - name: Generate Swagger
+        run: go install github.com/swaggo/swag/cmd/swag@latest && source ./swagger-gen.sh
+
       - name: Build
         run: go build -v ./...
 
