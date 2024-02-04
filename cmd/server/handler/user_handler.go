@@ -5,17 +5,17 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type UserHandler struct {
-	userService user.UserService
-	authService auth.AuthService
+	userService service.UserService
+	authService service.AuthService
 }
 
-func NewUserHandler(userService user.UserService, authService auth.AuthService) *UserHandler {
+func NewUserHandler(userService service.UserService, authService service.AuthService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
 		authService: authService,

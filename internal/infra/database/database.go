@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"log"
 
@@ -9,6 +8,15 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
+
+type DB struct {
+	DB          *sql.DB
+	databaseURL string
+}
+
+type Tx struct {
+	*sql.Tx
+}
 
 func Open(databaseURL string) (*DB, error) {
 	db, err := sql.Open("postgres", databaseURL)
@@ -61,12 +69,4 @@ func (db *DB) Migrate(migrationPath string) error {
 	}
 
 	return nil
-}
-
-func (db *DB) BeginTx(ctx context.Context) (*Tx, error) {
-	tx, err := db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &Tx{Tx: tx}, nil
 }

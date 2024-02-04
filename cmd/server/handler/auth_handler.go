@@ -10,14 +10,15 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type authHandler struct {
-	authService auth.AuthService
+	authService service.AuthService
 	kakaoClient kakaoinfra.KakaoClient
 }
 
-func NewAuthHandler(authService auth.AuthService, kakaoClient kakaoinfra.KakaoClient) *authHandler {
+func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.KakaoClient) *authHandler {
 	return &authHandler{
 		authService: authService,
 		kakaoClient: kakaoClient,

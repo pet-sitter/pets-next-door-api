@@ -6,16 +6,16 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type SosPostHandler struct {
-	sosPostService sos_post.SosPostService
-	authService    auth.AuthService
+	sosPostService service.SosPostService
+	authService    service.AuthService
 }
 
-func NewSosPostHandler(sosPostService sos_post.SosPostService, authService auth.AuthService) *SosPostHandler {
+func NewSosPostHandler(sosPostService service.SosPostService, authService service.AuthService) *SosPostHandler {
 	return &SosPostHandler{
 		sosPostService: sosPostService,
 		authService:    authService,

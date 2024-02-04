@@ -5,14 +5,14 @@ import (
 
 	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type BreedHandler struct {
-	breedService pet.BreedService
+	breedService service.BreedService
 }
 
-func NewBreedHandler(breedService pet.BreedService) *BreedHandler {
+func NewBreedHandler(breedService service.BreedService) *BreedHandler {
 	return &BreedHandler{breedService: breedService}
 }
 

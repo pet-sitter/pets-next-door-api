@@ -9,23 +9,29 @@ import (
 )
 
 type MediaPostgresStore struct {
-	db *database.DB
+	conn *database.Tx
 }
 
-func NewMediaPostgresStore(db *database.DB) *MediaPostgresStore {
+func NewMediaPostgresStore(conn *database.Tx) *MediaPostgresStore {
 	return &MediaPostgresStore{
-		db: db,
+		conn: conn,
 	}
 }
 
 func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
+	return (&mediaQueries{conn: s.conn}).CreateMedia(ctx, media)
+}
 
-	err = tx.QueryRowContext(ctx, `
+func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
+	return (&mediaQueries{conn: s.conn}).FindMediaByID(ctx, id)
+}
+
+type mediaQueries struct {
+	conn *database.Tx
+}
+
+func (s *mediaQueries) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
+	const sql = `
 	INSERT INTO
 		media
 		(
@@ -36,30 +42,20 @@ func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media
 		)
 	VALUES ($1, $2, NOW(), NOW())
 	RETURNING id, created_at, updated_at
-	`,
+	`
+
+	if err := s.conn.QueryRowContext(ctx, sql,
 		media.MediaType,
 		media.URL,
-	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
+	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	return media, nil
 }
 
-func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	tx, err := s.db.BeginTx(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer tx.Rollback()
-
-	media := &media.Media{}
-	err = tx.QueryRowContext(ctx, `
+func (s *mediaQueries) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
+	const sql = `
 	SELECT
 		id,
 		media_type,
@@ -71,7 +67,10 @@ func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.
 	WHERE
 		id = $1 AND
 		deleted_at IS NULL
-	`,
+	`
+
+	media := &media.Media{}
+	if err := s.conn.QueryRowContext(ctx, sql,
 		id,
 	).Scan(
 		&media.ID,
@@ -79,12 +78,7 @@ func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.
 		&media.URL,
 		&media.CreatedAt,
 		&media.UpdatedAt,
-	)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
+	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

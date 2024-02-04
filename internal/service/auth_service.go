@@ -1,4 +1,4 @@
-package auth
+package service
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 
 	"firebase.google.com/go/auth"
 )
@@ -18,14 +20,16 @@ type AuthService interface {
 }
 
 type FirebaseBearerAuthService struct {
-	authClient  *auth.Client
-	userService user.UserService
+	conn       *database.DB
+	authClient *auth.Client
+	s3Client   *s3infra.S3Client
 }
 
-func NewFirebaseBearerAuthService(authClient *auth.Client, userService user.UserService) *FirebaseBearerAuthService {
+func NewFirebaseBearerAuthService(conn *database.DB, authClient *auth.Client, s3Client *s3infra.S3Client) *FirebaseBearerAuthService {
 	return &FirebaseBearerAuthService{
-		authClient:  authClient,
-		userService: userService,
+		conn:       conn,
+		authClient: authClient,
+		s3Client:   s3Client,
 	}
 }
 
@@ -45,10 +49,21 @@ func (s *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r 
 		return nil, pnd.ErrInvalidFBToken(fmt.Errorf("유효하지 않은 인증 토큰입니다"))
 	}
 
+	var foundUser *user.FindUserView
 	var err2 *pnd.AppError
-	foundUser, err2 := s.userService.FindUserByUID(ctx, authToken.UID)
+
+	err2 = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
+		userService := NewUserService(s.conn, s.s3Client)
+
+		foundUser, err2 = userService.FindUserByUID(ctx, authToken.UID)
+		if err2 != nil {
+			return pnd.ErrUserNotRegistered(fmt.Errorf("가입되지 않은 사용자입니다"))
+		}
+
+		return nil
+	})
 	if err2 != nil {
-		return nil, pnd.ErrUserNotRegistered(fmt.Errorf("가입되지 않은 사용자입니다"))
+		return nil, err2
 	}
 
 	return foundUser, nil
