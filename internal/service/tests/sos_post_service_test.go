@@ -101,7 +101,7 @@ func TestSosPostService(t *testing.T) {
 
 			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			sosPostService := service.NewSosPostService(db)
@@ -125,7 +125,7 @@ func TestSosPostService(t *testing.T) {
 
 			sosPost, err := sosPostService.WriteSosPost(ctx, uid, writeSosPostRequest)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
@@ -234,7 +234,7 @@ func TestSosPostService(t *testing.T) {
 
 			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			sosPostService := service.NewSosPostService(db)
@@ -260,7 +260,7 @@ func TestSosPostService(t *testing.T) {
 				})
 
 				if err != nil {
-					t.Errorf(err.Error())
+					t.Errorf(err.Err.Error())
 				}
 
 				sosPosts = append(sosPosts, *sosPost)
@@ -375,7 +375,7 @@ func TestSosPostService(t *testing.T) {
 
 			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			sosPostService := service.NewSosPostService(db)
@@ -400,7 +400,7 @@ func TestSosPostService(t *testing.T) {
 				})
 
 				if err != nil {
-					t.Errorf(err.Error())
+					t.Errorf(err.Err.Error())
 				}
 
 				sosPosts = append(sosPosts, *sosPost)
@@ -519,7 +519,7 @@ func TestSosPostService(t *testing.T) {
 
 			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			sosPostService := service.NewSosPostService(db)
@@ -544,7 +544,7 @@ func TestSosPostService(t *testing.T) {
 				})
 
 				if err != nil {
-					t.Errorf(err.Error())
+					t.Errorf(err.Err.Error())
 				}
 
 				sosPosts = append(sosPosts, *sosPost)
@@ -659,7 +659,7 @@ func TestSosPostService(t *testing.T) {
 
 			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			sosPostService := service.NewSosPostService(db)
@@ -682,7 +682,7 @@ func TestSosPostService(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf(err.Err.Error())
 			}
 
 			updateSosPostData := &sos_post.UpdateSosPostRequest{
