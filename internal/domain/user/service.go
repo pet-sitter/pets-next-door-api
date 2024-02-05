@@ -36,7 +36,7 @@ func (service *UserService) RegisterUser(registerUserRequest *RegisterUserReques
 
 	created, err2 := service.userStore.CreateUser(registerUserRequest)
 	if err2 != nil {
-		return nil, pnd.ErrUnknown(err2)
+		return nil, err2
 	}
 
 	var profileImageURL *string
@@ -93,7 +93,7 @@ func (service *UserService) FindUserByUID(uid string) (*FindUserView, *pnd.AppEr
 func (service *UserService) ExistsByNickname(nickname string) (bool, *pnd.AppError) {
 	existsByNickname, err := service.userStore.ExistsByNickname(nickname)
 	if err != nil {
-		return false, pnd.ErrUnknown(err)
+		return false, err
 	}
 
 	return existsByNickname, nil
@@ -161,7 +161,7 @@ func (service *UserService) AddPetsToOwner(uid string, addPetsRequest pet.AddPet
 		}
 
 		if _, err := service.petStore.CreatePet(&pets[i]); err != nil {
-			return nil, pnd.ErrUnknown(err)
+			return nil, err
 		}
 	}
 

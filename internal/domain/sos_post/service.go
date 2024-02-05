@@ -1,8 +1,9 @@
 package sos_post
 
 import (
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"time"
+
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -439,12 +440,12 @@ func (service *SosPostService) UpdateSosPost(request *UpdateSosPostRequest) (*Up
 func (service *SosPostService) CheckUpdatePermission(fbUid string, sosPostID int) (bool, *pnd.AppError) {
 	userID, err := service.userStore.FindUserIDByFbUID(fbUid)
 	if err != nil {
-		return false, pnd.ErrUnknown(err)
+		return false, err
 	}
 
 	sosPost, err := service.sosPostStore.FindSosPostByID(sosPostID)
 	if err != nil {
-		return false, pnd.ErrUnknown(err)
+		return false, err
 	}
 
 	return userID == sosPost.AuthorID, nil

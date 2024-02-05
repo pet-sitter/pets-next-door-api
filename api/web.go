@@ -76,7 +76,7 @@ func ParsePaginationQueries(r *http.Request, defaultPage int, defaultLimit int) 
 	if pageQuery != "" {
 		var atoiError error
 		page, atoiError = strconv.Atoi(pageQuery)
-		if atoiError != nil {
+		if atoiError != nil || page <= 0 {
 			return 0, 0, ErrInvalidPagination(fmt.Errorf("expected integer value bigger than 0 for query: page"))
 		}
 	}
@@ -84,7 +84,7 @@ func ParsePaginationQueries(r *http.Request, defaultPage int, defaultLimit int) 
 	if sizeQuery != "" {
 		var atoiError error
 		size, atoiError = strconv.Atoi(sizeQuery)
-		if atoiError != nil {
+		if atoiError != nil || size <= 0 {
 			return 0, 0, ErrInvalidPagination(fmt.Errorf("expected integer value bigger than 0 for query: size"))
 		}
 	}

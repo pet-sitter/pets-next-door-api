@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rs/zerolog"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 
@@ -29,6 +31,8 @@ import (
 // @in header
 // @name Authorization
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
 	var app *firebaseinfra.FirebaseApp
 	if configs.GetFirebaseCredentialsJSON() != (configs.FirebaseCredentialsJSONType{}) {
 		app = firebaseinfra.NewFirebaseAppFromCredentialsJSON(configs.GetFirebaseCredentialsJSON())

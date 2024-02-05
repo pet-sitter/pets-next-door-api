@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
-	"log"
 )
 
 func main() {
@@ -18,9 +19,9 @@ func main() {
 
 	conditionStore := postgres.NewConditionPostgresStore(db)
 
-	result, err := conditionStore.InitConditions(sos_post.ConditionName)
-	if err != nil {
-		log.Fatalf("error initializing condition: %v\n", err)
+	result, err2 := conditionStore.InitConditions(sos_post.ConditionName)
+	if err2 != nil {
+		log.Fatalf("error initializing condition: %v\n", err2)
 	}
 
 	log.Println(result)

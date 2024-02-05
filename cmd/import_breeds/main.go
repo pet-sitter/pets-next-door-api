@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"log"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breeds_importer_service"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
-	"log"
 )
 
 func main() {
@@ -28,22 +30,22 @@ func main() {
 
 	ctx := context.Background()
 	client, err := breeds_importer_service.NewBreedsImporterService(ctx, configs.GoogleSheetsAPIKey)
-
 	if err != nil {
 		log.Fatalf("error initializing google sheets client: %v\n", err)
 	}
 
 	spreadsheet, err := client.GetSpreadsheet(configs.BreedsGoogleSheetsID)
+	if err != nil {
+		log.Fatalf("error getting spreadsheet: %v\n", err)
+	}
 
 	switch flags.petTypeToImport {
 	case Cat:
 		var catRows = client.GetCatNames(spreadsheet)
 		importBreeds(breedStore, pet.PetTypeCat, &catRows)
-		break
 	case Dog:
 		var dogRows = client.GetDogNames(spreadsheet)
 		importBreeds(breedStore, pet.PetTypeDog, &dogRows)
-		break
 	case All:
 		var catRows = client.GetCatNames(spreadsheet)
 		var dogRows = client.GetDogNames(spreadsheet)
@@ -89,11 +91,11 @@ func parseFlags() Flags {
 	return Flags{petTypeToImport: petTypeToImport}
 }
 
-func importBreed(breedStore pet.BreedStore, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, error) {
+func importBreed(breedStore pet.BreedStore, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	existing, err := breedStore.FindBreedByPetTypeAndName(petType, row.Breed)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
 		return nil, err
 	}
 
