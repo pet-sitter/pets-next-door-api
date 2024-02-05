@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog/log"
 )
 
 type AppErrorCode string
@@ -43,11 +44,8 @@ func (e *AppError) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (e *AppError) Error() string {
-	return e.Message
-}
-
-func ErrCustom(err error, statusCode int, code AppErrorCode, message string) *AppError {
+func NewAppError(err error, statusCode int, code AppErrorCode, message string) *AppError {
+	log.Error().Err(err).Msg(message)
 	return &AppError{
 		Err:        err,
 		StatusCode: statusCode,
@@ -56,127 +54,71 @@ func ErrCustom(err error, statusCode int, code AppErrorCode, message string) *Ap
 	}
 }
 
+func ErrDefault(err error, statusCode int, code AppErrorCode) *AppError {
+	return NewAppError(err, statusCode, code, err.Error())
+}
+
 func ErrBadRequest(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeBadRequest,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeBadRequest)
 }
 
 func ErrInvalidParam(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeInvalidParam,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeInvalidParam)
 }
 
 func ErrInvalidPagination(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeInvalidPagination,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeInvalidPagination)
 }
 
 func ErrInvalidQuery(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeInvalidQuery,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeInvalidQuery)
 }
 
 func ErrInvalidBody(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeInvalidBody,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeInvalidBody)
 }
 
 func ErrMultipartFormError(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusBadRequest,
-		Code:       ErrCodeMultipartForm,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusBadRequest, ErrCodeMultipartForm)
 }
 
 func ErrInvalidFBToken(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusUnauthorized,
-		Code:       ErrCodeInvalidFBToken,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusUnauthorized, ErrCodeInvalidFBToken)
 }
 
 func ErrUserNotRegistered(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusUnauthorized,
-		Code:       ErrCodeUserNotRegistered,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusUnauthorized, ErrCodeUserNotRegistered)
 }
 
 func ErrForbidden(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusForbidden,
-		Code:       ErrCodeForbidden,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusForbidden, ErrCodeForbidden)
 }
 
 func ErrNotFound(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusNotFound,
-		Code:       ErrCodeNotFound,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusNotFound, ErrCodeNotFound)
 }
 
 func ErrConflict(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusConflict,
-		Code:       ErrCodeConflict,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusConflict, ErrCodeConflict)
 }
 
 func ErrUnknown(err error) *AppError {
-	return &AppError{
-		Err:        err,
-		StatusCode: http.StatusInternalServerError,
-		Code:       ErrCodeUnknown,
-		Message:    err.Error(),
-	}
+	return ErrDefault(err, http.StatusInternalServerError, ErrCodeUnknown)
 }
 
 func FromPostgresError(err error) *AppError {
 	errStr := err.Error()
 	if strings.Contains(errStr, "no rows in result set") {
-		return ErrCustom(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
+		return NewAppError(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
 	} else if strings.Contains(errStr, "violates foreign key constraint") {
-		return ErrCustom(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
+		return NewAppError(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
 	} else if strings.Contains(errStr, "violates not-null constraint") {
-		return ErrCustom(err, http.StatusBadRequest, ErrCodeBadRequest, "필수 값이 누락되었습니다")
+		return NewAppError(err, http.StatusBadRequest, ErrCodeBadRequest, "필수 값이 누락되었습니다")
 	} else if strings.Contains(errStr, "violates check constraint") {
-		return ErrCustom(err, http.StatusBadRequest, ErrCodeBadRequest, "잘못된 값입니다")
+		return NewAppError(err, http.StatusBadRequest, ErrCodeBadRequest, "잘못된 값입니다")
 	} else if strings.Contains(errStr, "violates unique constraint") {
-		return ErrCustom(err, http.StatusConflict, ErrCodeConflict, "중복된 값입니다")
+		return NewAppError(err, http.StatusConflict, ErrCodeConflict, "중복된 값입니다")
 	} else {
-		return ErrCustom(err, http.StatusInternalServerError, ErrCodeUnknown, "알 수 없는 오류가 발생했습니다")
+		return NewAppError(err, http.StatusInternalServerError, ErrCodeUnknown, "알 수 없는 오류가 발생했습니다")
 	}
 }

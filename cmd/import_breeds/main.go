@@ -28,7 +28,6 @@ func main() {
 
 	ctx := context.Background()
 	client, err := breeds_importer_service.NewBreedsImporterService(ctx, configs.GoogleSheetsAPIKey)
-
 	if err != nil {
 		log.Fatalf("error initializing google sheets client: %v\n", err)
 	}
@@ -90,7 +89,7 @@ func parseFlags() Flags {
 	return Flags{petTypeToImport: petTypeToImport}
 }
 
-func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, error) {
+func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	var breed *pet.Breed
@@ -98,7 +97,7 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 		breedStore := postgres.NewBreedPostgresStore(tx)
 
 		existing, err := breedStore.FindBreedByPetTypeAndName(ctx, petType, row.Breed)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
 			return err
 		}
 

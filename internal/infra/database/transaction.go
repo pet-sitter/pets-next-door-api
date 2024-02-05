@@ -68,19 +68,19 @@ func (sct *Tx) Commit() *pnd.AppError {
 func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError) *pnd.AppError {
 	tx, err := conn.BeginTx(ctx)
 	if err != nil {
-		return pnd.FromPostgresError(err)
+		return err
 	}
 
 	if err := f(tx); err != nil {
 		if err := tx.Rollback(); err != nil {
-			return pnd.FromPostgresError(err)
+			return err
 		}
 
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return pnd.FromPostgresError(err)
+		return err
 	}
 
 	return nil
