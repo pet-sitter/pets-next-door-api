@@ -16,7 +16,7 @@ type WriteSosPostRequest struct {
 	DateStartAt  time.Time    `json:"date_start_at" validate:"required"`
 	DateEndAt    time.Time    `json:"date_end_at" validate:"required"`
 	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female fine"`
+	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
 	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
 	ConditionIDs []int        `json:"condition_ids"`
 	PetIDs       []int        `json:"pet_ids"`
@@ -81,7 +81,7 @@ type UpdateSosPostRequest struct {
 	DateStartAt  string       `json:"date_start_at" validate:"required"`
 	DateEndAt    string       `json:"date_end_at" validate:"required"`
 	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female fine"`
+	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
 	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
 	ConditionIDs []int        `json:"condition_ids"`
 	PetIDs       []int        `json:"pet_ids"`
