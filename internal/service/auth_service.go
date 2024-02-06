@@ -17,6 +17,7 @@ import (
 type AuthService interface {
 	VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError)
 	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
+	DeleteMyAccount(ctx context.Context, r *http.Request) *pnd.AppError
 }
 
 type FirebaseBearerAuthService struct {
@@ -84,4 +85,17 @@ func (s *FirebaseBearerAuthService) stripBearerToken(authHeader string) (string,
 	}
 
 	return authHeader, fmt.Errorf("유효하지 않은 인증 토큰입니다")
+}
+
+func (s *FirebaseBearerAuthService) DeleteMyAccount(ctx context.Context, r *http.Request) *pnd.AppError {
+	authToken, err := s.verifyAuth(ctx, r.Header.Get("Authorization"))
+	if err != nil {
+		return pnd.ErrInvalidFBToken(fmt.Errorf("유효하지 않은 인증 토큰입니다"))
+	}
+
+	if err := s.authClient.DeleteUser(ctx, authToken.UID); err != nil {
+		return pnd.ErrNetwork(fmt.Errorf("파이어베이스 사용자 삭제에 실패했습니다"))
+	}
+
+	return nil
 }

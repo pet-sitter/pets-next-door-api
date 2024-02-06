@@ -46,6 +46,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	mediaService := service.NewMediaService(db, s3Client)
 	userService := service.NewUserService(db, s3Client)
 	authService := service.NewFirebaseBearerAuthService(db, authClient, s3Client)
+	userDeleter := service.NewUserDeleter(db, authService)
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSosPostService(db)
 	conditionService := service.NewConditionService(db)
@@ -53,6 +54,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
 	userHandler := handler.NewUserHandler(*userService, authService)
+	userDeleterHandler := handler.NewUserDeleterHandler(*userDeleter, authService)
 	mediaHandler := handler.NewMediaHandler(*mediaService)
 	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSosPostHandler(*sosPostService, authService)
@@ -90,6 +92,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 			r.Put("/me", userHandler.UpdateMyProfile)
 			r.Get("/me/pets", userHandler.FindMyPets)
 			r.Put("/me/pets", userHandler.AddMyPets)
+			r.Delete("/me/hard", userDeleterHandler.HardDeleteMyAccount)
 		})
 		r.Route("/breeds", func(r chi.Router) {
 			r.Get("/", breedHandler.FindBreeds)

@@ -28,6 +28,7 @@ const (
 	ErrCodeNotFound AppErrorCode = "ERR_NOT_FOUND"
 	ErrCodeConflict AppErrorCode = "ERR_CONFLICT"
 
+	ErrCodeNetwork AppErrorCode = "ERR_NETWORK"
 	ErrCodeUnknown AppErrorCode = "ERR_UNKNOWN"
 )
 
@@ -100,6 +101,10 @@ func ErrNotFound(err error) *AppError {
 
 func ErrConflict(err error) *AppError {
 	return ErrDefault(err, http.StatusConflict, ErrCodeConflict)
+}
+
+func ErrNetwork(err error) *AppError {
+	return ErrDefault(err, http.StatusInternalServerError, ErrCodeNetwork)
 }
 
 func ErrUnknown(err error) *AppError {

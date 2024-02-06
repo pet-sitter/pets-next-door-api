@@ -65,6 +65,7 @@ type UserStatus struct {
 
 type UserStore interface {
 	CreateUser(ctx context.Context, request *RegisterUserRequest) (*User, *pnd.AppError)
+	HardDeleteUserByUID(ctx context.Context, uid string) *pnd.AppError
 	FindUsers(ctx context.Context, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
 	FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByUID(ctx context.Context, uid string) (*UserWithProfileImage, *pnd.AppError)

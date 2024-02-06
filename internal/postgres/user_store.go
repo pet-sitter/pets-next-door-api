@@ -22,6 +22,10 @@ func (s *UserPostgresStore) CreateUser(ctx context.Context, request *user.Regist
 	return (&userQueries{conn: s.conn}).CreateUser(ctx, request)
 }
 
+func (s *UserPostgresStore) HardDeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
+	return (&userQueries{conn: s.conn}).HardDeleteUserByUID(ctx, uid)
+}
+
 func (s *UserPostgresStore) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	return (&userQueries{conn: s.conn}).FindUsers(ctx, page, size, nickname)
 }
@@ -97,6 +101,21 @@ func (s *userQueries) CreateUser(ctx context.Context, request *user.RegisterUser
 	}
 
 	return user, nil
+}
+
+func (s *userQueries) HardDeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
+	const sql = `
+	DELETE FROM
+		users
+	WHERE
+		fb_uid = $1
+	`
+
+	if _, err := s.conn.ExecContext(ctx, sql, uid); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	return nil
 }
 
 func (s *userQueries) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
