@@ -19,6 +19,7 @@ const (
 const (
 	CarerGenderMale   CarerGender = "male"
 	CarerGenderFemale CarerGender = "female"
+	CarerGenderFine   CarerGender = "fine"
 )
 
 const (
