@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"time"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -130,6 +131,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
 		sosPostStore := postgres.NewSosPostPostgresStore(tx)
 		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
+		userStore := postgres.NewUserPostgresStore(tx)
 
 		sosPosts, err := sosPostStore.FindSosPosts(ctx, page, size, sortBy)
 		if err != nil {
@@ -190,9 +192,17 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				petsView = append(petsView, p)
 			}
 
+			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
+
+			userView := &user.UserWithoutPrivateInfo{
+				ID:              author.ID,
+				ProfileImageURL: author.ProfileImageURL,
+				Nickname:        author.Nickname,
+			}
+
 			findByAuthorSosPostView := &sos_post.FindSosPostView{
 				ID:           sosPost.ID,
-				AuthorID:     sosPost.AuthorID,
+				Author:       userView,
 				Title:        sosPost.Title,
 				Content:      sosPost.Content,
 				Media:        mediaView,
@@ -210,6 +220,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 			}
 
 			sosPostViews.Items = append(sosPostViews.Items, *findByAuthorSosPostView)
+
 		}
 
 		return nil
@@ -227,6 +238,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
 		sosPostStore := postgres.NewSosPostPostgresStore(tx)
 		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
+		userStore := postgres.NewUserPostgresStore(tx)
 
 		sosPosts, err := sosPostStore.FindSosPostsByAuthorID(ctx, authorID, page, size, sortBy)
 		if err != nil {
@@ -286,9 +298,17 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				petsView = append(petsView, p)
 			}
 
+			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
+
+			userView := &user.UserWithoutPrivateInfo{
+				ID:              author.ID,
+				ProfileImageURL: author.ProfileImageURL,
+				Nickname:        author.Nickname,
+			}
+
 			findByAuthorSosPostView := &sos_post.FindSosPostView{
 				ID:           sosPost.ID,
-				AuthorID:     sosPost.AuthorID,
+				Author:       userView,
 				Title:        sosPost.Title,
 				Content:      sosPost.Content,
 				Media:        mediaView,
@@ -323,6 +343,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
 		sosPostStore := postgres.NewSosPostPostgresStore(tx)
 		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
+		userStore := postgres.NewUserPostgresStore(tx)
 
 		sosPost, err := sosPostStore.FindSosPostByID(ctx, id)
 		if err != nil {
@@ -381,9 +402,17 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			petsView = append(petsView, p)
 		}
 
+		author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
+
+		userView := &user.UserWithoutPrivateInfo{
+			ID:              author.ID,
+			ProfileImageURL: author.ProfileImageURL,
+			Nickname:        author.Nickname,
+		}
+
 		sosPostView = &sos_post.FindSosPostView{
 			ID:           sosPost.ID,
-			AuthorID:     sosPost.AuthorID,
+			Author:       userView,
 			Title:        sosPost.Title,
 			Content:      sosPost.Content,
 			Media:        mediaView,

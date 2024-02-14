@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -36,6 +35,10 @@ func (s *UserPostgresStore) FindUserByUID(ctx context.Context, uid string) (*use
 
 func (s *UserPostgresStore) FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError) {
 	return (&userQueries{conn: s.conn}).FindUserIDByFbUID(ctx, fbUid)
+}
+
+func (s *UserPostgresStore) FindUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
+	return (&userQueries{conn: s.conn}).FindUserByID(ctx, id)
 }
 
 func (s *UserPostgresStore) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
@@ -244,6 +247,36 @@ func (s *userQueries) FindUserIDByFbUID(ctx context.Context, fbUid string) (int,
 	}
 
 	return userID, nil
+}
+
+func (s *userQueries) FindUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
+	const sql = `
+	SELECT
+		users.id,
+		users.nickname,
+		media.url AS profile_image_url
+	FROM
+		users
+	LEFT JOIN
+		media
+	ON
+		users.profile_image_id = media.id
+	WHERE
+		users.id = $1 AND
+		users.deleted_at IS NULL
+	`
+
+	var user user.UserWithoutPrivateInfo
+
+	if err := s.conn.QueryRowContext(ctx, sql, id).Scan(
+		&user.ID,
+		&user.Nickname,
+		&user.ProfileImageURL,
+	); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	return &user, nil
 }
 
 func (s *userQueries) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {

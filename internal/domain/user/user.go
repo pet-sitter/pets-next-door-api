@@ -69,6 +69,7 @@ type UserStore interface {
 	FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByUID(ctx context.Context, uid string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError)
+	FindUserByID(ctx context.Context, id int) (*UserWithoutPrivateInfo, *pnd.AppError)
 	ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError)
 	FindUserStatusByEmail(ctx context.Context, email string) (*UserStatus, *pnd.AppError)
 	UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
