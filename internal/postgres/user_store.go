@@ -26,6 +26,10 @@ func (s *UserPostgresStore) FindUsers(ctx context.Context, page int, size int, n
 	return (&userQueries{conn: s.conn}).FindUsers(ctx, page, size, nickname)
 }
 
+func (s *UserPostgresStore) FindUserByID(ctx context.Context, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
+	return (&userQueries{conn: s.conn}).FindUserByID(ctx, id, includeDeleted)
+}
+
 func (s *UserPostgresStore) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
 	return (&userQueries{conn: s.conn}).FindUserByEmail(ctx, email)
 }
@@ -48,6 +52,10 @@ func (s *UserPostgresStore) FindUserStatusByEmail(ctx context.Context, email str
 
 func (s *UserPostgresStore) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
 	return (&userQueries{conn: s.conn}).UpdateUserByUID(ctx, uid, nickname, profileImageID)
+}
+
+func (s *UserPostgresStore) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
+	return (&userQueries{conn: s.conn}).DeleteUserByUID(ctx, uid)
 }
 
 type userQueries struct {
@@ -143,6 +151,49 @@ func (s *userQueries) FindUsers(ctx context.Context, page int, size int, nicknam
 
 	userList.CalcLastPage()
 	return userList, nil
+}
+
+func (s *userQueries) FindUserByID(ctx context.Context, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
+	const sql = `
+	SELECT
+		users.id,
+		users.email,
+		users.nickname,
+		users.fullname,
+		media.url AS profile_image_url,
+		users.fb_provider_type,
+		users.fb_uid,
+		users.created_at,
+		users.updated_at
+		users.deleted_at
+	FROM
+		users
+	LEFT OUTER JOIN
+		media
+	ON
+		users.profile_image_id = media.id
+	WHERE
+		users.id = $1 AND
+		(users.deleted_at IS NULL OR $2)
+	`
+
+	var user user.UserWithProfileImage
+	if err := s.conn.QueryRowContext(ctx, sql, id, includeDeleted).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Nickname,
+		&user.Fullname,
+		&user.ProfileImageURL,
+		&user.FirebaseProviderType,
+		&user.FirebaseUID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt,
+	); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	return &user, nil
 }
 
 func (s *userQueries) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
@@ -334,4 +385,21 @@ func (s *userQueries) UpdateUserByUID(ctx context.Context, uid string, nickname 
 	}
 
 	return &user, nil
+}
+
+func (s *userQueries) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
+	const sql = `
+	UPDATE
+		users
+	SET
+		deleted_at = NOW()
+	WHERE
+		fb_uid = $1
+	`
+
+	if _, err := s.conn.ExecContext(ctx, sql, uid); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	return nil
 }

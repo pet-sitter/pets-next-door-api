@@ -202,6 +202,28 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// DeleteMyAccount godoc
+// @Summary 내 계정을 삭제합니다.
+// @Description
+// @Tags users
+// @Security FirebaseAuth
+// @Success 204
+// @Router /users/me [delete]
+func (h *UserHandler) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
+	user, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+	if err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	if err := h.userService.DeleteUserByUID(r.Context(), user.FirebaseUID); err != nil {
+		render.Render(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusNoContent)
+}
+
 // AddMyPets godoc
 // @Summary 내 반려동물을 등록합니다.
 // @Description
