@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -266,6 +267,12 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
+			author := &user.UserWithoutPrivateInfo{
+				ID:              owner.ID,
+				ProfileImageURL: owner.ProfileImageURL,
+				Nickname:        owner.Nickname,
+			}
+
 			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest")
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
@@ -275,6 +282,7 @@ func TestSosPostService(t *testing.T) {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
 				assertMediaEquals(t, sosPost.Media, sosPostMedia)
+				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostList.Items) - i - 1
 
@@ -304,9 +312,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.ThumbnailID != sosPostImage.ID {
 					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
-				}
-				if sosPost.AuthorID != owner.ID {
-					t.Errorf("got %v want %v", sosPost.AuthorID, owner.ID)
 				}
 			}
 		})
@@ -411,10 +416,17 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
+			author := &user.UserWithoutPrivateInfo{
+				ID:              owner.ID,
+				ProfileImageURL: owner.ProfileImageURL,
+				Nickname:        owner.Nickname,
+			}
+
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
 				assertMediaEquals(t, sosPost.Media, sosPostMedia)
+				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostListByAuthorID.Items) - i - 1
 
@@ -444,9 +456,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.ThumbnailID != sosPostImage.ID {
 					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
-				}
-				if sosPost.AuthorID != owner.ID {
-					t.Errorf("got %v want %v", sosPost.AuthorID, owner.ID)
 				}
 			}
 		})
@@ -550,11 +559,18 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
+			author := &user.UserWithoutPrivateInfo{
+				ID:              owner.ID,
+				ProfileImageURL: owner.ProfileImageURL,
+				Nickname:        owner.Nickname,
+			}
+
 			findSosPostByID, err := sosPostService.FindSosPostByID(ctx, sosPosts[0].ID)
 
 			assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
 			assertPetEquals(t, sosPosts[0].Pets[0], addPets[0])
 			assertMediaEquals(t, findSosPostByID.Media, sosPostMedia)
+			assertAuthorEquals(t, findSosPostByID.Author, author)
 
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
@@ -585,9 +601,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if findSosPostByID.ThumbnailID != sosPostImage.ID {
 				t.Errorf("got %v want %v", findSosPostByID.ThumbnailID, sosPostImage.ID)
-			}
-			if findSosPostByID.AuthorID != owner.ID {
-				t.Errorf("got %v want %v", findSosPostByID.AuthorID, owner.ID)
 			}
 		})
 	})
@@ -751,48 +764,21 @@ func assertConditionEquals(t *testing.T, got []sos_post.ConditionView, want []in
 }
 
 func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
-	if got.Name != want.Name {
-		t.Errorf("got %v want %v", got.Name, want.Name)
-	}
-
-	if got.PetType != want.PetType {
-		t.Errorf("got %v want %v", got.PetType, want.PetType)
-	}
-
-	if got.Sex != want.Sex {
-		t.Errorf("got %v want %v", got.Sex, want.PetType)
-	}
-
-	if got.Neutered != want.Neutered {
-		t.Errorf("got %v want %v", got.Neutered, want.Neutered)
-	}
-
-	if got.Breed != want.Breed {
-		t.Errorf("got %v want %v", got.Breed, want.Breed)
-	}
-
-	if got.BirthDate != want.BirthDate {
-		t.Errorf("got %v want %v", got.BirthDate, want.BirthDate)
-	}
-
-	if got.WeightInKg != want.WeightInKg {
-		t.Errorf("got %v want %v", got.WeightInKg, want.WeightInKg)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v want %v", got, want)
 	}
 }
 
 func assertMediaEquals(t *testing.T, got []media.MediaView, want []media.MediaView) {
 	for i, media := range want {
-		if got[i].ID != media.ID {
-			t.Errorf("got %v want %v", got[i].ID, media.ID)
+		if !reflect.DeepEqual(got[i], media) {
+			t.Errorf("got %v want %v", got[i], media)
 		}
-		if got[i].MediaType != media.MediaType {
-			t.Errorf("got %v want %v", got[i].MediaType, media.MediaType)
-		}
-		if got[i].URL != media.URL {
-			t.Errorf("got %v want %v", got[i].URL, media.URL)
-		}
-		if got[i].CreatedAt != media.CreatedAt {
-			t.Errorf("got %v want %v", got[i].CreatedAt, media.CreatedAt)
-		}
+	}
+}
+
+func assertAuthorEquals(t *testing.T, got *user.UserWithoutPrivateInfo, want *user.UserWithoutPrivateInfo) {
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v want %v", got, want)
 	}
 }
