@@ -88,6 +88,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 			r.Get("/", userHandler.FindUsers)
 			r.Get("/me", userHandler.FindMyProfile)
 			r.Put("/me", userHandler.UpdateMyProfile)
+			r.Delete("/me", userHandler.DeleteMyAccount)
 			r.Get("/me/pets", userHandler.FindMyPets)
 			r.Put("/me/pets", userHandler.AddMyPets)
 		})

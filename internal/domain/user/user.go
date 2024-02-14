@@ -43,6 +43,22 @@ type UserWithProfileImage struct {
 	DeletedAt            string               `field:"deleted_at"`
 }
 
+func (u *UserWithProfileImage) ToUserWithoutPrivateInfo() *UserWithoutPrivateInfo {
+	if u.DeletedAt != "" {
+		return &UserWithoutPrivateInfo{
+			ID:              u.ID,
+			Nickname:        "탈퇴한 사용자",
+			ProfileImageURL: nil,
+		}
+	}
+
+	return &UserWithoutPrivateInfo{
+		ID:              u.ID,
+		Nickname:        u.Nickname,
+		ProfileImageURL: u.ProfileImageURL,
+	}
+}
+
 type UserWithoutPrivateInfo struct {
 	ID              int     `field:"id" json:"id"`
 	Nickname        string  `field:"nickname" json:"nickname"`
@@ -66,6 +82,7 @@ type UserStatus struct {
 type UserStore interface {
 	CreateUser(ctx context.Context, request *RegisterUserRequest) (*User, *pnd.AppError)
 	FindUsers(ctx context.Context, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
+	FindUserByID(ctx context.Context, id int, includeDeleted bool) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByUID(ctx context.Context, uid string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError)
@@ -73,4 +90,5 @@ type UserStore interface {
 	ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError)
 	FindUserStatusByEmail(ctx context.Context, email string) (*UserStatus, *pnd.AppError)
 	UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
+	DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError
 }

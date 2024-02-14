@@ -90,6 +90,30 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 	return userList, nil
 }
 
+// FindMyProfile은 사용자의 프로필 정보를 조회한다.
+// 삭제된 유저의 경우 삭제된 유저 정보를 반환한다.
+func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
+	var err *pnd.AppError
+
+	var user *user.UserWithProfileImage
+	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
+		userStore := postgres.NewUserPostgresStore(tx)
+
+		user, err = userStore.FindUserByID(ctx, id, true)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user.ToUserWithoutPrivateInfo(), nil
+}
+
 func (service *UserService) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
 	var user *user.UserWithProfileImage
 	var err *pnd.AppError
@@ -219,6 +243,20 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 	}
 
 	return userView, nil
+}
+
+func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
+	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
+		userStore := postgres.NewUserPostgresStore(tx)
+
+		if err := userStore.DeleteUserByUID(ctx, uid); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return err
 }
 
 func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
