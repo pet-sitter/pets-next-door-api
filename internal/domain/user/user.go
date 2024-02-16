@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
@@ -24,9 +26,9 @@ type User struct {
 	ProfileImageID       *int                 `field:"profile_image_id"`
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 	FirebaseUID          string               `field:"fb_uid"`
-	CreatedAt            string               `field:"created_at"`
-	UpdatedAt            string               `field:"updated_at"`
-	DeletedAt            string               `field:"deleted_at"`
+	CreatedAt            time.Time            `field:"created_at"`
+	UpdatedAt            time.Time            `field:"updated_at"`
+	DeletedAt            sql.NullTime         `field:"deleted_at"`
 }
 
 type UserWithProfileImage struct {
@@ -38,13 +40,13 @@ type UserWithProfileImage struct {
 	ProfileImageURL      *string              `field:"profile_image_url"`
 	FirebaseProviderType FirebaseProviderType `field:"fb_provider_type"`
 	FirebaseUID          string               `field:"fb_uid"`
-	CreatedAt            string               `field:"created_at"`
-	UpdatedAt            string               `field:"updated_at"`
-	DeletedAt            string               `field:"deleted_at"`
+	CreatedAt            time.Time            `field:"created_at"`
+	UpdatedAt            time.Time            `field:"updated_at"`
+	DeletedAt            sql.NullTime         `field:"deleted_at"`
 }
 
 func (u *UserWithProfileImage) ToUserWithoutPrivateInfo() *UserWithoutPrivateInfo {
-	if u.DeletedAt != "" {
+	if u.DeletedAt.Valid {
 		return &UserWithoutPrivateInfo{
 			ID:              u.ID,
 			Nickname:        "탈퇴한 사용자",
