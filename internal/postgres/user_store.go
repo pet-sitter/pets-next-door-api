@@ -164,7 +164,7 @@ func (s *userQueries) FindUserByID(ctx context.Context, id int, includeDeleted b
 		users.fb_provider_type,
 		users.fb_uid,
 		users.created_at,
-		users.updated_at
+		users.updated_at,
 		users.deleted_at
 	FROM
 		users
