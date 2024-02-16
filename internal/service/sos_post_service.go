@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"time"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -192,17 +191,14 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				petsView = append(petsView, p)
 			}
 
-			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
-
-			userView := &user.UserWithoutPrivateInfo{
-				ID:              author.ID,
-				ProfileImageURL: author.ProfileImageURL,
-				Nickname:        author.Nickname,
+			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+			if err != nil {
+				return err
 			}
 
 			findByAuthorSosPostView := &sos_post.FindSosPostView{
 				ID:           sosPost.ID,
-				Author:       userView,
+				Author:       author.ToUserWithoutPrivateInfo(),
 				Title:        sosPost.Title,
 				Content:      sosPost.Content,
 				Media:        mediaView,
@@ -298,17 +294,14 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				petsView = append(petsView, p)
 			}
 
-			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
-
-			userView := &user.UserWithoutPrivateInfo{
-				ID:              author.ID,
-				ProfileImageURL: author.ProfileImageURL,
-				Nickname:        author.Nickname,
+			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+			if err != nil {
+				return err
 			}
 
 			findByAuthorSosPostView := &sos_post.FindSosPostView{
 				ID:           sosPost.ID,
-				Author:       userView,
+				Author:       author.ToUserWithoutPrivateInfo(),
 				Title:        sosPost.Title,
 				Content:      sosPost.Content,
 				Media:        mediaView,
@@ -402,17 +395,14 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			petsView = append(petsView, p)
 		}
 
-		author, err := userStore.FindUserByID(ctx, sosPost.AuthorID)
-
-		userView := &user.UserWithoutPrivateInfo{
-			ID:              author.ID,
-			ProfileImageURL: author.ProfileImageURL,
-			Nickname:        author.Nickname,
+		author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+		if err != nil {
+			return err
 		}
 
 		sosPostView = &sos_post.FindSosPostView{
 			ID:           sosPost.ID,
-			Author:       userView,
+			Author:       author.ToUserWithoutPrivateInfo(),
 			Title:        sosPost.Title,
 			Content:      sosPost.Content,
 			Media:        mediaView,
