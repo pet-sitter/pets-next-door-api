@@ -99,8 +99,8 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		var sosDatesView []sos_post.SosDateView
 		for _, d := range dates {
 			d := sos_post.SosDateView{
-				DateStartAt: d.DateStartAt,
-				DateEndAt:   d.DateEndAt,
+				DateStartAt: utils.FormatDate(d.DateStartAt),
+				DateEndAt:   utils.FormatDate(d.DateEndAt),
 			}
 			sosDatesView = append(sosDatesView, d)
 		}
@@ -208,8 +208,8 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 
 			for _, d := range dates {
 				d := sos_post.SosDateView{
-					DateStartAt: d.DateStartAt,
-					DateEndAt:   d.DateEndAt,
+					DateStartAt: utils.FormatDate(d.DateStartAt),
+					DateEndAt:   utils.FormatDate(d.DateEndAt),
 				}
 				sosDatesView = append(sosDatesView, d)
 			}
@@ -324,8 +324,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 
 			for _, d := range dates {
 				d := sos_post.SosDateView{
-					DateStartAt: d.DateStartAt,
-					DateEndAt:   d.DateEndAt,
+					DateStartAt: utils.FormatDate(d.DateStartAt),
+					DateEndAt:   utils.FormatDate(d.DateEndAt),
 				}
 				sosDatesView = append(sosDatesView, d)
 			}
@@ -439,8 +439,8 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 
 		for _, d := range dates {
 			d := sos_post.SosDateView{
-				DateStartAt: d.DateStartAt,
-				DateEndAt:   d.DateEndAt,
+				DateStartAt: utils.FormatDate(d.DateStartAt),
+				DateEndAt:   utils.FormatDate(d.DateEndAt),
 			}
 			sosDatesView = append(sosDatesView, d)
 		}
@@ -548,8 +548,8 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 
 		for _, d := range dates {
 			d := sos_post.SosDateView{
-				DateStartAt: d.DateStartAt,
-				DateEndAt:   d.DateEndAt,
+				DateStartAt: utils.FormatDate(d.DateStartAt),
+				DateEndAt:   utils.FormatDate(d.DateEndAt),
 			}
 			sosDatesView = append(sosDatesView, d)
 		}
