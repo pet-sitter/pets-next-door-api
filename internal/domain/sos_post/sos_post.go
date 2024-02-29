@@ -33,8 +33,6 @@ type SosPost struct {
 	Title        string       `field:"title"`
 	Content      string       `field:"content"`
 	Reward       string       `field:"reward"`
-	DateStartAt  string       `field:"date_start_at"`
-	DateEndAt    string       `field:"date_end_at"`
 	CareType     CareType     `field:"care_type"`
 	CarerGender  CarerGender  `field:"carer_gender"`
 	RewardAmount RewardAmount `field:"reward_amount"`
@@ -54,6 +52,15 @@ func NewSosPostList(page int, size int) *SosPostList {
 	)}
 }
 
+type SosDates struct {
+	ID          int       `field:"id"`
+	DateStartAt string    `field:"date_start_at"`
+	DateEndAt   string    `field:"date_end_at"`
+	CreatedAt   time.Time `field:"created_at"`
+	UpdatedAt   time.Time `field:"updated_at"`
+	DeletedAt   time.Time `field:"deleted_at"`
+}
+
 type SosPostStore interface {
 	WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
 	FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
@@ -62,4 +69,6 @@ type SosPostStore interface {
 	UpdateSosPost(ctx context.Context, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
 	FindConditionByID(ctx context.Context, id int) ([]Condition, *pnd.AppError)
 	FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError)
+	WriteDates(ctx context.Context, dates []string, sosPostID int) ([]SosDates, *pnd.AppError)
+	FindDatesBySosPostID(ctx context.Context, sosPostID int) (SosDates, *pnd.AppError)
 }

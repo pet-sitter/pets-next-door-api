@@ -40,6 +40,8 @@ func (db *DB) Flush() error {
 		"pets",
 		"sos_posts_conditions",
 		"sos_conditions",
+		"sos_posts_dates",
+		"sos_dates",
 		"sos_posts",
 		"base_posts",
 	}

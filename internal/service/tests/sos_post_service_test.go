@@ -3,10 +3,6 @@ package service_test
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"testing"
-	"time"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -16,6 +12,8 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
+	"reflect"
+	"testing"
 )
 
 func TestSosPostService(t *testing.T) {
@@ -108,15 +106,14 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			writeSosPostRequest := &sos_post.WriteSosPostRequest{
-				Title:        "Test Title",
-				Content:      "Test Content",
-				ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
-				Reward:       "Test Reward",
-				DateStartAt:  time.Date(2023, time.December, 18, 8, 00, 0, 0, krLocation),
-				DateEndAt:    time.Date(2023, time.December, 20, 18, 00, 0, 0, krLocation),
+				Title:    "Test Title",
+				Content:  "Test Content",
+				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+				Reward:   "Test Reward",
+				Dates: [][]string{{"2024-03-30T00:00:00Z", "2024-03-30T00:00:00Z"},
+					{"2024-04-01T00:00:00Z", "2024-04-02T00:00:00Z"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -132,6 +129,7 @@ func TestSosPostService(t *testing.T) {
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
 			assertMediaEquals(t, sosPost.Media, sosPostMedia)
+			assertWriteDatesEquals(t, sosPost.Dates, writeSosPostRequest.Dates)
 
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
@@ -144,12 +142,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if sosPost.Reward != writeSosPostRequest.Reward {
 				t.Errorf("got %v want %v", sosPost.Reward, writeSosPostRequest.Reward)
-			}
-			if sosPost.DateStartAt != "2023-12-17T00:00:00Z" {
-				t.Errorf("got %v want %v", sosPost.DateStartAt, writeSosPostRequest.DateStartAt)
-			}
-			if sosPost.DateEndAt != "2023-12-20T00:00:00Z" {
-				t.Errorf("got %v want %v", sosPost.DateEndAt, writeSosPostRequest.DateEndAt)
 			}
 			if sosPost.CareType != sos_post.CareTypeFoster {
 				t.Errorf("got %v want %v", sosPost.CareType, sos_post.CareTypeFoster)
@@ -241,18 +233,17 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			var sosPosts []sos_post.WriteSosPostView
 
 			for i := 1; i < 4; i++ {
 				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
-					Title:        fmt.Sprintf("Title%d", i),
-					Content:      fmt.Sprintf("Test Content%d", i),
-					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
-					Reward:       fmt.Sprintf("Test Reward%d", i),
-					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
-					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
+					Title:    fmt.Sprintf("Title%d", i),
+					Content:  fmt.Sprintf("Test Content%d", i),
+					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+					Reward:   fmt.Sprintf("Test Reward%d", i),
+					Dates: [][]string{{"2024-03-30T00:00:00Z", "2024-03-30T00:00:00Z"},
+						{"2024-04-01T00:00:00Z", "2024-04-02T00:00:00Z"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -286,6 +277,8 @@ func TestSosPostService(t *testing.T) {
 
 				idx := len(sosPostList.Items) - i - 1
 
+				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
+
 				if sosPost.Title != sosPosts[idx].Title {
 					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
 				}
@@ -294,12 +287,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.Reward != sosPosts[idx].Reward {
 					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[idx].Reward)
-				}
-				if sosPost.DateStartAt != sosPosts[idx].DateStartAt {
-					t.Errorf("got %v want %v", sosPost.DateStartAt, sosPosts[idx].DateStartAt)
-				}
-				if sosPost.DateEndAt != sosPosts[idx].DateEndAt {
-					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[idx].DateEndAt)
 				}
 				if sosPost.CareType != sosPosts[idx].CareType {
 					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
@@ -386,7 +373,7 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			krLocation, _ := time.LoadLocation("Asia/Seoul")
+			//krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
@@ -395,8 +382,6 @@ func TestSosPostService(t *testing.T) {
 					Content:      fmt.Sprintf("Test Content%d", i),
 					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
 					Reward:       fmt.Sprintf("Test Reward%d", i),
-					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
-					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -430,6 +415,8 @@ func TestSosPostService(t *testing.T) {
 
 				idx := len(sosPostListByAuthorID.Items) - i - 1
 
+				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
+
 				if sosPost.Title != sosPosts[idx].Title {
 					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
 				}
@@ -438,12 +425,6 @@ func TestSosPostService(t *testing.T) {
 				}
 				if sosPost.Reward != sosPosts[idx].Reward {
 					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[idx].Reward)
-				}
-				if sosPost.DateStartAt != sosPosts[idx].DateStartAt {
-					t.Errorf("got %v want %v", sosPost.DateStartAt, sosPosts[idx].DateStartAt)
-				}
-				if sosPost.DateEndAt != sosPosts[idx].DateEndAt {
-					t.Errorf("got %v want %v", sosPost.DateEndAt, sosPosts[idx].DateEndAt)
 				}
 				if sosPost.CareType != sosPosts[idx].CareType {
 					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
@@ -534,17 +515,16 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
 				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
-					Title:        fmt.Sprintf("Title%d", i),
-					Content:      fmt.Sprintf("Test Content%d", i),
-					ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
-					Reward:       fmt.Sprintf("Test Reward%d", i),
-					DateStartAt:  time.Date(2023, time.December, i, 8, 00, 0, 0, krLocation),
-					DateEndAt:    time.Date(2023, time.December, i, 18, 00, 0, 0, krLocation),
+					Title:    fmt.Sprintf("Title%d", i),
+					Content:  fmt.Sprintf("Test Content%d", i),
+					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+					Reward:   fmt.Sprintf("Test Reward%d", i),
+					Dates: [][]string{{"2024-03-30T00:00:00Z", "2024-03-30T00:00:00Z"},
+						{"2024-04-01T00:00:00Z", "2024-04-02T00:00:00Z"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
 					RewardAmount: sos_post.RewardAmountHour,
@@ -571,7 +551,7 @@ func TestSosPostService(t *testing.T) {
 			assertPetEquals(t, sosPosts[0].Pets[0], addPets[0])
 			assertMediaEquals(t, findSosPostByID.Media, sosPostMedia)
 			assertAuthorEquals(t, findSosPostByID.Author, author)
-
+			assertDatesEquals(t, findSosPostByID.Dates, sosPosts[0].Dates)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -583,12 +563,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if findSosPostByID.Reward != sosPosts[0].Reward {
 				t.Errorf("got %v want %v", findSosPostByID.Reward, sosPosts[0].Reward)
-			}
-			if findSosPostByID.DateStartAt != sosPosts[0].DateStartAt {
-				t.Errorf("got %v want %v", findSosPostByID.DateStartAt, sosPosts[0].DateStartAt)
-			}
-			if findSosPostByID.DateEndAt != sosPosts[0].DateEndAt {
-				t.Errorf("got %v want %v", findSosPostByID.DateEndAt, sosPosts[0].DateEndAt)
 			}
 			if findSosPostByID.CareType != sosPosts[0].CareType {
 				t.Errorf("got %v want %v", findSosPostByID.CareType, sosPosts[0].CareType)
@@ -678,15 +652,12 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
 				Title:        "Title1",
 				Content:      "Test Content1",
 				ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
 				Reward:       "Test Reward1",
-				DateStartAt:  time.Date(2023, time.December, 0, 8, 00, 0, 0, krLocation),
-				DateEndAt:    time.Date(2023, time.December, 0, 18, 00, 0, 0, krLocation),
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -699,13 +670,13 @@ func TestSosPostService(t *testing.T) {
 			}
 
 			updateSosPostData := &sos_post.UpdateSosPostRequest{
-				ID:           sosPost.ID,
-				Title:        "Title2",
-				Content:      "Test Content2",
-				ImageIDs:     []int{sosPostImage.ID, sosPostImage2.ID},
-				Reward:       "Test Reward2",
-				DateStartAt:  "2023-12-01T00:00:00Z",
-				DateEndAt:    "2023-12-05T00:00:00Z",
+				ID:       sosPost.ID,
+				Title:    "Title2",
+				Content:  "Test Content2",
+				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+				Reward:   "Test Reward2",
+				Dates: [][]string{{"2024-03-30T00:00:00Z", "2024-03-30T00:00:00Z"},
+					{"2024-04-01T00:00:00Z", "2024-04-02T00:00:00Z"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
 				RewardAmount: sos_post.RewardAmountHour,
@@ -718,7 +689,7 @@ func TestSosPostService(t *testing.T) {
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
 			assertMediaEquals(t, updateSosPost.Media, sosPostMedia)
-
+			assertWriteDatesEquals(t, updateSosPost.Dates, updateSosPostData.Dates)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -730,12 +701,6 @@ func TestSosPostService(t *testing.T) {
 			}
 			if updateSosPost.Reward != updateSosPostData.Reward {
 				t.Errorf("got %v want %v", updateSosPost.Reward, updateSosPostData.Reward)
-			}
-			if updateSosPost.DateStartAt != updateSosPostData.DateStartAt {
-				t.Errorf("got %v want %v", updateSosPost.DateStartAt, updateSosPostData.DateStartAt)
-			}
-			if updateSosPost.DateEndAt != updateSosPostData.DateEndAt {
-				t.Errorf("got %v want %v", updateSosPost.DateEndAt, updateSosPostData.DateEndAt)
 			}
 			if updateSosPost.CareType != updateSosPostData.CareType {
 				t.Errorf("got %v want %v", updateSosPost.CareType, updateSosPostData.CareType)
@@ -780,5 +745,27 @@ func assertMediaEquals(t *testing.T, got []media.MediaView, want []media.MediaVi
 func assertAuthorEquals(t *testing.T, got *user.UserWithoutPrivateInfo, want *user.UserWithoutPrivateInfo) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v want %v", got, want)
+	}
+}
+
+func assertDatesEquals(t *testing.T, got []sos_post.SosDateView, want []sos_post.SosDateView) {
+	for i, date := range want {
+		if got[i].DateStartAt != date.DateStartAt {
+			t.Errorf("got %v want %v", got[i].DateStartAt, date.DateStartAt)
+		}
+		if got[i].DateEndAt != date.DateEndAt {
+			t.Errorf("got %v want %v", got[i].DateEndAt, date.DateEndAt)
+		}
+	}
+}
+
+func assertWriteDatesEquals(t *testing.T, got []sos_post.SosDateView, want [][]string) {
+	for i, date := range want {
+		if got[i].DateStartAt != date[0] {
+			t.Errorf("got %v want %v", got[i].DateStartAt, date[0])
+		}
+		if got[i].DateEndAt != date[1] {
+			t.Errorf("got %v want %v", got[i].DateEndAt, date[1])
+		}
 	}
 }
