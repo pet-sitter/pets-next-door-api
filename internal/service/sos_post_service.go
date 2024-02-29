@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
-
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
@@ -37,10 +35,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			return err
 		}
 
-		utcDateStart := request.DateStartAt.UTC().Format(time.RFC3339)
-		utcDateEnd := request.DateEndAt.UTC().Format(time.RFC3339)
-
-		sosPost, err := sosPostStore.WriteSosPost(ctx, userID, utcDateStart, utcDateEnd, request)
+		sosPost, err := sosPostStore.WriteSosPost(ctx, userID, request)
 		if err != nil {
 			return err
 		}
@@ -96,6 +91,20 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			petsView = append(petsView, p)
 		}
 
+		dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+		if err != nil {
+			return err
+		}
+
+		var sosDatesView []sos_post.SosDateView
+		for _, d := range dates {
+			d := sos_post.SosDateView{
+				DateStartAt: d.DateStartAt,
+				DateEndAt:   d.DateEndAt,
+			}
+			sosDatesView = append(sosDatesView, d)
+		}
+
 		sosPostView = &sos_post.WriteSosPostView{
 			ID:           sosPost.ID,
 			AuthorID:     sosPost.AuthorID,
@@ -104,9 +113,8 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			Media:        mediaView,
 			Conditions:   conditionsView,
 			Pets:         petsView,
+			Dates:        sosDatesView,
 			Reward:       sosPost.Reward,
-			DateStartAt:  sosPost.DateStartAt,
-			DateEndAt:    sosPost.DateEndAt,
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -191,6 +199,21 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				petsView = append(petsView, p)
 			}
 
+			dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+			if err != nil {
+				return err
+			}
+
+			sosDatesView := make([]sos_post.SosDateView, 0)
+
+			for _, d := range dates {
+				d := sos_post.SosDateView{
+					DateStartAt: d.DateStartAt,
+					DateEndAt:   d.DateEndAt,
+				}
+				sosDatesView = append(sosDatesView, d)
+			}
+
 			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
 			if err != nil {
 				return err
@@ -204,9 +227,8 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				Media:        mediaView,
 				Conditions:   conditionsView,
 				Pets:         petsView,
+				Dates:        sosDatesView,
 				Reward:       sosPost.Reward,
-				DateStartAt:  sosPost.DateStartAt,
-				DateEndAt:    sosPost.DateEndAt,
 				CareType:     sosPost.CareType,
 				CarerGender:  sosPost.CarerGender,
 				RewardAmount: sosPost.RewardAmount,
@@ -293,6 +315,20 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				}
 				petsView = append(petsView, p)
 			}
+			dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+			if err != nil {
+				return err
+			}
+
+			sosDatesView := make([]sos_post.SosDateView, 0)
+
+			for _, d := range dates {
+				d := sos_post.SosDateView{
+					DateStartAt: d.DateStartAt,
+					DateEndAt:   d.DateEndAt,
+				}
+				sosDatesView = append(sosDatesView, d)
+			}
 
 			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
 			if err != nil {
@@ -307,9 +343,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				Media:        mediaView,
 				Conditions:   conditionsView,
 				Pets:         petsView,
+				Dates:        sosDatesView,
 				Reward:       sosPost.Reward,
-				DateStartAt:  sosPost.DateStartAt,
-				DateEndAt:    sosPost.DateEndAt,
 				CareType:     sosPost.CareType,
 				CarerGender:  sosPost.CarerGender,
 				RewardAmount: sosPost.RewardAmount,
@@ -395,6 +430,21 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			petsView = append(petsView, p)
 		}
 
+		dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+		if err != nil {
+			return err
+		}
+
+		sosDatesView := make([]sos_post.SosDateView, 0)
+
+		for _, d := range dates {
+			d := sos_post.SosDateView{
+				DateStartAt: d.DateStartAt,
+				DateEndAt:   d.DateEndAt,
+			}
+			sosDatesView = append(sosDatesView, d)
+		}
+
 		author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
 		if err != nil {
 			return err
@@ -408,9 +458,8 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			Media:        mediaView,
 			Conditions:   conditionsView,
 			Pets:         petsView,
+			Dates:        sosDatesView,
 			Reward:       sosPost.Reward,
-			DateStartAt:  sosPost.DateStartAt,
-			DateEndAt:    sosPost.DateEndAt,
 			CareType:     sosPost.CareType,
 			CarerGender:  sosPost.CarerGender,
 			RewardAmount: sosPost.RewardAmount,
@@ -460,7 +509,6 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 		if err != nil {
 			return err
 		}
-
 		var conditionsView []sos_post.ConditionView
 		for _, c := range conditions {
 			view := sos_post.ConditionView{
@@ -491,6 +539,21 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 			petsView = append(petsView, p)
 		}
 
+		dates, err := sosPostStore.FindDatesBySosPostID(ctx, request.ID)
+		if err != nil {
+			return err
+		}
+
+		sosDatesView := make([]sos_post.SosDateView, 0)
+
+		for _, d := range dates {
+			d := sos_post.SosDateView{
+				DateStartAt: d.DateStartAt,
+				DateEndAt:   d.DateEndAt,
+			}
+			sosDatesView = append(sosDatesView, d)
+		}
+
 		sosPostView = &sos_post.UpdateSosPostView{
 			ID:           updateSosPost.ID,
 			AuthorID:     updateSosPost.AuthorID,
@@ -499,9 +562,8 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 			Media:        mediaView,
 			Conditions:   conditionsView,
 			Pets:         petsView,
+			Dates:        sosDatesView,
 			Reward:       updateSosPost.Reward,
-			DateStartAt:  updateSosPost.DateStartAt,
-			DateEndAt:    updateSosPost.DateEndAt,
 			CareType:     updateSosPost.CareType,
 			CarerGender:  updateSosPost.CarerGender,
 			RewardAmount: updateSosPost.RewardAmount,

@@ -21,8 +21,8 @@ func NewSosPostPostgresStore(conn *database.Tx) *SosPostPostgresStore {
 	}
 }
 
-func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).WriteSosPost(ctx, authorID, utcDateStart, utcDateEnd, request)
+func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+	return (&sosPostQueries{conn: s.conn}).WriteSosPost(ctx, authorID, request)
 }
 
 func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
@@ -49,11 +49,15 @@ func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.
 	return (&sosPostQueries{conn: s.conn}).FindPetsByID(ctx, id)
 }
 
+func (s *SosPostPostgresStore) FindDatesBySosPostID(ctx context.Context, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
+	return (&sosPostQueries{conn: s.conn}).FindDatesBySosPostID(ctx, sosPostID)
+}
+
 type sosPostQueries struct {
 	conn database.DBTx
 }
 
-func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDateStart string, utcDateEnd string, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		sos_posts
@@ -62,8 +66,6 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDate
 			title,
 			content,
 			reward,
-			date_start_at,
-			date_end_at,
 			care_type,
 		 	carer_gender,
 		 	reward_amount,
@@ -71,15 +73,13 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDate
 			created_at,
 			updated_at
 		)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
 	RETURNING
 		id,
 		author_id,
 		title,
 		content,
 		reward,
-		date_start_at,
-		date_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -92,8 +92,6 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDate
 		request.Title,
 		request.Content,
 		request.Reward,
-		utcDateStart,
-		utcDateEnd,
 		request.CareType,
 		request.CarerGender,
 		request.RewardAmount,
@@ -103,8 +101,6 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDate
 		&sosPost.Title,
 		&sosPost.Content,
 		&sosPost.Reward,
-		&sosPost.DateStartAt,
-		&sosPost.DateEndAt,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
 		&sosPost.RewardAmount,
@@ -112,6 +108,57 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, utcDate
 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
+	}
+
+	const sql2 = `
+		INSERT INTO
+		sos_dates
+		(
+			date_start_at,
+			date_end_at,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, date_start_at, date_end_at, created_at, updated_at
+		`
+
+	sosDates := []sos_post.SosDates{}
+
+	for _, date := range request.Dates {
+		SosDate := sos_post.SosDates{}
+		if err := s.conn.QueryRowContext(ctx, sql2,
+			date[0],
+			date[1],
+		).Scan(
+			&SosDate.ID,
+			&SosDate.DateStartAt,
+			&SosDate.DateEndAt,
+			&SosDate.CreatedAt,
+			&SosDate.UpdatedAt,
+		); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		sosDates = append(sosDates, SosDate)
+	}
+
+	for _, sosDate := range sosDates {
+		if _, err := s.conn.ExecContext(ctx, `
+		INSERT INTO
+			sos_posts_dates
+			(
+				 sos_post_id,
+				 sos_dates_id,
+				 created_at, 
+				 updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		`,
+			sosPost.ID,
+			sosDate.ID,
+		); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
 	}
 
 	for _, imageID := range request.ImageIDs {
@@ -195,8 +242,6 @@ func (s *sosPostQueries) FindSosPosts(ctx context.Context, page int, size int, s
 		title,
 		content,
 		reward,
-		date_start_at,
-		date_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -230,8 +275,6 @@ func (s *sosPostQueries) FindSosPosts(ctx context.Context, page int, size int, s
 			&sosPost.Title,
 			&sosPost.Content,
 			&sosPost.Reward,
-			&sosPost.DateStartAt,
-			&sosPost.DateEndAt,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
 			&sosPost.RewardAmount,
@@ -274,8 +317,6 @@ func (s *sosPostQueries) FindSosPostsByAuthorID(ctx context.Context, authorID in
 		title,
 		content,
 		reward,
-		date_start_at,
-		date_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -310,8 +351,6 @@ func (s *sosPostQueries) FindSosPostsByAuthorID(ctx context.Context, authorID in
 			&sosPost.Title,
 			&sosPost.Content,
 			&sosPost.Reward,
-			&sosPost.DateStartAt,
-			&sosPost.DateEndAt,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
 			&sosPost.RewardAmount,
@@ -336,8 +375,6 @@ func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post
 		title,
 		content,
 		reward,
-		date_start_at,
-		date_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
@@ -358,8 +395,6 @@ func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post
 		&sosPost.Title,
 		&sosPost.Content,
 		&sosPost.Reward,
-		&sosPost.DateStartAt,
-		&sosPost.DateEndAt,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
 		&sosPost.RewardAmount,
@@ -375,6 +410,19 @@ func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post
 
 func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
+
+	if _, err := s.conn.ExecContext(ctx, `
+		UPDATE
+			sos_posts_dates
+		SET
+			deleted_at = NOW()
+		WHERE
+			sos_post_id = $1
+	`, request.ID,
+	); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
 	if _, err := s.conn.ExecContext(ctx, `
 		UPDATE
 			resource_media
@@ -385,6 +433,57 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	`, request.ID,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
+	}
+
+	const sql = `
+		INSERT INTO
+		sos_dates
+		(
+			date_start_at,
+			date_end_at,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, date_start_at, date_end_at, created_at, updated_at
+		`
+
+	sosDates := []sos_post.SosDates{}
+
+	for _, date := range request.Dates {
+		SosDate := sos_post.SosDates{}
+		if err := s.conn.QueryRowContext(ctx, sql,
+			date[0],
+			date[1],
+		).Scan(
+			&SosDate.ID,
+			&SosDate.DateStartAt,
+			&SosDate.DateEndAt,
+			&SosDate.CreatedAt,
+			&SosDate.UpdatedAt,
+		); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		sosDates = append(sosDates, SosDate)
+	}
+
+	for _, sosDate := range sosDates {
+		if _, err := s.conn.ExecContext(ctx, `
+		INSERT INTO
+			sos_posts_dates
+			(
+				 sos_post_id,
+				 sos_dates_id,
+				 created_at, 
+				 updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		`,
+			request.ID,
+			sosDate.ID,
+		); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
 	}
 
 	for _, imageID := range request.ImageIDs {
@@ -468,42 +567,36 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		}
 	}
 
-	const sql = `
+	const sql2 = `
 	UPDATE
 		sos_posts
 	SET
 		title = $1,
 		content = $2,
 		reward = $3,
-		date_start_at = $4,
-		date_end_at = $5,
-		care_type = $6,
-		carer_gender = $7,
-		reward_amount = $8,
-		thumbnail_id = $9,
+		care_type = $4,
+		carer_gender = $5,
+		reward_amount = $6,
+		thumbnail_id = $7,
 		updated_at = NOW()
 	WHERE
-		id = $10
+		id = $8
 	RETURNING
 		id,
 		author_id,
 		title,
 		content,
 		reward,
-		date_start_at,
-		date_end_at,
 		care_type,
 		carer_gender,
 		reward_amount,
 		thumbnail_id
 	`
 
-	if err := s.conn.QueryRowContext(ctx, sql,
+	if err := s.conn.QueryRowContext(ctx, sql2,
 		request.Title,
 		request.Content,
 		request.Reward,
-		request.DateStartAt,
-		request.DateEndAt,
 		request.CareType,
 		request.CarerGender,
 		request.RewardAmount,
@@ -515,8 +608,6 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		&sosPost.Title,
 		&sosPost.Content,
 		&sosPost.Reward,
-		&sosPost.DateStartAt,
-		&sosPost.DateEndAt,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
 		&sosPost.RewardAmount,
@@ -628,4 +719,46 @@ func (s *sosPostQueries) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *
 	}
 
 	return pets, nil
+}
+
+func (s *sosPostQueries) FindDatesBySosPostID(ctx context.Context, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
+	const sql = `
+		SELECT
+		    sos_dates.id,
+			sos_dates.date_start_at,
+			sos_dates.date_end_at,
+			sos_dates.created_at,
+			sos_dates.updated_at
+		FROM
+			sos_dates
+		INNER JOIN
+			sos_posts_dates
+		ON sos_dates.id = sos_posts_dates.sos_dates_id
+		WHERE 
+		    sos_posts_dates.sos_post_id = $1 AND
+			sos_posts_dates.deleted_at IS NULL
+	`
+
+	sosDates := []sos_post.SosDates{}
+	rows, err := s.conn.QueryContext(ctx, sql, sosPostID)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		sosDate := sos_post.SosDates{}
+		if err := rows.Scan(
+			&sosDate.ID,
+			&sosDate.DateStartAt,
+			&sosDate.DateEndAt,
+			&sosDate.CreatedAt,
+			&sosDate.DeletedAt,
+		); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		sosDates = append(sosDates, sosDate)
+	}
+
+	return sosDates, nil
 }
