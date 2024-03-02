@@ -62,7 +62,7 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	customToken, err2 := h.authService.CustomToken(r.Context(), fmt.Sprintf("%d", userProfile.ID))
-	if err != nil {
+	if err2 != nil {
 		render.Render(w, r, err2)
 		return
 	}
