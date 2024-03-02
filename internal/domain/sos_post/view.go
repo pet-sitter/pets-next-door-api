@@ -10,16 +10,16 @@ import (
 )
 
 type WriteSosPostRequest struct {
-	Title        string       `json:"title" validate:"required"`
-	Content      string       `json:"content" validate:"required"`
-	ImageIDs     []int        `json:"imageIds" validate:"required"`
-	Reward       string       `json:"reward" validate:"required"`
-	Dates        [][]string   `json:"dates" validate:"required"`
-	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int        `json:"condition_ids"`
-	PetIDs       []int        `json:"pet_ids"`
+	Title        string        `json:"title" validate:"required"`
+	Content      string        `json:"content" validate:"required"`
+	ImageIDs     []int         `json:"image_ids" validate:"required"`
+	Reward       string        `json:"reward" validate:"required"`
+	Dates        []SosDateView `json:"dates" validate:"required"`
+	CareType     CareType      `json:"care_type" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender   `json:"carer_gender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount  `json:"reward_amount" validate:"required,oneof=hour"`
+	ConditionIDs []int         `json:"condition_ids"`
+	PetIDs       []int         `json:"pet_ids"`
 }
 
 type WriteSosPostView struct {
@@ -71,17 +71,17 @@ func FromEmptySosPostList(sosPosts *SosPostList) *FindSosPostListView {
 }
 
 type UpdateSosPostRequest struct {
-	ID           int          `json:"id" validate:"required"`
-	Title        string       `json:"title" validate:"required"`
-	Content      string       `json:"content" validate:"required"`
-	ImageIDs     []int        `json:"image_ids" validate:"required"`
-	Dates        [][]string   `json:"dates" validate:"required"`
-	Reward       string       `json:"reward" validate:"required"`
-	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int        `json:"condition_ids"`
-	PetIDs       []int        `json:"pet_ids"`
+	ID           int           `json:"id" validate:"required"`
+	Title        string        `json:"title" validate:"required"`
+	Content      string        `json:"content" validate:"required"`
+	ImageIDs     []int         `json:"image_ids" validate:"required"`
+	Dates        []SosDateView `json:"dates" validate:"required"`
+	Reward       string        `json:"reward" validate:"required"`
+	CareType     CareType      `json:"care_type" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender   `json:"carer_gender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount  `json:"reward_amount" validate:"required,oneof=hour"`
+	ConditionIDs []int         `json:"condition_ids"`
+	PetIDs       []int         `json:"pet_ids"`
 }
 
 type UpdateSosPostView struct {
@@ -103,6 +103,6 @@ type UpdateSosPostView struct {
 }
 
 type SosDateView struct {
-	DateStartAt string `field:"date_start_at"`
-	DateEndAt   string `field:"date_end_at"`
+	DateStartAt string `field:"dateStartAt"`
+	DateEndAt   string `field:"dateEndAt"`
 }
