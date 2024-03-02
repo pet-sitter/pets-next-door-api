@@ -8,7 +8,7 @@ import (
 type PaginatedView[T interface{}] struct {
 	Page       int  `json:"page"`
 	Size       int  `json:"size"`
-	IsLastPage bool `json:"is_last_page"`
+	IsLastPage bool `json:"isLastPage"`
 	Items      []T  `json:"items"`
 }
 
