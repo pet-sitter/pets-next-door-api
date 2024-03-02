@@ -12,34 +12,34 @@ import (
 type WriteSosPostRequest struct {
 	Title        string       `json:"title" validate:"required"`
 	Content      string       `json:"content" validate:"required"`
-	ImageIDs     []int        `json:"image_ids" validate:"required"`
+	ImageIDs     []int        `json:"imageIds" validate:"required"`
 	Reward       string       `json:"reward" validate:"required"`
-	DateStartAt  time.Time    `json:"date_start_at" validate:"required"`
-	DateEndAt    time.Time    `json:"date_end_at" validate:"required"`
-	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int        `json:"condition_ids"`
-	PetIDs       []int        `json:"pet_ids"`
+	DateStartAt  time.Time    `json:"dateStartAt" validate:"required"`
+	DateEndAt    time.Time    `json:"dateEndAt" validate:"required"`
+	CareType     CareType     `json:"careType" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender  `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount `json:"rewardAmount" validate:"required,oneof=hour"`
+	ConditionIDs []int        `json:"conditionIds"`
+	PetIDs       []int        `json:"petIds"`
 }
 
 type WriteSosPostView struct {
 	ID           int               `json:"id"`
-	AuthorID     int               `json:"author_id"`
+	AuthorID     int               `json:"authorId"`
 	Title        string            `json:"title"`
 	Content      string            `json:"content"`
 	Media        []media.MediaView `json:"media"`
 	Conditions   []ConditionView   `json:"conditions"`
 	Pets         []pet.PetView     `json:"pets"`
 	Reward       string            `json:"reward"`
-	DateStartAt  string            `json:"date_start_at"`
-	DateEndAt    string            `json:"date_end_at"`
-	CareType     CareType          `json:"care_type"`
-	CarerGender  CarerGender       `json:"carer_gender"`
-	RewardAmount RewardAmount      `json:"reward_amount"`
-	ThumbnailID  int               `json:"thumbnail_id"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	DateStartAt  string            `json:"dateStartAt"`
+	DateEndAt    string            `json:"dateEndAt"`
+	CareType     CareType          `json:"careType"`
+	CarerGender  CarerGender       `json:"carerGender"`
+	RewardAmount RewardAmount      `json:"rewardAmount"`
+	ThumbnailID  int               `json:"thumbnailId"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
 }
 
 type FindSosPostView struct {
@@ -51,14 +51,14 @@ type FindSosPostView struct {
 	Conditions   []ConditionView              `json:"conditions"`
 	Pets         []pet.PetView                `json:"pets"`
 	Reward       string                       `json:"reward"`
-	DateStartAt  string                       `json:"date_start_at"`
-	DateEndAt    string                       `json:"date_end_at"`
-	CareType     CareType                     `json:"care_type"`
-	CarerGender  CarerGender                  `json:"carer_gender"`
-	RewardAmount RewardAmount                 `json:"reward_amount"`
-	ThumbnailID  int                          `json:"thumbnail_id"`
-	CreatedAt    time.Time                    `json:"created_at"`
-	UpdatedAt    time.Time                    `json:"updated_at"`
+	DateStartAt  string                       `json:"dateStartAt"`
+	DateEndAt    string                       `json:"dateEndAt"`
+	CareType     CareType                     `json:"careType"`
+	CarerGender  CarerGender                  `json:"carerGender"`
+	RewardAmount RewardAmount                 `json:"rewardAmount"`
+	ThumbnailID  int                          `json:"thumbnailId"`
+	CreatedAt    time.Time                    `json:"createdAt"`
+	UpdatedAt    time.Time                    `json:"updatedAt"`
 }
 
 type FindSosPostListView struct {
@@ -77,32 +77,32 @@ type UpdateSosPostRequest struct {
 	ID           int          `json:"id" validate:"required"`
 	Title        string       `json:"title" validate:"required"`
 	Content      string       `json:"content" validate:"required"`
-	ImageIDs     []int        `json:"image_ids" validate:"required"`
+	ImageIDs     []int        `json:"imageIds" validate:"required"`
 	Reward       string       `json:"reward" validate:"required"`
-	DateStartAt  string       `json:"date_start_at" validate:"required"`
-	DateEndAt    string       `json:"date_end_at" validate:"required"`
-	CareType     CareType     `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender  `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int        `json:"condition_ids"`
-	PetIDs       []int        `json:"pet_ids"`
+	DateStartAt  string       `json:"dateStartAt" validate:"required"`
+	DateEndAt    string       `json:"dateEndAt" validate:"required"`
+	CareType     CareType     `json:"careType" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender  `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount `json:"rewardAmount" validate:"required,oneof=hour"`
+	ConditionIDs []int        `json:"conditionIds"`
+	PetIDs       []int        `json:"petIds"`
 }
 
 type UpdateSosPostView struct {
 	ID           int               `json:"id"`
-	AuthorID     int               `json:"author_id"`
+	AuthorID     int               `json:"authorId"`
 	Title        string            `json:"title"`
 	Content      string            `json:"content"`
 	Media        []media.MediaView `json:"media"`
 	Conditions   []ConditionView   `json:"conditions"`
 	Pets         []pet.PetView     `json:"pets"`
 	Reward       string            `json:"reward"`
-	DateStartAt  string            `json:"date_start_at"`
-	DateEndAt    string            `json:"date_end_at"`
-	CareType     CareType          `json:"care_type"`
-	CarerGender  CarerGender       `json:"carer_gender"`
-	RewardAmount RewardAmount      `json:"reward_amount"`
-	ThumbnailID  int               `json:"thumbnail_id"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	DateStartAt  string            `json:"dateStartAt"`
+	DateEndAt    string            `json:"dateEndAt"`
+	CareType     CareType          `json:"careType"`
+	CarerGender  CarerGender       `json:"carerGender"`
+	RewardAmount RewardAmount      `json:"rewardAmount"`
+	ThumbnailID  int               `json:"thumbnailId"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
 }

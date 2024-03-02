@@ -8,12 +8,12 @@ type AddPetsToOwnerRequest struct {
 
 type AddPetRequest struct {
 	Name       string  `json:"name" validate:"required"`
-	PetType    PetType `json:"pet_type" validate:"required,oneof=dog cat"`
+	PetType    PetType `json:"petType" validate:"required,oneof=dog cat"`
 	Sex        PetSex  `json:"sex" validate:"required,oneof=male female"`
 	Neutered   bool    `json:"neutered" validate:"required"`
 	Breed      string  `json:"breed" validate:"required"`
-	BirthDate  string  `json:"birth_date" validate:"required"`
-	WeightInKg float64 `json:"weight_in_kg" validate:"required"`
+	BirthDate  string  `json:"birthDate" validate:"required"`
+	WeightInKg float64 `json:"weightInKg" validate:"required"`
 }
 
 type FindMyPetsView struct {
@@ -23,17 +23,17 @@ type FindMyPetsView struct {
 type PetView struct {
 	ID         int     `json:"id"`
 	Name       string  `json:"name"`
-	PetType    PetType `json:"pet_type"`
+	PetType    PetType `json:"petType"`
 	Sex        PetSex  `json:"sex"`
 	Neutered   bool    `json:"neutered"`
 	Breed      string  `json:"breed"`
-	BirthDate  string  `json:"birth_date"`
-	WeightInKg float64 `json:"weight_in_kg"`
+	BirthDate  string  `json:"birthDate"`
+	WeightInKg float64 `json:"weightInKg"`
 }
 
 type BreedView struct {
 	ID      int     `json:"id"`
-	PetType PetType `json:"pet_type"`
+	PetType PetType `json:"petType"`
 	Name    string  `json:"name"`
 }
 
