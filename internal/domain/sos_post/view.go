@@ -12,14 +12,14 @@ import (
 type WriteSosPostRequest struct {
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
-	ImageIDs     []int         `json:"image_ids" validate:"required"`
+	ImageIDs     []int         `json:"imageIds" validate:"required"`
 	Reward       string        `json:"reward" validate:"required"`
 	Dates        []SosDateView `json:"dates" validate:"required"`
-	CareType     CareType      `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender   `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount  `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int         `json:"condition_ids"`
-	PetIDs       []int         `json:"pet_ids"`
+	CareType     CareType      `json:"careType" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount  `json:"rewardAmount" validate:"required,oneof=hour"`
+	ConditionIDs []int         `json:"conditionIds"`
+	PetIDs       []int         `json:"petIds"`
 }
 
 type WriteSosPostView struct {
@@ -32,12 +32,12 @@ type WriteSosPostView struct {
 	Pets         []pet.PetView     `json:"pets"`
 	Reward       string            `json:"reward"`
 	Dates        []SosDateView     `json:"dates"`
-	CareType     CareType          `json:"care_type"`
-	CarerGender  CarerGender       `json:"carer_gender"`
-	RewardAmount RewardAmount      `json:"reward_amount"`
-	ThumbnailID  int               `json:"thumbnail_id"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	CareType     CareType          `json:"careType"`
+	CarerGender  CarerGender       `json:"carerGender"`
+	RewardAmount RewardAmount      `json:"rewardAmount"`
+	ThumbnailID  int               `json:"thumbnailId"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
 }
 
 type FindSosPostView struct {
@@ -50,12 +50,12 @@ type FindSosPostView struct {
 	Pets         []pet.PetView                `json:"pets"`
 	Reward       string                       `json:"reward"`
 	Dates        []SosDateView                `json:"dates"`
-	CareType     CareType                     `json:"care_type"`
-	CarerGender  CarerGender                  `json:"carer_gender"`
-	RewardAmount RewardAmount                 `json:"reward_amount"`
-	ThumbnailID  int                          `json:"thumbnail_id"`
-	CreatedAt    time.Time                    `json:"created_at"`
-	UpdatedAt    time.Time                    `json:"updated_at"`
+	CareType     CareType                     `json:"careType"`
+	CarerGender  CarerGender                  `json:"carerGender"`
+	RewardAmount RewardAmount                 `json:"rewardAmount"`
+	ThumbnailID  int                          `json:"thumbnailId"`
+	CreatedAt    time.Time                    `json:"createdAt"`
+	UpdatedAt    time.Time                    `json:"updatedAt"`
 }
 
 type FindSosPostListView struct {
@@ -74,14 +74,14 @@ type UpdateSosPostRequest struct {
 	ID           int           `json:"id" validate:"required"`
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
-	ImageIDs     []int         `json:"image_ids" validate:"required"`
+	ImageIDs     []int         `json:"imageIds" validate:"required"`
 	Dates        []SosDateView `json:"dates" validate:"required"`
 	Reward       string        `json:"reward" validate:"required"`
-	CareType     CareType      `json:"care_type" validate:"required,oneof= foster visiting"`
-	CarerGender  CarerGender   `json:"carer_gender" validate:"required,oneof=male female all"`
-	RewardAmount RewardAmount  `json:"reward_amount" validate:"required,oneof=hour"`
-	ConditionIDs []int         `json:"condition_ids"`
-	PetIDs       []int         `json:"pet_ids"`
+	CareType     CareType      `json:"careType" validate:"required,oneof= foster visiting"`
+	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardAmount RewardAmount  `json:"rewardAmount" validate:"required,oneof=hour"`
+	ConditionIDs []int         `json:"conditionIds"`
+	PetIDs       []int         `json:"petIds"`
 }
 
 type UpdateSosPostView struct {
@@ -94,12 +94,12 @@ type UpdateSosPostView struct {
 	Pets         []pet.PetView     `json:"pets"`
 	Reward       string            `json:"reward"`
 	Dates        []SosDateView     `json:"dates"`
-	CareType     CareType          `json:"care_type"`
-	CarerGender  CarerGender       `json:"carer_gender"`
-	RewardAmount RewardAmount      `json:"reward_amount"`
-	ThumbnailID  int               `json:"thumbnail_id"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	CareType     CareType          `json:"careType"`
+	CarerGender  CarerGender       `json:"carerGender"`
+	RewardAmount RewardAmount      `json:"rewardAmount"`
+	ThumbnailID  int               `json:"thumbnailId"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
 }
 
 type SosDateView struct {
