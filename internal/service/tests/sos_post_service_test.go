@@ -112,7 +112,7 @@ func TestSosPostService(t *testing.T) {
 				Content:  "Test Content",
 				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
 				Reward:   "Test Reward",
-				Dates: [][]string{{"2024-03-30", "2024-03-30"},
+				Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
 					{"2024-04-01", "2024-04-02"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
@@ -129,7 +129,7 @@ func TestSosPostService(t *testing.T) {
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
 			assertMediaEquals(t, sosPost.Media, sosPostMedia)
-			assertWriteDatesEquals(t, sosPost.Dates, writeSosPostRequest.Dates)
+			assertDatesEquals(t, sosPost.Dates, writeSosPostRequest.Dates)
 
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
@@ -242,7 +242,7 @@ func TestSosPostService(t *testing.T) {
 					Content:  fmt.Sprintf("Test Content%d", i),
 					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
 					Reward:   fmt.Sprintf("Test Reward%d", i),
-					Dates: [][]string{{"2024-03-30", "2024-03-30"},
+					Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
 						{"2024-04-01", "2024-04-02"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
@@ -523,7 +523,7 @@ func TestSosPostService(t *testing.T) {
 					Content:  fmt.Sprintf("Test Content%d", i),
 					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
 					Reward:   fmt.Sprintf("Test Reward%d", i),
-					Dates: [][]string{{"2024-03-30", "2024-03-30"},
+					Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
 						{"2024-04-01", "2024-04-02"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
@@ -675,7 +675,7 @@ func TestSosPostService(t *testing.T) {
 				Content:  "Test Content2",
 				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
 				Reward:   "Test Reward2",
-				Dates: [][]string{{"2024-03-30", "2024-03-30"},
+				Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
 					{"2024-04-01", "2024-04-02"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
@@ -689,7 +689,8 @@ func TestSosPostService(t *testing.T) {
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
 			assertMediaEquals(t, updateSosPost.Media, sosPostMedia)
-			assertWriteDatesEquals(t, updateSosPost.Dates, updateSosPostData.Dates)
+			assertDatesEquals(t, updateSosPost.Dates, updateSosPostData.Dates)
+
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -755,17 +756,6 @@ func assertDatesEquals(t *testing.T, got []sos_post.SosDateView, want []sos_post
 		}
 		if got[i].DateEndAt != date.DateEndAt {
 			t.Errorf("got %v want %v", got[i].DateEndAt, date.DateEndAt)
-		}
-	}
-}
-
-func assertWriteDatesEquals(t *testing.T, got []sos_post.SosDateView, want [][]string) {
-	for i, date := range want {
-		if got[i].DateStartAt != date[0] {
-			t.Errorf("got %v want %v", got[i].DateStartAt, date[0])
-		}
-		if got[i].DateEndAt != date[1] {
-			t.Errorf("got %v want %v", got[i].DateEndAt, date[1])
 		}
 	}
 }

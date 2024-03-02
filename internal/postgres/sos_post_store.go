@@ -128,8 +128,8 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
 		if err := s.conn.QueryRowContext(ctx, sql2,
-			date[0],
-			date[1],
+			date.DateStartAt,
+			date.DateEndAt,
 		).Scan(
 			&SosDate.ID,
 			&SosDate.DateStartAt,
@@ -453,8 +453,8 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
 		if err := s.conn.QueryRowContext(ctx, sql,
-			date[0],
-			date[1],
+			date.DateStartAt,
+			date.DateEndAt,
 		).Scan(
 			&SosDate.ID,
 			&SosDate.DateStartAt,
