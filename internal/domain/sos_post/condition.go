@@ -7,11 +7,11 @@ import (
 )
 
 type Condition struct {
-	ID        int    `filed:"id"`
-	Name      string `filed:"name"`
-	CreatedAt string `filed:"created_at"`
-	UpdatedAt string `filed:"update_at"`
-	DeletedAt string `filed:"deleted_at"`
+	ID        int    `field:"id"`
+	Name      string `field:"name"`
+	CreatedAt string `field:"created_at"`
+	UpdatedAt string `field:"update_at"`
+	DeletedAt string `field:"deleted_at"`
 }
 
 type ConditionView struct {
