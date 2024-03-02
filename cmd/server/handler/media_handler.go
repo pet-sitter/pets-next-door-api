@@ -78,7 +78,7 @@ func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err2 := h.mediaService.UploadMedia(r.Context(), file, media.IMAGE_MEDIA_TYPE, header.Filename)
-	if err != nil {
+	if err2 != nil {
 		render.Render(w, r, err2)
 		return
 	}
