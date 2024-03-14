@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -271,44 +270,35 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 			return err
 		}
 
-		pets := make([]pet.Pet, len(addPetsRequest.Pets))
+		pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
 		for i, item := range addPetsRequest.Pets {
-			pets[i] = pet.Pet{
-				OwnerID:    user.ID,
-				Name:       item.Name,
-				PetType:    item.PetType,
-				Sex:        item.Sex,
-				Neutered:   item.Neutered,
-				Breed:      item.Breed,
-				BirthDate:  item.BirthDate,
-				WeightInKg: item.WeightInKg,
+			petToCreate := pet.Pet{
+				BasePet: pet.BasePet{
+					OwnerID:    user.ID,
+					Name:       item.Name,
+					PetType:    item.PetType,
+					Sex:        item.Sex,
+					Neutered:   item.Neutered,
+					Breed:      item.Breed,
+					BirthDate:  item.BirthDate,
+					WeightInKg: item.WeightInKg,
+				},
+				ProfileImageID: item.ProfileImageID,
 			}
+			createdPet, err := petStore.CreatePet(ctx, &petToCreate)
+			pets[i] = *createdPet
 
-			if _, err := petStore.CreatePet(ctx, &pets[i]); err != nil {
+			if err != nil {
 				return err
 			}
 		}
 
-		petViews = make([]pet.PetView, len(addPetsRequest.Pets))
-		for i, item := range pets {
-			petViews[i] = pet.PetView{
-				ID:         item.ID,
-				Name:       item.Name,
-				PetType:    item.PetType,
-				Sex:        item.Sex,
-				Neutered:   item.Neutered,
-				Breed:      item.Breed,
-				BirthDate:  item.BirthDate,
-				WeightInKg: item.WeightInKg,
-			}
-		}
-
+		petViews = pet.NewPetViewList(pets)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	return petViews, nil
 }
 
@@ -329,24 +319,7 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 			return err
 		}
 
-		petViews := make([]pet.PetView, len(pets))
-		for i, item := range pets {
-			petViews[i] = pet.PetView{
-				ID:         item.ID,
-				Name:       item.Name,
-				PetType:    item.PetType,
-				Sex:        item.Sex,
-				Neutered:   item.Neutered,
-				Breed:      item.Breed,
-				BirthDate:  item.BirthDate,
-				WeightInKg: item.WeightInKg,
-			}
-		}
-
-		petListView = &pet.FindMyPetsView{
-			Pets: petViews,
-		}
-
+		petListView = pet.NewFindMyPetsView(pets)
 		return nil
 	})
 	if err != nil {

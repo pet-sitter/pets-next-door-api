@@ -87,13 +87,14 @@ func TestSosPostService(t *testing.T) {
 			pets := pet.AddPetsToOwnerRequest{
 				Pets: []pet.AddPetRequest{
 					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
-						WeightInKg: 10.0,
+						Name:           "name",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01T00:00:00Z",
+						WeightInKg:     10.0,
+						ProfileImageID: nil,
 					},
 				},
 			}
@@ -214,13 +215,14 @@ func TestSosPostService(t *testing.T) {
 			pets := pet.AddPetsToOwnerRequest{
 				Pets: []pet.AddPetRequest{
 					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
-						WeightInKg: 10.0,
+						Name:           "name",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01T00:00:00Z",
+						WeightInKg:     10.0,
+						ProfileImageID: nil,
 					},
 				},
 			}
@@ -354,13 +356,14 @@ func TestSosPostService(t *testing.T) {
 			pets := pet.AddPetsToOwnerRequest{
 				Pets: []pet.AddPetRequest{
 					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
-						WeightInKg: 10.0,
+						Name:           "name",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01T00:00:00Z",
+						WeightInKg:     10.0,
+						ProfileImageID: nil,
 					},
 				},
 			}
@@ -496,13 +499,14 @@ func TestSosPostService(t *testing.T) {
 			pets := pet.AddPetsToOwnerRequest{
 				Pets: []pet.AddPetRequest{
 					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
-						WeightInKg: 10.0,
+						Name:           "name",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01T00:00:00Z",
+						WeightInKg:     10.0,
+						ProfileImageID: nil,
 					},
 				},
 			}
@@ -633,13 +637,14 @@ func TestSosPostService(t *testing.T) {
 			pets := pet.AddPetsToOwnerRequest{
 				Pets: []pet.AddPetRequest{
 					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01T00:00:00Z",
-						WeightInKg: 10.0,
+						Name:           "name",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01T00:00:00Z",
+						WeightInKg:     10.0,
+						ProfileImageID: nil,
 					},
 				},
 			}
