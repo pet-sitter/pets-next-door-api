@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -273,9 +274,10 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 
 		pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
 		for i, item := range addPetsRequest.Pets {
-			media, err := mediaStore.FindMediaByID(ctx, *item.ProfileImageID)
-			if err != nil {
-				return err
+			if item.ProfileImageID != nil {
+				if _, err := mediaStore.FindMediaByID(ctx, *item.ProfileImageID); err != nil {
+					return pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
+				}
 			}
 
 			petToCreate := pet.Pet{
@@ -289,7 +291,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 					BirthDate:  item.BirthDate,
 					WeightInKg: item.WeightInKg,
 				},
-				ProfileImageID: &media.ID,
+				ProfileImageID: item.ProfileImageID,
 			}
 			createdPet, err := petStore.CreatePet(ctx, &petToCreate)
 			pets[i] = *createdPet
