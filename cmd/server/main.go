@@ -13,7 +13,7 @@ import (
 )
 
 // @title 이웃집멍냥 API 문서
-// @version 0.9.0
+// @version 0.10.0
 // @description 이웃집멍냥 백엔드 API 문서입니다.
 // @termsOfService http://swagger.io/terms/
 
