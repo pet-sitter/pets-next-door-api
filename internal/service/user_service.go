@@ -264,6 +264,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
 		userStore := postgres.NewUserPostgresStore(tx)
 		petStore := postgres.NewPetPostgresStore(tx)
+		mediaStore := postgres.NewMediaPostgresStore(tx)
 
 		user, err := userStore.FindUserByUID(ctx, uid)
 		if err != nil {
@@ -272,6 +273,11 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 
 		pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
 		for i, item := range addPetsRequest.Pets {
+			media, err := mediaStore.FindMediaByID(ctx, *item.ProfileImageID)
+			if err != nil {
+				return err
+			}
+
 			petToCreate := pet.Pet{
 				BasePet: pet.BasePet{
 					OwnerID:    user.ID,
@@ -283,7 +289,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 					BirthDate:  item.BirthDate,
 					WeightInKg: item.WeightInKg,
 				},
-				ProfileImageID: item.ProfileImageID,
+				ProfileImageID: &media.ID,
 			}
 			createdPet, err := petStore.CreatePet(ctx, &petToCreate)
 			pets[i] = *createdPet
