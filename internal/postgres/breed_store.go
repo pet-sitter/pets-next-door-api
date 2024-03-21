@@ -8,29 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-type BreedPostgresStore struct {
-	conn *database.Tx
-}
-
-func NewBreedPostgresStore(conn *database.Tx) *BreedPostgresStore {
-	return &BreedPostgresStore{
-		conn: conn,
-	}
-}
-
-func (s *BreedPostgresStore) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
-	return (&breedQueries{conn: s.conn}).FindBreeds(ctx, page, size, petType)
-}
-
-func (s *BreedPostgresStore) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
-	return (&breedQueries{conn: s.conn}).FindBreedByPetTypeAndName(ctx, petType, name)
-}
-
-type breedQueries struct {
-	conn database.DBTx
-}
-
-func (s *breedQueries) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
+func FindBreeds(ctx context.Context, tx *database.Tx, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -49,7 +27,7 @@ func (s *breedQueries) FindBreeds(ctx context.Context, page int, size int, petTy
 	`
 
 	breedList := pet.NewBreedList(page, size)
-	rows, err := s.conn.QueryContext(ctx, sql, petType, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, sql, petType, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -70,7 +48,7 @@ func (s *breedQueries) FindBreeds(ctx context.Context, page int, size int, petTy
 	return breedList, nil
 }
 
-func (s *breedQueries) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
+func FindBreedByPetTypeAndName(ctx context.Context, tx *database.Tx, petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -87,7 +65,7 @@ func (s *breedQueries) FindBreedByPetTypeAndName(ctx context.Context, petType pe
 	`
 
 	breed := &pet.Breed{}
-	err := s.conn.QueryRowContext(ctx, sql, petType, name).Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt)
+	err := tx.QueryRowContext(ctx, sql, petType, name).Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -95,7 +73,7 @@ func (s *breedQueries) FindBreedByPetTypeAndName(ctx context.Context, petType pe
 	return breed, nil
 }
 
-func (s *BreedPostgresStore) CreateBreed(ctx context.Context, breed *pet.Breed) (*pet.Breed, *pnd.AppError) {
+func CreateBreed(ctx context.Context, tx *database.Tx, breed *pet.Breed) (*pet.Breed, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		breeds
@@ -112,7 +90,7 @@ func (s *BreedPostgresStore) CreateBreed(ctx context.Context, breed *pet.Breed) 
 		id, pet_type, name, created_at, updated_at
 	`
 
-	err := s.conn.QueryRowContext(ctx, sql, breed.Name, breed.PetType).Scan(&breed.ID, &breed.PetType, &breed.Name, &breed.CreatedAt, &breed.UpdatedAt)
+	err := tx.QueryRowContext(ctx, sql, breed.Name, breed.PetType).Scan(&breed.ID, &breed.PetType, &breed.Name, &breed.CreatedAt, &breed.UpdatedAt)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

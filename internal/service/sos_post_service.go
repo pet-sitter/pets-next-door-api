@@ -26,21 +26,17 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 	var sosPostView *sos_post.WriteSosPostView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
-
-		userID, err := userStore.FindUserIDByFbUID(ctx, fbUid)
+		userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUid)
 		if err != nil {
 			return err
 		}
 
-		sosPost, err := sosPostStore.WriteSosPost(ctx, userID, request)
+		sosPost, err := postgres.WriteSosPost(ctx, tx, userID, request)
 		if err != nil {
 			return err
 		}
 
-		mediaData, err := resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
+		mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return err
 		}
@@ -56,7 +52,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			mediaView = append(mediaView, view)
 		}
 
-		conditions, err := sosPostStore.FindConditionByID(ctx, sosPost.ID)
+		conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -71,7 +67,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			conditionsView = append(conditionsView, view)
 		}
 
-		pets, err := sosPostStore.FindPetsByID(ctx, sosPost.ID)
+		pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -91,7 +87,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 			petsView = append(petsView, p)
 		}
 
-		dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+		dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -136,11 +132,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 	var sosPostViews *sos_post.FindSosPostListView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		sosPosts, err := sosPostStore.FindSosPosts(ctx, page, size, sortBy)
+		sosPosts, err := postgres.FindSosPosts(ctx, tx, page, size, sortBy)
 		if err != nil {
 			return err
 		}
@@ -148,7 +140,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 		sosPostViews = sos_post.FromEmptySosPostList(sosPosts)
 
 		for _, sosPost := range sosPosts.Items {
-			mediaData, err := resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
+			mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
 			if err != nil {
 				return err
 			}
@@ -164,7 +156,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				mediaView = append(mediaView, view)
 			}
 
-			conditions, err := sosPostStore.FindConditionByID(ctx, sosPost.ID)
+			conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -179,7 +171,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				conditionsView = append(conditionsView, view)
 			}
 
-			pets, err := sosPostStore.FindPetsByID(ctx, sosPost.ID)
+			pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -199,7 +191,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				petsView = append(petsView, p)
 			}
 
-			dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+			dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -214,7 +206,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 				sosDatesView = append(sosDatesView, d)
 			}
 
-			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+			author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 			if err != nil {
 				return err
 			}
@@ -254,18 +246,14 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 	var sosPostViews *sos_post.FindSosPostListView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		sosPosts, err := sosPostStore.FindSosPostsByAuthorID(ctx, authorID, page, size, sortBy)
+		sosPosts, err := postgres.FindSosPostsByAuthorID(ctx, tx, authorID, page, size, sortBy)
 		if err != nil {
 			return err
 		}
 
 		sosPostViews = sos_post.FromEmptySosPostList(sosPosts)
 		for _, sosPost := range sosPosts.Items {
-			mediaData, err := resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
+			mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
 			if err != nil {
 				return err
 			}
@@ -281,7 +269,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				mediaView = append(mediaView, view)
 			}
 
-			conditions, err := sosPostStore.FindConditionByID(ctx, sosPost.ID)
+			conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -296,7 +284,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				conditionsView = append(conditionsView, view)
 			}
 
-			pets, err := sosPostStore.FindPetsByID(ctx, sosPost.ID)
+			pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -315,7 +303,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				}
 				petsView = append(petsView, p)
 			}
-			dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+			dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
 			if err != nil {
 				return err
 			}
@@ -330,7 +318,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 				sosDatesView = append(sosDatesView, d)
 			}
 
-			author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+			author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 			if err != nil {
 				return err
 			}
@@ -369,16 +357,12 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 	var sosPostView *sos_post.FindSosPostView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		sosPost, err := sosPostStore.FindSosPostByID(ctx, id)
+		sosPost, err := postgres.FindSosPostByID(ctx, tx, id)
 		if err != nil {
 			return err
 		}
 
-		mediaData, err := resourceMediaStore.FindResourceMediaByResourceID(ctx, sosPost.ID, string(media.SosResourceType))
+		mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return err
 		}
@@ -395,7 +379,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			mediaView = append(mediaView, view)
 		}
 
-		conditions, err := sosPostStore.FindConditionByID(ctx, sosPost.ID)
+		conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -410,7 +394,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			conditionsView = append(conditionsView, view)
 		}
 
-		pets, err := sosPostStore.FindPetsByID(ctx, sosPost.ID)
+		pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -430,7 +414,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			petsView = append(petsView, p)
 		}
 
-		dates, err := sosPostStore.FindDatesBySosPostID(ctx, sosPost.ID)
+		dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -445,7 +429,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 			sosDatesView = append(sosDatesView, d)
 		}
 
-		author, err := userStore.FindUserByID(ctx, sosPost.AuthorID, true)
+		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 		if err != nil {
 			return err
 		}
@@ -481,15 +465,12 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 	var sosPostView *sos_post.UpdateSosPostView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-		resourceMediaStore := postgres.NewResourceMediaPostgresStore(tx)
-
-		updateSosPost, err := sosPostStore.UpdateSosPost(ctx, request)
+		updateSosPost, err := postgres.UpdateSosPost(ctx, tx, request)
 		if err != nil {
 			return err
 		}
 
-		mediaData, err := resourceMediaStore.FindResourceMediaByResourceID(ctx, updateSosPost.ID, string(media.SosResourceType))
+		mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, updateSosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return err
 		}
@@ -505,7 +486,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 			mediaView = append(mediaView, view)
 		}
 
-		conditions, err := sosPostStore.FindConditionByID(ctx, updateSosPost.ID)
+		conditions, err := postgres.FindConditionByID(ctx, tx, updateSosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -519,7 +500,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 			conditionsView = append(conditionsView, view)
 		}
 
-		pets, err := sosPostStore.FindPetsByID(ctx, updateSosPost.ID)
+		pets, err := postgres.FindPetsByID(ctx, tx, updateSosPost.ID)
 		if err != nil {
 			return err
 		}
@@ -539,7 +520,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 			petsView = append(petsView, p)
 		}
 
-		dates, err := sosPostStore.FindDatesBySosPostID(ctx, request.ID)
+		dates, err := postgres.FindDatesBySosPostID(ctx, tx, request.ID)
 		if err != nil {
 			return err
 		}
@@ -587,15 +568,12 @@ func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid 
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-		sosPostStore := postgres.NewSosPostPostgresStore(tx)
-
-		userID, err = userStore.FindUserIDByFbUID(ctx, fbUid)
+		userID, err = postgres.FindUserIDByFbUID(ctx, tx, fbUid)
 		if err != nil {
 			return err
 		}
 
-		sosPost, err = sosPostStore.FindSosPostByID(ctx, sosPostID)
+		sosPost, err = postgres.FindSosPostByID(ctx, tx, sosPostID)
 		if err != nil {
 			return err
 		}

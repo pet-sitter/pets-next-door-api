@@ -2,6 +2,7 @@ package media
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -31,6 +32,6 @@ type ResourceMediaView struct {
 }
 
 type ResourceMediaStore interface {
-	CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*ResourceMedia, *pnd.AppError)
-	FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]Media, *pnd.AppError)
+	CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, mediaID int, resourceType string) (*ResourceMedia, *pnd.AppError)
+	FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) ([]Media, *pnd.AppError)
 }

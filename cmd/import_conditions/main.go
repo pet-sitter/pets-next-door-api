@@ -24,9 +24,7 @@ func main() {
 
 	ctx := context.Background()
 	err2 = database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-		conditionStore := postgres.NewConditionPostgresStore(tx)
-
-		result, err2 = conditionStore.InitConditions(ctx, sos_post.ConditionName)
+		result, err2 = postgres.InitConditions(ctx, tx, sos_post.ConditionName)
 		if err2 != nil {
 			return err2
 		}

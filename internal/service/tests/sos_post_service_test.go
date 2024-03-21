@@ -22,7 +22,7 @@ func TestSosPostService(t *testing.T) {
 		db.Flush()
 
 		if err := database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-			postgres.NewConditionPostgresStore(tx).InitConditions(ctx, sos_post.ConditionName)
+			postgres.InitConditions(ctx, tx, sos_post.ConditionName)
 			return nil
 		}); err != nil {
 			t.Errorf("InitConditions failed: %v", err)

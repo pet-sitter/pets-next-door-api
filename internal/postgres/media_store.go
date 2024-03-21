@@ -8,29 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-type MediaPostgresStore struct {
-	conn *database.Tx
-}
-
-func NewMediaPostgresStore(conn *database.Tx) *MediaPostgresStore {
-	return &MediaPostgresStore{
-		conn: conn,
-	}
-}
-
-func (s *MediaPostgresStore) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
-	return (&mediaQueries{conn: s.conn}).CreateMedia(ctx, media)
-}
-
-func (s *MediaPostgresStore) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	return (&mediaQueries{conn: s.conn}).FindMediaByID(ctx, id)
-}
-
-type mediaQueries struct {
-	conn *database.Tx
-}
-
-func (s *mediaQueries) CreateMedia(ctx context.Context, media *media.Media) (*media.Media, *pnd.AppError) {
+func CreateMedia(ctx context.Context, tx *database.Tx, media *media.Media) (*media.Media, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		media
@@ -44,7 +22,7 @@ func (s *mediaQueries) CreateMedia(ctx context.Context, media *media.Media) (*me
 	RETURNING id, created_at, updated_at
 	`
 
-	if err := s.conn.QueryRowContext(ctx, sql,
+	if err := tx.QueryRowContext(ctx, sql,
 		media.MediaType,
 		media.URL,
 	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt); err != nil {
@@ -54,7 +32,7 @@ func (s *mediaQueries) CreateMedia(ctx context.Context, media *media.Media) (*me
 	return media, nil
 }
 
-func (s *mediaQueries) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
+func FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*media.Media, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -70,7 +48,7 @@ func (s *mediaQueries) FindMediaByID(ctx context.Context, id int) (*media.Media,
 	`
 
 	media := &media.Media{}
-	if err := s.conn.QueryRowContext(ctx, sql,
+	if err := tx.QueryRowContext(ctx, sql,
 		id,
 	).Scan(
 		&media.ID,
