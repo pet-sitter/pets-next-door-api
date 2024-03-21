@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -25,62 +24,59 @@ func NewUserService(conn *database.DB, s3Client *s3infra.S3Client) *UserService 
 }
 
 func (service *UserService) RegisterUser(ctx context.Context, registerUserRequest *user.RegisterUserRequest) (*user.RegisterUserView, *pnd.AppError) {
-	var userView *user.RegisterUserView
-	var err *pnd.AppError
+	mediaService := NewMediaService(service.conn, service.s3Client)
 
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		mediaService := NewMediaService(service.conn, service.s3Client)
-
-		var mediaData *media.Media
-		if registerUserRequest.ProfileImageID != nil {
-			mediaData, err = mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
-			if err != nil {
-				return err
-			}
+	var profileImageURL *string
+	if registerUserRequest.ProfileImageID != nil {
+		mediaData, err := mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
+		if err != nil {
+			return nil, err
 		}
 
-		var profileImageURL *string
 		if mediaData != nil {
 			profileImageURL = &mediaData.URL
 		}
+	}
 
-		created, err := postgres.CreateUser(ctx, tx, registerUserRequest)
-		if err != nil {
-			return err
-		}
-
-		userView = &user.RegisterUserView{
-			ID:                   created.ID,
-			Email:                created.Email,
-			Nickname:             created.Nickname,
-			Fullname:             created.Fullname,
-			ProfileImageURL:      profileImageURL,
-			FirebaseProviderType: created.FirebaseProviderType,
-			FirebaseUID:          created.FirebaseUID,
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	return userView, nil
+	created, err := postgres.CreateUser(ctx, tx, registerUserRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &user.RegisterUserView{
+		ID:                   created.ID,
+		Email:                created.Email,
+		Nickname:             created.Nickname,
+		Fullname:             created.Fullname,
+		ProfileImageURL:      profileImageURL,
+		FirebaseProviderType: created.FirebaseProviderType,
+		FirebaseUID:          created.FirebaseUID,
+	}, nil
 }
 
 func (service *UserService) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
-	var userList *user.UserWithoutPrivateInfoList
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userList, err = postgres.FindUsers(ctx, tx, page, size, nickname)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	userList, err := postgres.FindUsers(ctx, tx, page, size, nickname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -90,19 +86,18 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 // FindMyProfile은 사용자의 프로필 정보를 조회한다.
 // 삭제된 유저의 경우 삭제된 유저 정보를 반환한다.
 func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
-	var err *pnd.AppError
-
-	var user *user.UserWithProfileImage
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		user, err = postgres.FindUserByID(ctx, tx, id, true)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	user, err := postgres.FindUserByID(ctx, tx, id, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -110,18 +105,18 @@ func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*us
 }
 
 func (service *UserService) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
-	var user *user.UserWithProfileImage
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		user, err = postgres.FindUserByEmail(ctx, tx, email)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	user, err := postgres.FindUserByEmail(ctx, tx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -129,46 +124,45 @@ func (service *UserService) FindUserByEmail(ctx context.Context, email string) (
 }
 
 func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*user.FindUserView, *pnd.AppError) {
-	var userView *user.FindUserView
-
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		foundUser, err := postgres.FindUserByUID(ctx, tx, uid)
-		if err != nil {
-			return err
-		}
-
-		userView = &user.FindUserView{
-			ID:                   foundUser.ID,
-			Email:                foundUser.Email,
-			Nickname:             foundUser.Nickname,
-			Fullname:             foundUser.Fullname,
-			ProfileImageURL:      foundUser.ProfileImageURL,
-			FirebaseProviderType: foundUser.FirebaseProviderType,
-			FirebaseUID:          foundUser.FirebaseUID,
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	return userView, nil
+	foundUser, err := postgres.FindUserByUID(ctx, tx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &user.FindUserView{
+		ID:                   foundUser.ID,
+		Email:                foundUser.Email,
+		Nickname:             foundUser.Nickname,
+		Fullname:             foundUser.Fullname,
+		ProfileImageURL:      foundUser.ProfileImageURL,
+		FirebaseProviderType: foundUser.FirebaseProviderType,
+		FirebaseUID:          foundUser.FirebaseUID,
+	}, nil
 }
 
 func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
-	var existsByNickname bool
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		existsByNickname, err = postgres.ExistsUserByNickname(ctx, tx, nickname)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return false, err
+	}
+
+	existsByNickname, err := postgres.ExistsUserByNickname(ctx, tx, nickname)
+	if err != nil {
+		return existsByNickname, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return existsByNickname, err
 	}
 
@@ -176,18 +170,18 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 }
 
 func (service *UserService) FindUserStatusByEmail(ctx context.Context, email string) (*user.UserStatus, *pnd.AppError) {
-	var userStatus *user.UserStatus
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStatus, err = postgres.FindUserStatusByEmail(ctx, tx, email)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	userStatus, err := postgres.FindUserStatusByEmail(ctx, tx, email)
+	if err != nil {
+		return userStatus, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return userStatus, err
 	}
 
@@ -195,122 +189,131 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 }
 
 func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.UserWithProfileImage, *pnd.AppError) {
-	var userView *user.UserWithProfileImage
-	var profileImage *media.Media
+	mediaService := NewMediaService(service.conn, service.s3Client)
 
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		mediaService := NewMediaService(service.conn, service.s3Client)
-
-		updatedUser, err := postgres.UpdateUserByUID(ctx, tx, uid, nickname, profileImageID)
-		if err != nil {
-			return err
-		}
-
-		if updatedUser.ProfileImageID != nil {
-			profileImage, err = mediaService.FindMediaByID(ctx, *updatedUser.ProfileImageID)
-			if err != nil {
-				return err
-			}
-		}
-
-		userView = &user.UserWithProfileImage{
-			ID:                   updatedUser.ID,
-			Email:                updatedUser.Email,
-			Nickname:             updatedUser.Nickname,
-			Fullname:             updatedUser.Fullname,
-			ProfileImageURL:      &profileImage.URL,
-			FirebaseProviderType: updatedUser.FirebaseProviderType,
-			FirebaseUID:          updatedUser.FirebaseUID,
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
-		return userView, err
+		return nil, err
 	}
 
-	return userView, nil
+	updatedUser, err := postgres.UpdateUserByUID(ctx, tx, uid, nickname, profileImageID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	var profileImageURL *string
+	if updatedUser.ProfileImageID != nil {
+		profileImage, err := mediaService.FindMediaByID(ctx, *updatedUser.ProfileImageID)
+		if err != nil {
+			return nil, err
+		}
+
+		if profileImage != nil {
+			profileImageURL = &profileImage.URL
+		}
+	}
+
+	return &user.UserWithProfileImage{
+		ID:                   updatedUser.ID,
+		Email:                updatedUser.Email,
+		Nickname:             updatedUser.Nickname,
+		Fullname:             updatedUser.Fullname,
+		ProfileImageURL:      profileImageURL,
+		FirebaseProviderType: updatedUser.FirebaseProviderType,
+		FirebaseUID:          updatedUser.FirebaseUID,
+	}, nil
 }
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		if err := postgres.DeleteUserByUID(ctx, tx, uid); err != nil {
-			return err
-		}
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return err
+	}
 
-		return nil
-	})
+	if err := postgres.DeleteUserByUID(ctx, tx, uid); err != nil {
+		return err
+	}
 
-	return err
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
-	var petViews []pet.PetView
-
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		user, err := postgres.FindUserByUID(ctx, tx, uid)
-		if err != nil {
-			return err
-		}
-
-		pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
-		for i, item := range addPetsRequest.Pets {
-			if item.ProfileImageID != nil {
-				if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
-					return pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
-				}
-			}
-
-			petToCreate := pet.Pet{
-				BasePet: pet.BasePet{
-					OwnerID:    user.ID,
-					Name:       item.Name,
-					PetType:    item.PetType,
-					Sex:        item.Sex,
-					Neutered:   item.Neutered,
-					Breed:      item.Breed,
-					BirthDate:  item.BirthDate,
-					WeightInKg: item.WeightInKg,
-				},
-				ProfileImageID: item.ProfileImageID,
-			}
-			createdPet, err := postgres.CreatePet(ctx, tx, &petToCreate)
-			pets[i] = *createdPet
-
-			if err != nil {
-				return err
-			}
-		}
-
-		petViews = pet.NewPetViewList(pets)
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
-	return petViews, nil
+
+	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
+	for i, item := range addPetsRequest.Pets {
+		if item.ProfileImageID != nil {
+			if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
+				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
+			}
+		}
+
+		petToCreate := pet.Pet{
+			BasePet: pet.BasePet{
+				OwnerID:    user.ID,
+				Name:       item.Name,
+				PetType:    item.PetType,
+				Sex:        item.Sex,
+				Neutered:   item.Neutered,
+				Breed:      item.Breed,
+				BirthDate:  item.BirthDate,
+				WeightInKg: item.WeightInKg,
+			},
+			ProfileImageID: item.ProfileImageID,
+		}
+		createdPet, err := postgres.CreatePet(ctx, tx, &petToCreate)
+		if err != nil {
+			return nil, err
+		}
+		pets[i] = *createdPet
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return pet.NewPetViewList(pets), nil
 }
 
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
-	var petListView *pet.FindMyPetsView
-
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		user, err := postgres.FindUserByUID(ctx, tx, uid)
-		if err != nil {
-			return err
-		}
-
-		pets, err := postgres.FindPetsByOwnerID(ctx, tx, user.ID)
-		if err != nil {
-			return err
-		}
-
-		petListView = pet.NewFindMyPetsView(pets)
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	return petListView, nil
+	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	pets, err := postgres.FindPetsByOwnerID(ctx, tx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return pet.NewFindMyPetsView(pets), nil
 }

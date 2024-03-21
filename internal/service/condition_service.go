@@ -20,26 +20,28 @@ func NewConditionService(conn *database.DB) *ConditionService {
 }
 
 func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post.ConditionView, *pnd.AppError) {
-	conditionViews := make([]sos_post.ConditionView, 0)
-
-	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		conditions, err := postgres.FindConditions(ctx, tx)
-		if err != nil {
-			return err
-		}
-
-		for _, v := range conditions {
-			conditionView := sos_post.ConditionView{
-				ID:   v.ID,
-				Name: v.Name,
-			}
-			conditionViews = append(conditionViews, conditionView)
-		}
-
-		return nil
-	})
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
+	}
+
+	conditions, err := postgres.FindConditions(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	conditionViews := make([]sos_post.ConditionView, 0)
+	for _, v := range conditions {
+		conditionView := sos_post.ConditionView{
+			ID:   v.ID,
+			Name: v.Name,
+		}
+		conditionViews = append(conditionViews, conditionView)
 	}
 
 	return conditionViews, nil
