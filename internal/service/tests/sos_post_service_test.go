@@ -52,20 +52,6 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
-			sosPostMedia := []media.MediaView{
-				{
-					ID:        sosPostImage.ID,
-					MediaType: sosPostImage.MediaType,
-					URL:       sosPostImage.URL,
-					CreatedAt: sosPostImage.CreatedAt,
-				},
-				{
-					ID:        sosPostImage2.ID,
-					MediaType: sosPostImage2.MediaType,
-					URL:       sosPostImage2.URL,
-					CreatedAt: sosPostImage2.CreatedAt,
-				},
-			}
 
 			userService := service.NewUserService(db, mediaService)
 
@@ -129,7 +115,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
-			assertMediaEquals(t, sosPost.Media, sosPostMedia)
+			assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
 			assertDatesEquals(t, sosPost.Dates, writeSosPostRequest.Dates)
 
 			if err != nil {
@@ -181,20 +167,6 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
-			sosPostMedia := []media.MediaView{
-				{
-					ID:        sosPostImage.ID,
-					MediaType: sosPostImage.MediaType,
-					URL:       sosPostImage.URL,
-					CreatedAt: sosPostImage.CreatedAt,
-				},
-				{
-					ID:        sosPostImage2.ID,
-					MediaType: sosPostImage2.MediaType,
-					URL:       sosPostImage2.URL,
-					CreatedAt: sosPostImage2.CreatedAt,
-				},
-			}
 
 			userService := service.NewUserService(db, mediaService)
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
@@ -274,7 +246,7 @@ func TestSosPostService(t *testing.T) {
 			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
-				assertMediaEquals(t, sosPost.Media, sosPostMedia)
+				assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
 				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostList.Items) - i - 1
@@ -322,20 +294,6 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
-			sosPostMedia := []media.MediaView{
-				{
-					ID:        sosPostImage.ID,
-					MediaType: sosPostImage.MediaType,
-					URL:       sosPostImage.URL,
-					CreatedAt: sosPostImage.CreatedAt,
-				},
-				{
-					ID:        sosPostImage2.ID,
-					MediaType: sosPostImage2.MediaType,
-					URL:       sosPostImage2.URL,
-					CreatedAt: sosPostImage2.CreatedAt,
-				},
-			}
 
 			userService := service.NewUserService(db, mediaService)
 
@@ -413,7 +371,7 @@ func TestSosPostService(t *testing.T) {
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
-				assertMediaEquals(t, sosPost.Media, sosPostMedia)
+				assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
 				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostListByAuthorID.Items) - i - 1
@@ -464,20 +422,6 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
-			sosPostMedia := []media.MediaView{
-				{
-					ID:        sosPostImage.ID,
-					MediaType: sosPostImage.MediaType,
-					URL:       sosPostImage.URL,
-					CreatedAt: sosPostImage.CreatedAt,
-				},
-				{
-					ID:        sosPostImage2.ID,
-					MediaType: sosPostImage2.MediaType,
-					URL:       sosPostImage2.URL,
-					CreatedAt: sosPostImage2.CreatedAt,
-				},
-			}
 
 			userService := service.NewUserService(db, mediaService)
 
@@ -553,7 +497,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
 			assertPetEquals(t, sosPosts[0].Pets[0], addPets[0])
-			assertMediaEquals(t, findSosPostByID.Media, sosPostMedia)
+			assertMediaEquals(t, findSosPostByID.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
 			assertAuthorEquals(t, findSosPostByID.Author, author)
 			assertDatesEquals(t, findSosPostByID.Dates, sosPosts[0].Dates)
 			if err != nil {
@@ -602,20 +546,6 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
-			sosPostMedia := []media.MediaView{
-				{
-					ID:        sosPostImage.ID,
-					MediaType: sosPostImage.MediaType,
-					URL:       sosPostImage.URL,
-					CreatedAt: sosPostImage.CreatedAt,
-				},
-				{
-					ID:        sosPostImage2.ID,
-					MediaType: sosPostImage2.MediaType,
-					URL:       sosPostImage2.URL,
-					CreatedAt: sosPostImage2.CreatedAt,
-				},
-			}
 
 			userService := service.NewUserService(db, mediaService)
 
@@ -693,7 +623,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
-			assertMediaEquals(t, updateSosPost.Media, sosPostMedia)
+			assertMediaEquals(t, updateSosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
 			assertDatesEquals(t, updateSosPost.Dates, updateSosPostData.Dates)
 
 			if err != nil {

@@ -26,10 +26,3 @@ type MediaStore interface {
 	CreateMedia(ctx context.Context, tx *database.Tx, media *Media) (*Media, *pnd.AppError)
 	FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*Media, *pnd.AppError)
 }
-
-type MediaView struct {
-	ID        int       `json:"id"`
-	MediaType MediaType `json:"mediaType"`
-	URL       string    `json:"url"`
-	CreatedAt string    `json:"createdAt"`
-}
