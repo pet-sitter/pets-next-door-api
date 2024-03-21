@@ -8,7 +8,6 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
@@ -67,13 +66,7 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, r, auth.KakaoCallbackView{
-		AuthToken:            *customToken,
-		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
-		Email:                userProfile.KakaoAccount.Email,
-		PhotoURL:             userProfile.Properties.ProfileImage,
-	})
+	render.JSON(w, r, auth.NewKakaoCallbackView(*customToken, userProfile))
 }
 
 // GenerateFBCustomTokenFromKakao godoc
@@ -106,11 +99,5 @@ func (h *authHandler) GenerateFBCustomTokenFromKakao(w http.ResponseWriter, r *h
 	}
 
 	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, auth.GenerateFBCustomTokenResponse{
-		AuthToken:            *customToken,
-		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          fmt.Sprintf("%d", userProfile.ID),
-		Email:                userProfile.KakaoAccount.Email,
-		PhotoURL:             userProfile.Properties.ProfileImage,
-	})
+	render.JSON(w, r, auth.NewGenerateFBCustomTokenResponse(*customToken, userProfile))
 }
