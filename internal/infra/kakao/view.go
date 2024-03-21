@@ -2,15 +2,15 @@ package kakaoinfra
 
 import "net/url"
 
-type kakaoTokenRequest struct {
+type KakaoTokenRequest struct {
 	GrantType   string `json:"grant_type"`
 	ClientID    string `json:"client_id"`
 	RedirectURI string `json:"redirect_uri"`
 	Code        string `json:"code"`
 }
 
-func NewKakaoTokenRequest(clientID, redirectURI, code string) *kakaoTokenRequest {
-	return &kakaoTokenRequest{
+func NewKakaoTokenRequest(clientID, redirectURI, code string) *KakaoTokenRequest {
+	return &KakaoTokenRequest{
 		GrantType:   "authorization_code",
 		ClientID:    clientID,
 		RedirectURI: redirectURI,
@@ -18,7 +18,7 @@ func NewKakaoTokenRequest(clientID, redirectURI, code string) *kakaoTokenRequest
 	}
 }
 
-func (r kakaoTokenRequest) ToURLValues() url.Values {
+func (r KakaoTokenRequest) ToURLValues() url.Values {
 	values := url.Values{}
 	values.Add("grant_type", r.GrantType)
 	values.Add("client_id", r.ClientID)
@@ -28,7 +28,7 @@ func (r kakaoTokenRequest) ToURLValues() url.Values {
 	return values
 }
 
-type kakaoTokenResponse struct {
+type KakaoTokenResponse struct {
 	TokenType             string `json:"token_type"`
 	AccessToken           string `json:"access_token"`
 	ExpiresIn             int64  `json:"expires_in"`
@@ -37,7 +37,7 @@ type kakaoTokenResponse struct {
 	Scope                 string `json:"scope"`
 }
 
-type kakaoUserProfile struct {
+type KakaoUserProfile struct {
 	ID          int64  `json:"id"`
 	ConnectedAt string `json:"connected_at"`
 	Properties  struct {

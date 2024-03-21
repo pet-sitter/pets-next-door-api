@@ -11,8 +11,8 @@ import (
 )
 
 type KakaoClient interface {
-	FetchAccessToken(code string) (*kakaoTokenResponse, error)
-	FetchUserProfile(code string) (*kakaoUserProfile, error)
+	FetchAccessToken(code string) (*KakaoTokenResponse, error)
+	FetchUserProfile(code string) (*KakaoUserProfile, error)
 }
 
 type KakaoDefaultClient struct{}
@@ -21,7 +21,7 @@ func NewKakaoDefaultClient() *KakaoDefaultClient {
 	return &KakaoDefaultClient{}
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*kakaoTokenResponse, error) {
+func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*KakaoTokenResponse, error) {
 	kakaoTokenRequest := NewKakaoTokenRequest(
 		configs.KakaoRestAPIKey,
 		configs.KakaoRedirectURI,
@@ -53,7 +53,7 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*kakaoToke
 	}
 	defer res.Body.Close()
 
-	kakaoTokenResponse := &kakaoTokenResponse{}
+	kakaoTokenResponse := &KakaoTokenResponse{}
 	if err = json.Unmarshal(body, kakaoTokenResponse); err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*kakaoToke
 	return kakaoTokenResponse, nil
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchUserProfile(code string) (*kakaoUserProfile, error) {
+func (kakaoClient *KakaoDefaultClient) FetchUserProfile(code string) (*KakaoUserProfile, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://kapi.kakao.com/v2/user/me", nil)
 	req.Header.Add("Authorization", "Bearer "+code)
@@ -80,7 +80,7 @@ func (kakaoClient *KakaoDefaultClient) FetchUserProfile(code string) (*kakaoUser
 	}
 	defer res.Body.Close()
 
-	kakaoUserProfile := &kakaoUserProfile{}
+	kakaoUserProfile := &KakaoUserProfile{}
 	if err = json.Unmarshal(body, kakaoUserProfile); err != nil {
 		return nil, err
 	}
