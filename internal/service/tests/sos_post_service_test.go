@@ -67,7 +67,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -196,7 +196,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -337,7 +337,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -479,7 +479,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -617,7 +617,7 @@ func TestSosPostService(t *testing.T) {
 				},
 			}
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
