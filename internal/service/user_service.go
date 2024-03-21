@@ -29,7 +29,6 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
 		mediaService := NewMediaService(service.conn, service.s3Client)
 
 		var mediaData *media.Media
@@ -45,7 +44,7 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 			profileImageURL = &mediaData.URL
 		}
 
-		created, err := userStore.CreateUser(ctx, registerUserRequest)
+		created, err := postgres.CreateUser(ctx, tx, registerUserRequest)
 		if err != nil {
 			return err
 		}
@@ -74,9 +73,7 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		userList, err = userStore.FindUsers(ctx, page, size, nickname)
+		userList, err = postgres.FindUsers(ctx, tx, page, size, nickname)
 		if err != nil {
 			return err
 		}
@@ -97,9 +94,7 @@ func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*us
 
 	var user *user.UserWithProfileImage
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		user, err = userStore.FindUserByID(ctx, id, true)
+		user, err = postgres.FindUserByID(ctx, tx, id, true)
 		if err != nil {
 			return err
 		}
@@ -119,9 +114,7 @@ func (service *UserService) FindUserByEmail(ctx context.Context, email string) (
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		user, err = userStore.FindUserByEmail(ctx, email)
+		user, err = postgres.FindUserByEmail(ctx, tx, email)
 		if err != nil {
 			return err
 		}
@@ -139,9 +132,7 @@ func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*use
 	var userView *user.FindUserView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		foundUser, err := userStore.FindUserByUID(ctx, uid)
+		foundUser, err := postgres.FindUserByUID(ctx, tx, uid)
 		if err != nil {
 			return err
 		}
@@ -170,8 +161,7 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-		existsByNickname, err = userStore.ExistsByNickname(ctx, nickname)
+		existsByNickname, err = postgres.ExistsUserByNickname(ctx, tx, nickname)
 		if err != nil {
 			return err
 		}
@@ -190,9 +180,7 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		userStatus, err = userStore.FindUserStatusByEmail(ctx, email)
+		userStatus, err = postgres.FindUserStatusByEmail(ctx, tx, email)
 		if err != nil {
 			return err
 		}
@@ -211,10 +199,9 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 	var profileImage *media.Media
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
 		mediaService := NewMediaService(service.conn, service.s3Client)
 
-		updatedUser, err := userStore.UpdateUserByUID(ctx, uid, nickname, profileImageID)
+		updatedUser, err := postgres.UpdateUserByUID(ctx, tx, uid, nickname, profileImageID)
 		if err != nil {
 			return err
 		}
@@ -247,9 +234,7 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-
-		if err := userStore.DeleteUserByUID(ctx, uid); err != nil {
+		if err := postgres.DeleteUserByUID(ctx, tx, uid); err != nil {
 			return err
 		}
 
@@ -263,11 +248,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 	var petViews []pet.PetView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-		petStore := postgres.NewPetPostgresStore(tx)
-		mediaStore := postgres.NewMediaPostgresStore(tx)
-
-		user, err := userStore.FindUserByUID(ctx, uid)
+		user, err := postgres.FindUserByUID(ctx, tx, uid)
 		if err != nil {
 			return err
 		}
@@ -275,7 +256,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 		pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
 		for i, item := range addPetsRequest.Pets {
 			if item.ProfileImageID != nil {
-				if _, err := mediaStore.FindMediaByID(ctx, *item.ProfileImageID); err != nil {
+				if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
 					return pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
 				}
 			}
@@ -293,7 +274,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 				},
 				ProfileImageID: item.ProfileImageID,
 			}
-			createdPet, err := petStore.CreatePet(ctx, &petToCreate)
+			createdPet, err := postgres.CreatePet(ctx, tx, &petToCreate)
 			pets[i] = *createdPet
 
 			if err != nil {
@@ -314,15 +295,12 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 	var petListView *pet.FindMyPetsView
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		userStore := postgres.NewUserPostgresStore(tx)
-		petStore := postgres.NewPetPostgresStore(tx)
-
-		user, err := userStore.FindUserByUID(ctx, uid)
+		user, err := postgres.FindUserByUID(ctx, tx, uid)
 		if err != nil {
 			return err
 		}
 
-		pets, err := petStore.FindPetsByOwnerID(ctx, user.ID)
+		pets, err := postgres.FindPetsByOwnerID(ctx, tx, user.ID)
 		if err != nil {
 			return err
 		}

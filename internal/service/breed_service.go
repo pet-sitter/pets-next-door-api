@@ -24,9 +24,7 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		breedStore := postgres.NewBreedPostgresStore(tx)
-
-		breeds, err = breedStore.FindBreeds(ctx, page, size, petType)
+		breeds, err = postgres.FindBreeds(ctx, tx, page, size, petType)
 		if err != nil {
 			return err
 		}
@@ -44,9 +42,7 @@ func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pe
 	var breedView *pet.BreedView
 
 	err := database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		breedStore := postgres.NewBreedPostgresStore(tx)
-
-		breed, err := breedStore.FindBreedByPetTypeAndName(ctx, petType, name)
+		breed, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, name)
 		if err != nil {
 			return err
 		}

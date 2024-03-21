@@ -66,9 +66,7 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		mediaStore := postgres.NewMediaPostgresStore(tx)
-
-		created, err = mediaStore.CreateMedia(ctx, mediaData)
+		created, err = postgres.CreateMedia(ctx, tx, mediaData)
 		if err != nil {
 			return err
 		}
@@ -87,9 +85,7 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media,
 	var err *pnd.AppError
 
 	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		mediaStore := postgres.NewMediaPostgresStore(tx)
-
-		media, err = mediaStore.FindMediaByID(ctx, id)
+		media, err = postgres.FindMediaByID(ctx, tx, id)
 		if err != nil {
 			return err
 		}

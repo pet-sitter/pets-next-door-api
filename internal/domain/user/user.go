@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -82,14 +83,14 @@ type UserStatus struct {
 }
 
 type UserStore interface {
-	CreateUser(ctx context.Context, request *RegisterUserRequest) (*User, *pnd.AppError)
-	FindUsers(ctx context.Context, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
-	FindUserByID(ctx context.Context, id int, includeDeleted bool) (*UserWithProfileImage, *pnd.AppError)
-	FindUserByEmail(ctx context.Context, email string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserByUID(ctx context.Context, uid string) (*UserWithProfileImage, *pnd.AppError)
-	FindUserIDByFbUID(ctx context.Context, fbUid string) (int, *pnd.AppError)
-	ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError)
-	FindUserStatusByEmail(ctx context.Context, email string) (*UserStatus, *pnd.AppError)
-	UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
-	DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError
+	CreateUser(ctx context.Context, tx *database.Tx, request *RegisterUserRequest) (*User, *pnd.AppError)
+	FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
+	FindUserByID(ctx context.Context, tx *database.Tx, id int, includeDeleted bool) (*UserWithProfileImage, *pnd.AppError)
+	FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*UserWithProfileImage, *pnd.AppError)
+	FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUid string) (int, *pnd.AppError)
+	ExistsUserByNickname(ctx context.Context, tx *database.Tx, nickname string) (bool, *pnd.AppError)
+	FindUserStatusByEmail(ctx context.Context, tx *database.Tx, email string) (*UserStatus, *pnd.AppError)
+	UpdateUserByUID(ctx context.Context, tx *database.Tx, uid string, nickname string, profileImageID *int) (*User, *pnd.AppError)
+	DeleteUserByUID(ctx context.Context, tx *database.Tx, uid string) *pnd.AppError
 }

@@ -8,29 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-type ResourceMediaPostgresStore struct {
-	conn *database.Tx
-}
-
-func NewResourceMediaPostgresStore(conn *database.Tx) *ResourceMediaPostgresStore {
-	return &ResourceMediaPostgresStore{
-		conn: conn,
-	}
-}
-
-func (s *ResourceMediaPostgresStore) CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
-	return (&resourceMediaQueries{conn: s.conn}).CreateResourceMedia(ctx, resourceID, mediaID, resourceType)
-}
-
-func (s *ResourceMediaPostgresStore) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
-	return (&resourceMediaQueries{conn: s.conn}).FindResourceMediaByResourceID(ctx, resourceID, resourceType)
-}
-
-type resourceMediaQueries struct {
-	conn database.DBTx
-}
-
-func (s *resourceMediaQueries) CreateResourceMedia(ctx context.Context, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
+func CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		resource_media
@@ -46,7 +24,7 @@ func (s *resourceMediaQueries) CreateResourceMedia(ctx context.Context, resource
 	`
 
 	resourceMedia := &media.ResourceMedia{}
-	err := s.conn.QueryRowContext(ctx, sql,
+	err := tx.QueryRowContext(ctx, sql,
 		resourceID,
 		mediaID,
 		resourceType,
@@ -58,7 +36,7 @@ func (s *resourceMediaQueries) CreateResourceMedia(ctx context.Context, resource
 	return resourceMedia, nil
 }
 
-func (s *resourceMediaQueries) FindResourceMediaByResourceID(ctx context.Context, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
+func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
 	const sql = `
 	SELECT
 		m.id,
@@ -79,7 +57,7 @@ func (s *resourceMediaQueries) FindResourceMediaByResourceID(ctx context.Context
 	`
 
 	var mediaList []media.Media
-	rows, err := s.conn.QueryContext(ctx, sql,
+	rows, err := tx.QueryContext(ctx, sql,
 		resourceID,
 		resourceType,
 	)

@@ -94,9 +94,7 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 
 	var breed *pet.Breed
 	err := database.WithTransaction(ctx, conn, func(tx *database.Tx) *pnd.AppError {
-		breedStore := postgres.NewBreedPostgresStore(tx)
-
-		existing, err := breedStore.FindBreedByPetTypeAndName(ctx, petType, row.Breed)
+		existing, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, row.Breed)
 		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
 			return err
 		}
@@ -107,7 +105,7 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 			return nil
 		}
 
-		breed, err = breedStore.CreateBreed(ctx, &pet.Breed{PetType: petType, Name: row.Breed})
+		breed, err = postgres.CreateBreed(ctx, tx, &pet.Breed{PetType: petType, Name: row.Breed})
 		if err != nil {
 			return err
 		}

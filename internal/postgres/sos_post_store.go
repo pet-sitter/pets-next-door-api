@@ -11,53 +11,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-type SosPostPostgresStore struct {
-	conn *database.Tx
-}
-
-func NewSosPostPostgresStore(conn *database.Tx) *SosPostPostgresStore {
-	return &SosPostPostgresStore{
-		conn: conn,
-	}
-}
-
-func (s *SosPostPostgresStore) WriteSosPost(ctx context.Context, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).WriteSosPost(ctx, authorID, request)
-}
-
-func (s *SosPostPostgresStore) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindSosPosts(ctx, page, size, sortBy)
-}
-
-func (s *SosPostPostgresStore) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindSosPostsByAuthorID(ctx, authorID, page, size, sortBy)
-}
-
-func (s *SosPostPostgresStore) FindSosPostByID(ctx context.Context, id int) (*sos_post.SosPost, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindSosPostByID(ctx, id)
-}
-
-func (s *SosPostPostgresStore) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).UpdateSosPost(ctx, request)
-}
-
-func (s *SosPostPostgresStore) FindConditionByID(ctx context.Context, id int) ([]sos_post.Condition, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindConditionByID(ctx, id)
-}
-
-func (s *SosPostPostgresStore) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindPetsByID(ctx, id)
-}
-
-func (s *SosPostPostgresStore) FindDatesBySosPostID(ctx context.Context, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
-	return (&sosPostQueries{conn: s.conn}).FindDatesBySosPostID(ctx, sosPostID)
-}
-
-type sosPostQueries struct {
-	conn database.DBTx
-}
-
-func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		sos_posts
@@ -87,7 +41,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	`
 
 	sosPost := &sos_post.SosPost{}
-	err := s.conn.QueryRowContext(ctx, sql,
+	err := tx.QueryRowContext(ctx, sql,
 		authorID,
 		request.Title,
 		request.Content,
@@ -127,7 +81,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
-		if err := s.conn.QueryRowContext(ctx, sql2,
+		if err := tx.QueryRowContext(ctx, sql2,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -143,7 +97,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	}
 
 	for _, sosDate := range sosDates {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_dates
 			(
@@ -162,7 +116,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	}
 
 	for _, imageID := range request.ImageIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			resource_media
 			(
@@ -182,7 +136,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_conditions
 			(
@@ -200,7 +154,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	}
 
 	for _, petID := range request.PetIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_pets
 			(
@@ -220,7 +174,7 @@ func (s *sosPostQueries) WriteSosPost(ctx context.Context, authorID int, request
 	return sosPost, nil
 }
 
-func (s *sosPostQueries) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 	switch sortBy {
@@ -260,7 +214,7 @@ func (s *sosPostQueries) FindSosPosts(ctx context.Context, page int, size int, s
 		sortOrder,
 	)
 
-	rows, err := s.conn.QueryContext(ctx, query, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -294,7 +248,7 @@ func (s *sosPostQueries) FindSosPosts(ctx context.Context, page int, size int, s
 	return sosPostList, nil
 }
 
-func (s *sosPostQueries) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 
@@ -336,7 +290,7 @@ func (s *sosPostQueries) FindSosPostsByAuthorID(ctx context.Context, authorID in
 		sortOrder,
 	)
 
-	rows, err := s.conn.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -367,7 +321,7 @@ func (s *sosPostQueries) FindSosPostsByAuthorID(ctx context.Context, authorID in
 	return sosPostList, nil
 }
 
-func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post.SosPost, *pnd.AppError) {
+func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.SosPost, *pnd.AppError) {
 	const query = `
 	SELECT
 		id,
@@ -389,7 +343,7 @@ func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post
 	`
 
 	sosPost := &sos_post.SosPost{}
-	if err := s.conn.QueryRowContext(ctx, query, id).Scan(
+	if err := tx.QueryRowContext(ctx, query, id).Scan(
 		&sosPost.ID,
 		&sosPost.AuthorID,
 		&sosPost.Title,
@@ -408,10 +362,10 @@ func (s *sosPostQueries) FindSosPostByID(ctx context.Context, id int) (*sos_post
 	return sosPost, nil
 }
 
-func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
 
-	if _, err := s.conn.ExecContext(ctx, `
+	if _, err := tx.ExecContext(ctx, `
 		UPDATE
 			sos_posts_dates
 		SET
@@ -423,7 +377,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	if _, err := s.conn.ExecContext(ctx, `
+	if _, err := tx.ExecContext(ctx, `
 		UPDATE
 			resource_media
 		SET
@@ -452,7 +406,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
-		if err := s.conn.QueryRowContext(ctx, sql,
+		if err := tx.QueryRowContext(ctx, sql,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -468,7 +422,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	}
 
 	for _, sosDate := range sosDates {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_dates
 			(
@@ -487,7 +441,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	}
 
 	for _, imageID := range request.ImageIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			resource_media
 			(
@@ -507,7 +461,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		}
 	}
 
-	if _, err := s.conn.ExecContext(ctx, `
+	if _, err := tx.ExecContext(ctx, `
 		UPDATE
 			sos_posts_conditions
 		SET
@@ -519,7 +473,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_conditions
 			(
@@ -537,7 +491,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		}
 	}
 
-	if _, err := s.conn.ExecContext(ctx, `
+	if _, err := tx.ExecContext(ctx, `
 		UPDATE
 			sos_posts_pets
 		SET
@@ -549,7 +503,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	}
 
 	for _, petID := range request.PetIDs {
-		if _, err := s.conn.ExecContext(ctx, `
+		if _, err := tx.ExecContext(ctx, `
 		INSERT INTO
 			sos_posts_pets
 			(
@@ -593,7 +547,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 		thumbnail_id
 	`
 
-	if err := s.conn.QueryRowContext(ctx, sql2,
+	if err := tx.QueryRowContext(ctx, sql2,
 		request.Title,
 		request.Content,
 		request.Reward,
@@ -619,7 +573,7 @@ func (s *sosPostQueries) UpdateSosPost(ctx context.Context, request *sos_post.Up
 	return sosPost, nil
 }
 
-func (s *sosPostQueries) FindConditionByID(ctx context.Context, id int) ([]sos_post.Condition, *pnd.AppError) {
+func FindConditionByID(ctx context.Context, tx *database.Tx, id int) ([]sos_post.Condition, *pnd.AppError) {
 	const sql = `
 	SELECT
 		sos_conditions.id,
@@ -638,7 +592,7 @@ func (s *sosPostQueries) FindConditionByID(ctx context.Context, id int) ([]sos_p
 	`
 
 	conditions := []sos_post.Condition{}
-	rows, err := s.conn.QueryContext(ctx, sql, id)
+	rows, err := tx.QueryContext(ctx, sql, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -663,7 +617,7 @@ func (s *sosPostQueries) FindConditionByID(ctx context.Context, id int) ([]sos_p
 	return conditions, nil
 }
 
-func (s *sosPostQueries) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx *database.Tx, id int) ([]pet.Pet, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -689,7 +643,7 @@ func (s *sosPostQueries) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *
 	`
 
 	pets := []pet.Pet{}
-	rows, err := s.conn.QueryContext(ctx, sql, id)
+	rows, err := tx.QueryContext(ctx, sql, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -721,7 +675,7 @@ func (s *sosPostQueries) FindPetsByID(ctx context.Context, id int) ([]pet.Pet, *
 	return pets, nil
 }
 
-func (s *sosPostQueries) FindDatesBySosPostID(ctx context.Context, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
+func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
 	const sql = `
 		SELECT
 		    sos_dates.id,
@@ -740,7 +694,7 @@ func (s *sosPostQueries) FindDatesBySosPostID(ctx context.Context, sosPostID int
 	`
 
 	sosDates := []sos_post.SosDates{}
-	rows, err := s.conn.QueryContext(ctx, sql, sosPostID)
+	rows, err := tx.QueryContext(ctx, sql, sosPostID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

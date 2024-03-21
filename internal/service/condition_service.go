@@ -23,9 +23,7 @@ func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post
 	conditionViews := make([]sos_post.ConditionView, 0)
 
 	err := database.WithTransaction(ctx, service.conn, func(tx *database.Tx) *pnd.AppError {
-		conditionStore := postgres.NewConditionPostgresStore(tx)
-
-		conditions, err := conditionStore.FindConditions(ctx)
+		conditions, err := postgres.FindConditions(ctx, tx)
 		if err != nil {
 			return err
 		}

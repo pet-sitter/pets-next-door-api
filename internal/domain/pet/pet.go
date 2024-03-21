@@ -2,6 +2,7 @@ package pet
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
@@ -63,9 +64,9 @@ func NewPetWithProfileImage(id int, ownerID int, name string, petType PetType, s
 }
 
 type PetStore interface {
-	CreatePet(ctx context.Context, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
-	FindPetByID(ctx context.Context, petID int) (*PetWithProfileImage, *pnd.AppError)
-	FindPetsByOwnerID(ctx context.Context, ownerID int) ([]PetWithProfileImage, *pnd.AppError)
+	CreatePet(ctx context.Context, tx *database.Tx, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
+	FindPetByID(ctx context.Context, tx *database.Tx, petID int) (*PetWithProfileImage, *pnd.AppError)
+	FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) ([]PetWithProfileImage, *pnd.AppError)
 }
 
 type PetType string
