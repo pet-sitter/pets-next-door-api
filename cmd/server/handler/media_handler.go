@@ -21,7 +21,7 @@ func NewMediaHandler(mediaService service.MediaService) *mediaHandler {
 	}
 }
 
-// findMediaByID godoc
+// FindMediaByID godoc
 // @Summary 미디어를 ID로 조회합니다.
 // @Description
 // @Tags media
@@ -42,15 +42,10 @@ func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.OK(w, nil, media.MediaView{
-		ID:        found.ID,
-		MediaType: found.MediaType,
-		URL:       found.URL,
-		CreatedAt: found.CreatedAt,
-	})
+	pnd.OK(w, nil, media.NewMediaView(found))
 }
 
-// uploadImage godoc
+// UploadImage godoc
 // @Summary 이미지를 업로드합니다.
 // @Description
 // @Tags media
@@ -83,14 +78,7 @@ func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.Created(w,
-		nil,
-		media.MediaView{
-			ID:        res.ID,
-			MediaType: res.MediaType,
-			URL:       res.URL,
-			CreatedAt: res.CreatedAt,
-		})
+	pnd.Created(w, nil, media.NewMediaView(res))
 }
 
 var supportedMimeTypes = []string{

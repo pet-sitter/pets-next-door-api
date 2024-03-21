@@ -44,17 +44,6 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		return nil, err
 	}
 
-	var mediaView []media.MediaView
-	for _, m := range mediaData {
-		view := media.MediaView{
-			ID:        m.ID,
-			MediaType: m.MediaType,
-			URL:       m.URL,
-			CreatedAt: m.CreatedAt,
-		}
-		mediaView = append(mediaView, view)
-	}
-
 	conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +102,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		AuthorID:     sosPost.AuthorID,
 		Title:        sosPost.Title,
 		Content:      sosPost.Content,
-		Media:        mediaView,
+		Media:        media.NewMediaListView(mediaData),
 		Conditions:   conditionsView,
 		Pets:         petsView,
 		Dates:        sosDatesView,
@@ -144,17 +133,6 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 		mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
 		if err != nil {
 			return nil, err
-		}
-
-		mediaView := make([]media.MediaView, 0)
-		for _, m := range mediaData {
-			view := media.MediaView{
-				ID:        m.ID,
-				MediaType: m.MediaType,
-				URL:       m.URL,
-				CreatedAt: m.CreatedAt,
-			}
-			mediaView = append(mediaView, view)
 		}
 
 		conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
@@ -216,7 +194,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 			Author:       author.ToUserWithoutPrivateInfo(),
 			Title:        sosPost.Title,
 			Content:      sosPost.Content,
-			Media:        mediaView,
+			Media:        media.NewMediaListView(mediaData),
 			Conditions:   conditionsView,
 			Pets:         petsView,
 			Dates:        sosDatesView,
@@ -283,17 +261,6 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 			conditionsView = append(conditionsView, view)
 		}
 
-		var mediaView []media.MediaView
-		for _, m := range mediaData {
-			view := media.MediaView{
-				ID:        m.ID,
-				MediaType: m.MediaType,
-				URL:       m.URL,
-				CreatedAt: m.CreatedAt,
-			}
-			mediaView = append(mediaView, view)
-		}
-
 		var petsView []pet.PetView
 		for _, p := range pets {
 			p := pet.PetView{
@@ -323,7 +290,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 			Author:       author.ToUserWithoutPrivateInfo(),
 			Title:        sosPost.Title,
 			Content:      sosPost.Content,
-			Media:        mediaView,
+			Media:        media.NewMediaListView(mediaData),
 			Conditions:   conditionsView,
 			Pets:         petsView,
 			Dates:        sosDatesView,
@@ -387,17 +354,6 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	var mediaView []media.MediaView
-	for _, m := range mediaData {
-		view := media.MediaView{
-			ID:        m.ID,
-			MediaType: m.MediaType,
-			URL:       m.URL,
-			CreatedAt: m.CreatedAt,
-		}
-		mediaView = append(mediaView, view)
-	}
-
 	var conditionsView []sos_post.ConditionView
 	for _, c := range conditions {
 		view := sos_post.ConditionView{
@@ -437,7 +393,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		Author:       author.ToUserWithoutPrivateInfo(),
 		Title:        sosPost.Title,
 		Content:      sosPost.Content,
-		Media:        mediaView,
+		Media:        media.NewMediaListView(mediaData),
 		Conditions:   conditionsView,
 		Pets:         petsView,
 		Dates:        sosDatesView,
@@ -487,17 +443,6 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 		return nil, err
 	}
 
-	var mediaView []media.MediaView
-	for _, m := range mediaData {
-		view := media.MediaView{
-			ID:        m.ID,
-			MediaType: m.MediaType,
-			URL:       m.URL,
-			CreatedAt: m.CreatedAt,
-		}
-		mediaView = append(mediaView, view)
-	}
-
 	var conditionsView []sos_post.ConditionView
 	for _, c := range conditions {
 		view := sos_post.ConditionView{
@@ -537,7 +482,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 		AuthorID:     updateSosPost.AuthorID,
 		Title:        updateSosPost.Title,
 		Content:      updateSosPost.Content,
-		Media:        mediaView,
+		Media:        media.NewMediaListView(mediaData),
 		Conditions:   conditionsView,
 		Pets:         petsView,
 		Dates:        sosDatesView,
