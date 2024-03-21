@@ -68,7 +68,7 @@ func TestUserService(t *testing.T) {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			service := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -78,7 +78,7 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
-			created, err := service.RegisterUser(ctx, user)
+			created, err := userService.RegisterUser(ctx, user)
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -124,7 +124,7 @@ func TestUserService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -154,7 +154,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			targetNickname := "target"
 			targetUserRequest := &user.RegisterUserRequest{
@@ -196,7 +196,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -244,7 +244,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -304,7 +304,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -335,7 +335,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -373,7 +373,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -414,7 +414,7 @@ func TestUserService(t *testing.T) {
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(db, mediaService)
 			owner, _ := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",

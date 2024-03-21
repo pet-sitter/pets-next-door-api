@@ -7,28 +7,25 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type UserService struct {
-	conn     *database.DB
-	s3Client *s3infra.S3Client
+	conn         *database.DB
+	mediaService *MediaService
 }
 
-func NewUserService(conn *database.DB, s3Client *s3infra.S3Client) *UserService {
+func NewUserService(conn *database.DB, mediaService *MediaService) *UserService {
 	return &UserService{
-		conn:     conn,
-		s3Client: s3Client,
+		conn:         conn,
+		mediaService: mediaService,
 	}
 }
 
 func (service *UserService) RegisterUser(ctx context.Context, registerUserRequest *user.RegisterUserRequest) (*user.RegisterUserView, *pnd.AppError) {
-	mediaService := NewMediaService(service.conn, service.s3Client)
-
 	var profileImageURL *string
 	if registerUserRequest.ProfileImageID != nil {
-		mediaData, err := mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
+		mediaData, err := service.mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
 		if err != nil {
 			return nil, err
 		}
@@ -189,8 +186,6 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 }
 
 func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.UserWithProfileImage, *pnd.AppError) {
-	mediaService := NewMediaService(service.conn, service.s3Client)
-
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -208,7 +203,7 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 
 	var profileImageURL *string
 	if updatedUser.ProfileImageID != nil {
-		profileImage, err := mediaService.FindMediaByID(ctx, *updatedUser.ProfileImageID)
+		profileImage, err := service.mediaService.FindMediaByID(ctx, *updatedUser.ProfileImageID)
 		if err != nil {
 			return nil, err
 		}

@@ -44,8 +44,8 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	)
 
 	mediaService := service.NewMediaService(db, s3Client)
-	userService := service.NewUserService(db, s3Client)
-	authService := service.NewFirebaseBearerAuthService(db, authClient, s3Client)
+	userService := service.NewUserService(db, mediaService)
+	authService := service.NewFirebaseBearerAuthService(authClient, userService)
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSosPostService(db)
 	conditionService := service.NewConditionService(db)
