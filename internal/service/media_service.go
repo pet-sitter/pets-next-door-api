@@ -62,18 +62,18 @@ func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, medi
 }
 
 func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) (*media.Media, *pnd.AppError) {
-	var created *media.Media
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		created, err = postgres.CreateMedia(ctx, tx, mediaData)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	created, err := postgres.CreateMedia(ctx, tx, mediaData)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -81,18 +81,18 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 }
 
 func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	var media *media.Media
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		media, err = postgres.FindMediaByID(ctx, tx, id)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	media, err := postgres.FindMediaByID(ctx, tx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 

@@ -20,18 +20,18 @@ func NewBreedService(conn *database.DB) *BreedService {
 }
 
 func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedListView, *pnd.AppError) {
-	var breeds *pet.BreedList
-	var err *pnd.AppError
-
-	err = database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		breeds, err = postgres.FindBreeds(ctx, tx, page, size, petType)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
+		return nil, err
+	}
+
+	breeds, err := postgres.FindBreeds(ctx, tx, page, size, petType)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -39,25 +39,24 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 }
 
 func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.BreedView, *pnd.AppError) {
-	var breedView *pet.BreedView
-
-	err := database.WithTransaction(ctx, s.conn, func(tx *database.Tx) *pnd.AppError {
-		breed, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, name)
-		if err != nil {
-			return err
-		}
-
-		breedView = &pet.BreedView{
-			ID:      breed.ID,
-			PetType: breed.PetType,
-			Name:    breed.Name,
-		}
-
-		return nil
-	})
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	return breedView, nil
+	breed, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &pet.BreedView{
+		ID:      breed.ID,
+		PetType: breed.PetType,
+		Name:    breed.Name,
+	}, nil
 }

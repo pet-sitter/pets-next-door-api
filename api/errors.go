@@ -20,9 +20,10 @@ const (
 	ErrCodeMultipartForm     AppErrorCode = "ERR_MULTIPART_FORM"
 
 	// Common errors - Auth
-	ErrCodeInvalidFBToken    AppErrorCode = "ERR_INVALID_FB_TOKEN"
-	ErrCodeUserNotRegistered AppErrorCode = "ERR_USER_NOT_REGISTERED"
-	ErrCodeForbidden         AppErrorCode = "ERR_FORBIDDEN"
+	ErrCodeInvalidFBToken     AppErrorCode = "ERR_INVALID_FB_TOKEN"
+	ErrCodeInvalidBearerToken AppErrorCode = "ERR_INVALID_BEARER_TOKEN"
+	ErrCodeUserNotRegistered  AppErrorCode = "ERR_USER_NOT_REGISTERED"
+	ErrCodeForbidden          AppErrorCode = "ERR_FORBIDDEN"
 
 	// Common Errors - Resource
 	ErrCodeNotFound AppErrorCode = "ERR_NOT_FOUND"
@@ -84,6 +85,10 @@ func ErrMultipartFormError(err error) *AppError {
 
 func ErrInvalidFBToken(err error) *AppError {
 	return ErrDefault(err, http.StatusUnauthorized, ErrCodeInvalidFBToken)
+}
+
+func ErrInvalidBearerToken(err error) *AppError {
+	return ErrDefault(err, http.StatusUnauthorized, ErrCodeInvalidBearerToken)
 }
 
 func ErrUserNotRegistered(err error) *AppError {
