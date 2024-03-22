@@ -19,6 +19,18 @@ type RegisterUserView struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
+func (u *User) ToRegisterUserView(profileImageURL *string) *RegisterUserView {
+	return &RegisterUserView{
+		ID:                   u.ID,
+		Email:                u.Email,
+		Nickname:             u.Nickname,
+		Fullname:             u.Fullname,
+		ProfileImageURL:      profileImageURL,
+		FirebaseProviderType: u.FirebaseProviderType,
+		FirebaseUID:          u.FirebaseUID,
+	}
+}
+
 type FindUserView struct {
 	ID                   int                  `json:"id"`
 	Email                string               `json:"email"`
@@ -27,6 +39,18 @@ type FindUserView struct {
 	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
 	FirebaseUID          string               `json:"fbUid"`
+}
+
+func (u *UserWithProfileImage) ToFindUserView() *FindUserView {
+	return &FindUserView{
+		ID:                   u.ID,
+		Email:                u.Email,
+		Nickname:             u.Nickname,
+		Fullname:             u.Fullname,
+		ProfileImageURL:      u.ProfileImageURL,
+		FirebaseProviderType: u.FirebaseProviderType,
+		FirebaseUID:          u.FirebaseUID,
+	}
 }
 
 func (r *FindUserView) ToMyProfileView() *MyProfileView {
@@ -73,6 +97,13 @@ type UserStatusView struct {
 	FirebaseProviderType FirebaseProviderType   `json:"fbProviderType,omitempty"`
 }
 
+func (s *UserStatus) ToUserStatusView() *UserStatusView {
+	return &UserStatusView{
+		Status:               UserStatusRegistered,
+		FirebaseProviderType: s.FirebaseProviderType,
+	}
+}
+
 type UpdateUserRequest struct {
 	Nickname       string `json:"nickname" validate:"required"`
 	ProfileImageID *int   `json:"profileImageId" validate:"omitempty"`
@@ -85,4 +116,15 @@ type UpdateUserView struct {
 	Fullname             string               `json:"fullname"`
 	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
+}
+
+func (u *UserWithProfileImage) ToUpdateUserView() *UpdateUserView {
+	return &UpdateUserView{
+		ID:                   u.ID,
+		Email:                u.Email,
+		Nickname:             u.Nickname,
+		Fullname:             u.Fullname,
+		ProfileImageURL:      u.ProfileImageURL,
+		FirebaseProviderType: u.FirebaseProviderType,
+	}
 }

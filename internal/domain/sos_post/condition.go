@@ -15,10 +15,7 @@ type Condition struct {
 	DeletedAt string `field:"deleted_at"`
 }
 
-type ConditionView struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
+type ConditionList []*Condition
 
 type SosCondition string
 
@@ -32,5 +29,5 @@ var ConditionName = []SosCondition{CCTVPermission, IDVerification, PhonePermissi
 
 type ConditionStore interface {
 	InitConditions(ctx context.Context, tx *database.Tx, conditions []SosCondition) (string, *pnd.AppError)
-	FindConditions(ctx context.Context, tx *database.Tx) ([]Condition, *pnd.AppError)
+	FindConditions(ctx context.Context, tx *database.Tx) (*ConditionList, *pnd.AppError)
 }

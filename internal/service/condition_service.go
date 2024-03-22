@@ -35,14 +35,5 @@ func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post
 		return nil, err
 	}
 
-	conditionViews := make([]sos_post.ConditionView, 0)
-	for _, v := range conditions {
-		conditionView := sos_post.ConditionView{
-			ID:   v.ID,
-			Name: v.Name,
-		}
-		conditionViews = append(conditionViews, conditionView)
-	}
-
-	return conditionViews, nil
+	return conditions.ToConditionViewList(), nil
 }

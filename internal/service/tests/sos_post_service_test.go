@@ -115,7 +115,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
-			assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
+			assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 			assertDatesEquals(t, sosPost.Dates, writeSosPostRequest.Dates)
 
 			if err != nil {
@@ -246,7 +246,7 @@ func TestSosPostService(t *testing.T) {
 			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
-				assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
+				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostList.Items) - i - 1
@@ -371,7 +371,7 @@ func TestSosPostService(t *testing.T) {
 			for i, sosPost := range sosPostListByAuthorID.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
-				assertMediaEquals(t, sosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
+				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 				assertAuthorEquals(t, sosPost.Author, author)
 
 				idx := len(sosPostListByAuthorID.Items) - i - 1
@@ -497,7 +497,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
 			assertPetEquals(t, sosPosts[0].Pets[0], addPets[0])
-			assertMediaEquals(t, findSosPostByID.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
+			assertMediaEquals(t, findSosPostByID.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 			assertAuthorEquals(t, findSosPostByID.Author, author)
 			assertDatesEquals(t, findSosPostByID.Dates, sosPosts[0].Dates)
 			if err != nil {
@@ -623,7 +623,7 @@ func TestSosPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], addPets[0])
-			assertMediaEquals(t, updateSosPost.Media, media.NewMediaListView([]media.Media{*sosPostImage, *sosPostImage2}))
+			assertMediaEquals(t, updateSosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 			assertDatesEquals(t, updateSosPost.Dates, updateSosPostData.Dates)
 
 			if err != nil {
@@ -670,7 +670,7 @@ func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
 	}
 }
 
-func assertMediaEquals(t *testing.T, got []media.MediaView, want []media.MediaView) {
+func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaViewList) {
 	for i, media := range want {
 		if !reflect.DeepEqual(got[i], media) {
 			t.Errorf("got %v want %v", got[i], media)

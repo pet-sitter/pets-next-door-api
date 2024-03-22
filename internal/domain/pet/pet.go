@@ -22,51 +22,24 @@ type BasePet struct {
 	DeletedAt  string  `field:"deleted_at"`
 }
 
-func NewBasePet(id int, ownerID int, name string, petType PetType, sex PetSex, neutered bool, breed string, birthDate string, weightInKg float64, createdAt string, updatedAt string, deletedAt string) *BasePet {
-	return &BasePet{
-		ID:         id,
-		OwnerID:    ownerID,
-		Name:       name,
-		PetType:    petType,
-		Sex:        sex,
-		Neutered:   neutered,
-		Breed:      breed,
-		BirthDate:  birthDate,
-		WeightInKg: weightInKg,
-		CreatedAt:  createdAt,
-		UpdatedAt:  updatedAt,
-		DeletedAt:  deletedAt,
-	}
-}
-
 type Pet struct {
 	BasePet
 	ProfileImageID *int `field:"profile_image_id"`
 }
 
-func NewPet(id int, ownerID int, name string, petType PetType, sex PetSex, neutered bool, breed string, birthDate string, weightInKg float64, createAt string, updatedAt string, deletedAt string, profileImageID *int) *Pet {
-	return &Pet{
-		BasePet:        *NewBasePet(id, ownerID, name, petType, sex, neutered, breed, birthDate, weightInKg, createAt, updatedAt, deletedAt),
-		ProfileImageID: profileImageID,
-	}
-}
+type PetList []*Pet
 
 type PetWithProfileImage struct {
 	BasePet
 	ProfileImageURL *string `field:"profile_image_url"`
 }
 
-func NewPetWithProfileImage(id int, ownerID int, name string, petType PetType, sex PetSex, neutered bool, breed string, birthDate string, weightInKg float64, createAt string, updatedAt string, deletedAt string, profileImageURL *string) *PetWithProfileImage {
-	return &PetWithProfileImage{
-		BasePet:         *NewBasePet(id, ownerID, name, petType, sex, neutered, breed, birthDate, weightInKg, createAt, updatedAt, deletedAt),
-		ProfileImageURL: profileImageURL,
-	}
-}
+type PetWithProfileList []*PetWithProfileImage
 
 type PetStore interface {
 	CreatePet(ctx context.Context, tx *database.Tx, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
 	FindPetByID(ctx context.Context, tx *database.Tx, petID int) (*PetWithProfileImage, *pnd.AppError)
-	FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) ([]PetWithProfileImage, *pnd.AppError)
+	FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*PetWithProfileList, *pnd.AppError)
 }
 
 type PetType string

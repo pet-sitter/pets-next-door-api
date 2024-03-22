@@ -32,6 +32,22 @@ type User struct {
 	DeletedAt            sql.NullTime         `field:"deleted_at"`
 }
 
+func (u *User) ToUserWithProfileImage(profileImageURL *string) *UserWithProfileImage {
+	return &UserWithProfileImage{
+		ID:                   u.ID,
+		Email:                u.Email,
+		Password:             u.Password,
+		Nickname:             u.Nickname,
+		Fullname:             u.Fullname,
+		ProfileImageURL:      profileImageURL,
+		FirebaseProviderType: u.FirebaseProviderType,
+		FirebaseUID:          u.FirebaseUID,
+		CreatedAt:            u.CreatedAt,
+		UpdatedAt:            u.UpdatedAt,
+		DeletedAt:            u.DeletedAt,
+	}
+}
+
 type UserWithProfileImage struct {
 	ID                   int                  `field:"id"`
 	Email                string               `field:"email"`

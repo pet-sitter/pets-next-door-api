@@ -97,7 +97,7 @@ func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProf
 	return &pet, nil
 }
 
-func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) ([]pet.PetWithProfileImage, *pnd.AppError) {
+func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -123,7 +123,7 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) ([]pet
 		pets.deleted_at IS NULL
 	`
 
-	var pets []pet.PetWithProfileImage
+	var pets pet.PetWithProfileList
 	rows, err := tx.QueryContext(ctx, sql,
 		ownerID,
 	)
@@ -151,11 +151,11 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) ([]pet
 			return nil, pnd.FromPostgresError(err)
 		}
 		pet.BirthDate = utils.FormatDate(pet.BirthDate)
-		pets = append(pets, pet)
+		pets = append(pets, &pet)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return pets, nil
+	return &pets, nil
 }

@@ -38,7 +38,7 @@ func InitConditions(ctx context.Context, tx *database.Tx, conditions []sos_post.
 	return "condition init success", nil
 }
 
-func FindConditions(ctx context.Context, tx *database.Tx) ([]sos_post.Condition, *pnd.AppError) {
+func FindConditions(ctx context.Context, tx *database.Tx) (*sos_post.ConditionList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -47,7 +47,7 @@ func FindConditions(ctx context.Context, tx *database.Tx) ([]sos_post.Condition,
 		sos_conditions
 	`
 
-	conditions := make([]sos_post.Condition, 0)
+	conditions := make(sos_post.ConditionList, 0)
 	rows, err := tx.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -57,11 +57,11 @@ func FindConditions(ctx context.Context, tx *database.Tx) ([]sos_post.Condition,
 		if err := rows.Scan(&condition.ID, &condition.Name); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		conditions = append(conditions, condition)
+		conditions = append(conditions, &condition)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return conditions, nil
+	return &conditions, nil
 }

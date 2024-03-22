@@ -35,7 +35,7 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 		return nil, err
 	}
 
-	return pet.FromBreedList(breeds), nil
+	return breeds.ToBreedListView(), nil
 }
 
 func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.BreedView, *pnd.AppError) {

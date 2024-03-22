@@ -573,7 +573,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 	return sosPost, nil
 }
 
-func FindConditionByID(ctx context.Context, tx *database.Tx, id int) ([]sos_post.Condition, *pnd.AppError) {
+func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.ConditionList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		sos_conditions.id,
@@ -591,7 +591,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) ([]sos_post
 		sos_posts_conditions.deleted_at IS NULL
 	`
 
-	conditions := []sos_post.Condition{}
+	conditions := sos_post.ConditionList{}
 	rows, err := tx.QueryContext(ctx, sql, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -608,16 +608,16 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) ([]sos_post
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		conditions = append(conditions, condition)
+		conditions = append(conditions, &condition)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return conditions, nil
+	return &conditions, nil
 }
 
-func FindPetsByID(ctx context.Context, tx *database.Tx, id int) ([]pet.Pet, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -642,7 +642,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) ([]pet.Pet, *pnd
 		sos_posts_pets.deleted_at IS NULL
 	`
 
-	pets := []pet.Pet{}
+	pets := pet.PetList{}
 	rows, err := tx.QueryContext(ctx, sql, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -666,16 +666,16 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) ([]pet.Pet, *pnd
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		pets = append(pets, pet)
+		pets = append(pets, &pet)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return pets, nil
+	return &pets, nil
 }
 
-func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) ([]sos_post.SosDates, *pnd.AppError) {
+func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sos_post.SosDatesList, *pnd.AppError) {
 	const sql = `
 		SELECT
 		    sos_dates.id,
@@ -693,7 +693,7 @@ func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 			sos_posts_dates.deleted_at IS NULL
 	`
 
-	sosDates := []sos_post.SosDates{}
+	var sosDates sos_post.SosDatesList
 	rows, err := tx.QueryContext(ctx, sql, sosPostID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -711,8 +711,8 @@ func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		sosDates = append(sosDates, sosDate)
+		sosDates = append(sosDates, &sosDate)
 	}
 
-	return sosDates, nil
+	return &sosDates, nil
 }
