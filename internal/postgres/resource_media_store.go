@@ -36,7 +36,7 @@ func CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, m
 	return resourceMedia, nil
 }
 
-func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) ([]media.Media, *pnd.AppError) {
+func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) (*media.MediaList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		m.id,
@@ -56,7 +56,7 @@ func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourc
 		rm.deleted_at IS NULL
 	`
 
-	var mediaList []media.Media
+	var mediaList media.MediaList
 	rows, err := tx.QueryContext(ctx, sql,
 		resourceID,
 		resourceType,
@@ -71,11 +71,11 @@ func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourc
 		if err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		mediaList = append(mediaList, mediaItem)
+		mediaList = append(mediaList, &mediaItem)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return mediaList, nil
+	return &mediaList, nil
 }

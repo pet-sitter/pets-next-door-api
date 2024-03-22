@@ -2,13 +2,11 @@ package service
 
 import (
 	"context"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 )
 
@@ -49,34 +47,9 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		return nil, err
 	}
 
-	var conditionsView []sos_post.ConditionView
-	for _, c := range conditions {
-		view := sos_post.ConditionView{
-			ID:   c.ID,
-			Name: c.Name,
-		}
-
-		conditionsView = append(conditionsView, view)
-	}
-
 	pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
 	if err != nil {
 		return nil, err
-	}
-
-	var petsView []pet.PetView
-	for _, p := range pets {
-		p := pet.PetView{
-			ID:         p.ID,
-			Name:       p.Name,
-			PetType:    p.PetType,
-			Sex:        p.Sex,
-			Neutered:   p.Neutered,
-			Breed:      p.Breed,
-			BirthDate:  utils.FormatDate(p.BirthDate),
-			WeightInKg: p.WeightInKg,
-		}
-		petsView = append(petsView, p)
 	}
 
 	dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
@@ -88,32 +61,12 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		return nil, err
 	}
 
-	var sosDatesView []sos_post.SosDateView
-	for _, d := range dates {
-		d := sos_post.SosDateView{
-			DateStartAt: utils.FormatDate(d.DateStartAt),
-			DateEndAt:   utils.FormatDate(d.DateEndAt),
-		}
-		sosDatesView = append(sosDatesView, d)
-	}
-
-	return &sos_post.WriteSosPostView{
-		ID:           sosPost.ID,
-		AuthorID:     sosPost.AuthorID,
-		Title:        sosPost.Title,
-		Content:      sosPost.Content,
-		Media:        media.NewMediaListView(mediaData),
-		Conditions:   conditionsView,
-		Pets:         petsView,
-		Dates:        sosDatesView,
-		Reward:       sosPost.Reward,
-		CareType:     sosPost.CareType,
-		CarerGender:  sosPost.CarerGender,
-		RewardAmount: sosPost.RewardAmount,
-		ThumbnailID:  sosPost.ThumbnailID,
-		CreatedAt:    sosPost.CreatedAt,
-		UpdatedAt:    sosPost.UpdatedAt,
-	}, nil
+	return sosPost.ToWriteSosPostView(
+		mediaData.ToMediaViewList(),
+		conditions.ToConditionViewList(),
+		pets.ToPetViewList(),
+		dates.ToSosDateViewList(),
+	), nil
 }
 
 func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.FindSosPostListView, *pnd.AppError) {
@@ -145,21 +98,6 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 			return nil, err
 		}
 
-		petsView := make([]pet.PetView, 0)
-		for _, p := range pets {
-			p := pet.PetView{
-				ID:         p.ID,
-				Name:       p.Name,
-				PetType:    p.PetType,
-				Sex:        p.Sex,
-				Neutered:   p.Neutered,
-				Breed:      p.Breed,
-				BirthDate:  utils.FormatDate(p.BirthDate),
-				WeightInKg: p.WeightInKg,
-			}
-			petsView = append(petsView, p)
-		}
-
 		dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
 		if err != nil {
 			return nil, err
@@ -170,42 +108,13 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 			return nil, err
 		}
 
-		conditionsView := make([]sos_post.ConditionView, 0)
-		for _, c := range conditions {
-			view := sos_post.ConditionView{
-				ID:   c.ID,
-				Name: c.Name,
-			}
-
-			conditionsView = append(conditionsView, view)
-		}
-
-		sosDatesView := make([]sos_post.SosDateView, 0)
-		for _, d := range dates {
-			d := sos_post.SosDateView{
-				DateStartAt: utils.FormatDate(d.DateStartAt),
-				DateEndAt:   utils.FormatDate(d.DateEndAt),
-			}
-			sosDatesView = append(sosDatesView, d)
-		}
-
-		findByAuthorSosPostView := &sos_post.FindSosPostView{
-			ID:           sosPost.ID,
-			Author:       author.ToUserWithoutPrivateInfo(),
-			Title:        sosPost.Title,
-			Content:      sosPost.Content,
-			Media:        media.NewMediaListView(mediaData),
-			Conditions:   conditionsView,
-			Pets:         petsView,
-			Dates:        sosDatesView,
-			Reward:       sosPost.Reward,
-			CareType:     sosPost.CareType,
-			CarerGender:  sosPost.CarerGender,
-			RewardAmount: sosPost.RewardAmount,
-			ThumbnailID:  sosPost.ThumbnailID,
-			CreatedAt:    sosPost.CreatedAt,
-			UpdatedAt:    sosPost.UpdatedAt,
-		}
+		findByAuthorSosPostView := sosPost.ToFindSosPostView(
+			author.ToUserWithoutPrivateInfo(),
+			mediaData.ToMediaViewList(),
+			conditions.ToConditionViewList(),
+			pets.ToPetViewList(),
+			dates.ToSosDateViewList(),
+		)
 
 		sosPostViews.Items = append(sosPostViews.Items, *findByAuthorSosPostView)
 	}
@@ -252,56 +161,13 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 			return nil, err
 		}
 
-		var conditionsView []sos_post.ConditionView
-		for _, c := range conditions {
-			view := sos_post.ConditionView{
-				ID:   c.ID,
-				Name: c.Name,
-			}
-			conditionsView = append(conditionsView, view)
-		}
-
-		var petsView []pet.PetView
-		for _, p := range pets {
-			p := pet.PetView{
-				ID:         p.ID,
-				Name:       p.Name,
-				PetType:    p.PetType,
-				Sex:        p.Sex,
-				Neutered:   p.Neutered,
-				Breed:      p.Breed,
-				BirthDate:  utils.FormatDate(p.BirthDate),
-				WeightInKg: p.WeightInKg,
-			}
-			petsView = append(petsView, p)
-		}
-
-		sosDatesView := make([]sos_post.SosDateView, 0)
-		for _, d := range dates {
-			d := sos_post.SosDateView{
-				DateStartAt: utils.FormatDate(d.DateStartAt),
-				DateEndAt:   utils.FormatDate(d.DateEndAt),
-			}
-			sosDatesView = append(sosDatesView, d)
-		}
-
-		findByAuthorSosPostView := &sos_post.FindSosPostView{
-			ID:           sosPost.ID,
-			Author:       author.ToUserWithoutPrivateInfo(),
-			Title:        sosPost.Title,
-			Content:      sosPost.Content,
-			Media:        media.NewMediaListView(mediaData),
-			Conditions:   conditionsView,
-			Pets:         petsView,
-			Dates:        sosDatesView,
-			Reward:       sosPost.Reward,
-			CareType:     sosPost.CareType,
-			CarerGender:  sosPost.CarerGender,
-			RewardAmount: sosPost.RewardAmount,
-			ThumbnailID:  sosPost.ThumbnailID,
-			CreatedAt:    sosPost.CreatedAt,
-			UpdatedAt:    sosPost.UpdatedAt,
-		}
+		findByAuthorSosPostView := sosPost.ToFindSosPostView(
+			author.ToUserWithoutPrivateInfo(),
+			mediaData.ToMediaViewList(),
+			conditions.ToConditionViewList(),
+			pets.ToPetViewList(),
+			dates.ToSosDateViewList(),
+		)
 
 		sosPostViews.Items = append(sosPostViews.Items, *findByAuthorSosPostView)
 	}
@@ -354,57 +220,13 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	var conditionsView []sos_post.ConditionView
-	for _, c := range conditions {
-		view := sos_post.ConditionView{
-			ID:   c.ID,
-			Name: c.Name,
-		}
-
-		conditionsView = append(conditionsView, view)
-	}
-
-	var petsView []pet.PetView
-	for _, p := range pets {
-		p := pet.PetView{
-			ID:         p.ID,
-			Name:       p.Name,
-			PetType:    p.PetType,
-			Sex:        p.Sex,
-			Neutered:   p.Neutered,
-			Breed:      p.Breed,
-			BirthDate:  utils.FormatDate(p.BirthDate),
-			WeightInKg: p.WeightInKg,
-		}
-		petsView = append(petsView, p)
-	}
-
-	sosDatesView := make([]sos_post.SosDateView, 0)
-	for _, d := range dates {
-		d := sos_post.SosDateView{
-			DateStartAt: utils.FormatDate(d.DateStartAt),
-			DateEndAt:   utils.FormatDate(d.DateEndAt),
-		}
-		sosDatesView = append(sosDatesView, d)
-	}
-
-	return &sos_post.FindSosPostView{
-		ID:           sosPost.ID,
-		Author:       author.ToUserWithoutPrivateInfo(),
-		Title:        sosPost.Title,
-		Content:      sosPost.Content,
-		Media:        media.NewMediaListView(mediaData),
-		Conditions:   conditionsView,
-		Pets:         petsView,
-		Dates:        sosDatesView,
-		Reward:       sosPost.Reward,
-		CareType:     sosPost.CareType,
-		CarerGender:  sosPost.CarerGender,
-		RewardAmount: sosPost.RewardAmount,
-		ThumbnailID:  sosPost.ThumbnailID,
-		CreatedAt:    sosPost.CreatedAt,
-		UpdatedAt:    sosPost.UpdatedAt,
-	}, nil
+	return sosPost.ToFindSosPostView(
+		author.ToUserWithoutPrivateInfo(),
+		mediaData.ToMediaViewList(),
+		conditions.ToConditionViewList(),
+		pets.ToPetViewList(),
+		dates.ToSosDateViewList(),
+	), nil
 }
 
 func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.UpdateSosPostView, *pnd.AppError) {
@@ -443,57 +265,12 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 		return nil, err
 	}
 
-	var conditionsView []sos_post.ConditionView
-	for _, c := range conditions {
-		view := sos_post.ConditionView{
-			ID:   c.ID,
-			Name: c.Name,
-		}
-
-		conditionsView = append(conditionsView, view)
-	}
-
-	var petsView []pet.PetView
-	for _, p := range pets {
-		p := pet.PetView{
-			ID:         p.ID,
-			Name:       p.Name,
-			PetType:    p.PetType,
-			Sex:        p.Sex,
-			Neutered:   p.Neutered,
-			Breed:      p.Breed,
-			BirthDate:  utils.FormatDate(p.BirthDate),
-			WeightInKg: p.WeightInKg,
-		}
-		petsView = append(petsView, p)
-	}
-
-	sosDatesView := make([]sos_post.SosDateView, 0)
-	for _, d := range dates {
-		d := sos_post.SosDateView{
-			DateStartAt: utils.FormatDate(d.DateStartAt),
-			DateEndAt:   utils.FormatDate(d.DateEndAt),
-		}
-		sosDatesView = append(sosDatesView, d)
-	}
-
-	return &sos_post.UpdateSosPostView{
-		ID:           updateSosPost.ID,
-		AuthorID:     updateSosPost.AuthorID,
-		Title:        updateSosPost.Title,
-		Content:      updateSosPost.Content,
-		Media:        media.NewMediaListView(mediaData),
-		Conditions:   conditionsView,
-		Pets:         petsView,
-		Dates:        sosDatesView,
-		Reward:       updateSosPost.Reward,
-		CareType:     updateSosPost.CareType,
-		CarerGender:  updateSosPost.CarerGender,
-		RewardAmount: updateSosPost.RewardAmount,
-		ThumbnailID:  updateSosPost.ThumbnailID,
-		CreatedAt:    updateSosPost.CreatedAt,
-		UpdatedAt:    updateSosPost.UpdatedAt,
-	}, nil
+	return updateSosPost.ToUpdateSosPostView(
+		mediaData.ToMediaViewList(),
+		conditions.ToConditionViewList(),
+		pets.ToPetViewList(),
+		dates.ToSosDateViewList(),
+	), nil
 }
 
 func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid string, sosPostID int) (bool, *pnd.AppError) {

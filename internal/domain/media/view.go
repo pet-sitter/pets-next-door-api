@@ -7,8 +7,10 @@ type MediaView struct {
 	CreatedAt string    `json:"createdAt"`
 }
 
-func NewMediaView(media *Media) MediaView {
-	return MediaView{
+type MediaViewList []*MediaView
+
+func (media *Media) ToMediaView() *MediaView {
+	return &MediaView{
 		ID:        media.ID,
 		MediaType: media.MediaType,
 		URL:       media.URL,
@@ -16,12 +18,12 @@ func NewMediaView(media *Media) MediaView {
 	}
 }
 
-func NewMediaListView(mediaList []Media) []MediaView {
-	mediaListView := make([]MediaView, 0)
-	for _, media := range mediaList {
-		mediaListView = append(mediaListView, NewMediaView(&media))
+func (mediaList *MediaList) ToMediaViewList() MediaViewList {
+	mediaViewList := make(MediaViewList, len(*mediaList))
+	for i, media := range *mediaList {
+		mediaViewList[i] = media.ToMediaView()
 	}
-	return mediaListView
+	return mediaViewList
 }
 
 type ResourceMediaView struct {

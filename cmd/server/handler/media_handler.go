@@ -42,7 +42,7 @@ func (h *mediaHandler) FindMediaByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.OK(w, nil, media.NewMediaView(found))
+	pnd.OK(w, nil, found.ToMediaView())
 }
 
 // UploadImage godoc
@@ -78,7 +78,7 @@ func (h *mediaHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pnd.Created(w, nil, media.NewMediaView(res))
+	pnd.Created(w, nil, res.ToMediaView())
 }
 
 var supportedMimeTypes = []string{

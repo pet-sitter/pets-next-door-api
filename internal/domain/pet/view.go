@@ -1,6 +1,9 @@
 package pet
 
-import pnd "github.com/pet-sitter/pets-next-door-api/api"
+import (
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+)
 
 type AddPetsToOwnerRequest struct {
 	Pets []AddPetRequest `json:"pets" validate:"required"`
@@ -17,13 +20,33 @@ type AddPetRequest struct {
 	ProfileImageID *int    `json:"profileImageId"`
 }
 
+func (r *AddPetRequest) ToBasePet(ownerID int) *BasePet {
+	return &BasePet{
+		OwnerID:    ownerID,
+		Name:       r.Name,
+		PetType:    r.PetType,
+		Sex:        r.Sex,
+		Neutered:   r.Neutered,
+		Breed:      r.Breed,
+		BirthDate:  r.BirthDate,
+		WeightInKg: r.WeightInKg,
+	}
+}
+
+func (r *AddPetRequest) ToPet(ownerID int) *Pet {
+	return &Pet{
+		BasePet:        *r.ToBasePet(ownerID),
+		ProfileImageID: r.ProfileImageID,
+	}
+}
+
 type FindMyPetsView struct {
 	Pets []PetView `json:"pets"`
 }
 
-func NewFindMyPetsView(pets []PetWithProfileImage) *FindMyPetsView {
-	petViews := make([]PetView, len(pets))
-	for i, pet := range pets {
+func (pets *PetWithProfileList) ToFindMyPetsView() *FindMyPetsView {
+	petViews := make([]PetView, len(*pets))
+	for i, pet := range *pets {
 		petViews[i] = *pet.ToPetView()
 	}
 	return &FindMyPetsView{Pets: petViews}
@@ -41,6 +64,27 @@ type PetView struct {
 	ProfileImageURL *string `json:"profileImageUrl"`
 }
 
+func (pet *Pet) ToPetView() *PetView {
+	return &PetView{
+		ID:         pet.ID,
+		Name:       pet.Name,
+		PetType:    pet.PetType,
+		Sex:        pet.Sex,
+		Neutered:   pet.Neutered,
+		Breed:      pet.Breed,
+		BirthDate:  utils.FormatDate(pet.BirthDate),
+		WeightInKg: pet.WeightInKg,
+	}
+}
+
+func (pets *PetList) ToPetViewList() []PetView {
+	petViews := make([]PetView, len(*pets))
+	for i, pet := range *pets {
+		petViews[i] = *pet.ToPetView()
+	}
+	return petViews
+}
+
 func (pet *PetWithProfileImage) ToPetView() *PetView {
 	return &PetView{
 		ID:              pet.ID,
@@ -55,9 +99,9 @@ func (pet *PetWithProfileImage) ToPetView() *PetView {
 	}
 }
 
-func NewPetViewList(pets []PetWithProfileImage) []PetView {
-	petViews := make([]PetView, len(pets))
-	for i, pet := range pets {
+func (pets *PetWithProfileList) ToPetViewList() []PetView {
+	petViews := make([]PetView, len(*pets))
+	for i, pet := range *pets {
 		petViews[i] = *pet.ToPetView()
 	}
 	return petViews
@@ -73,14 +117,14 @@ type BreedListView struct {
 	*pnd.PaginatedView[*BreedView]
 }
 
-func FromBreedList(breeds *BreedList) *BreedListView {
-	breedViews := make([]*BreedView, 0)
-	for _, breed := range breeds.Items {
-		breedViews = append(breedViews, &BreedView{
+func (breeds *BreedList) ToBreedListView() *BreedListView {
+	breedViews := make([]*BreedView, len(breeds.Items))
+	for i, breed := range breeds.Items {
+		breedViews[i] = &BreedView{
 			ID:      breed.ID,
 			PetType: breed.PetType,
 			Name:    breed.Name,
-		})
+		}
 	}
 
 	return &BreedListView{

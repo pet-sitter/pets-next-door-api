@@ -50,15 +50,7 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 		return nil, err
 	}
 
-	return &user.RegisterUserView{
-		ID:                   created.ID,
-		Email:                created.Email,
-		Nickname:             created.Nickname,
-		Fullname:             created.Fullname,
-		ProfileImageURL:      profileImageURL,
-		FirebaseProviderType: created.FirebaseProviderType,
-		FirebaseUID:          created.FirebaseUID,
-	}, nil
+	return created.ToRegisterUserView(profileImageURL), nil
 }
 
 func (service *UserService) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
@@ -136,15 +128,7 @@ func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*use
 		return nil, err
 	}
 
-	return &user.FindUserView{
-		ID:                   foundUser.ID,
-		Email:                foundUser.Email,
-		Nickname:             foundUser.Nickname,
-		Fullname:             foundUser.Fullname,
-		ProfileImageURL:      foundUser.ProfileImageURL,
-		FirebaseProviderType: foundUser.FirebaseProviderType,
-		FirebaseUID:          foundUser.FirebaseUID,
-	}, nil
+	return foundUser.ToFindUserView(), nil
 }
 
 func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
@@ -213,15 +197,7 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 		}
 	}
 
-	return &user.UserWithProfileImage{
-		ID:                   updatedUser.ID,
-		Email:                updatedUser.Email,
-		Nickname:             updatedUser.Nickname,
-		Fullname:             updatedUser.Fullname,
-		ProfileImageURL:      profileImageURL,
-		FirebaseProviderType: updatedUser.FirebaseProviderType,
-		FirebaseUID:          updatedUser.FirebaseUID,
-	}, nil
+	return updatedUser.ToUserWithProfileImage(profileImageURL), nil
 }
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
@@ -254,7 +230,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 		return nil, err
 	}
 
-	pets := make([]pet.PetWithProfileImage, len(addPetsRequest.Pets))
+	pets := make(pet.PetWithProfileList, len(addPetsRequest.Pets))
 	for i, item := range addPetsRequest.Pets {
 		if item.ProfileImageID != nil {
 			if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
@@ -262,31 +238,19 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 			}
 		}
 
-		petToCreate := pet.Pet{
-			BasePet: pet.BasePet{
-				OwnerID:    user.ID,
-				Name:       item.Name,
-				PetType:    item.PetType,
-				Sex:        item.Sex,
-				Neutered:   item.Neutered,
-				Breed:      item.Breed,
-				BirthDate:  item.BirthDate,
-				WeightInKg: item.WeightInKg,
-			},
-			ProfileImageID: item.ProfileImageID,
-		}
-		createdPet, err := postgres.CreatePet(ctx, tx, &petToCreate)
+		petToCreate := item.ToPet(user.ID)
+		createdPet, err := postgres.CreatePet(ctx, tx, petToCreate)
 		if err != nil {
 			return nil, err
 		}
-		pets[i] = *createdPet
+		pets[i] = createdPet
 	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	return pet.NewPetViewList(pets), nil
+	return pets.ToPetViewList(), nil
 }
 
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
@@ -310,5 +274,5 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 		return nil, err
 	}
 
-	return pet.NewFindMyPetsView(pets), nil
+	return pets.ToFindMyPetsView(), nil
 }

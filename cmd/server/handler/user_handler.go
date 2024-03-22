@@ -99,10 +99,7 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	pnd.OK(w, nil, user.UserStatusView{
-		Status:               user.UserStatusRegistered,
-		FirebaseProviderType: userStatus.FirebaseProviderType,
-	})
+	pnd.OK(w, nil, userStatus.ToUserStatusView())
 }
 
 // FindUsers godoc
@@ -192,14 +189,7 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, r, user.UpdateUserView{
-		ID:                   userModel.ID,
-		Email:                userModel.Email,
-		Nickname:             userModel.Nickname,
-		Fullname:             userModel.Fullname,
-		ProfileImageURL:      userModel.ProfileImageURL,
-		FirebaseProviderType: userModel.FirebaseProviderType,
-	})
+	render.JSON(w, r, userModel.ToUpdateUserView())
 }
 
 // DeleteMyAccount godoc
