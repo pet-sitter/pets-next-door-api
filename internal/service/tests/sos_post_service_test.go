@@ -104,7 +104,7 @@ func TestSosPostService(t *testing.T) {
 					{"2024-04-01", "2024-04-02"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
-				RewardAmount: sos_post.RewardAmountHour,
+				RewardType:   sos_post.RewardTypeFee,
 				ConditionIDs: conditionIDs,
 				PetIDs:       []int{addPets[0].ID},
 			}
@@ -137,8 +137,8 @@ func TestSosPostService(t *testing.T) {
 			if sosPost.CarerGender != sos_post.CarerGenderMale {
 				t.Errorf("got %v want %v", sosPost.CarerGender, sos_post.CarerGenderMale)
 			}
-			if sosPost.RewardAmount != sos_post.RewardAmountHour {
-				t.Errorf("got %v want %v", sosPost.RewardAmount, sos_post.RewardAmountHour)
+			if sosPost.RewardType != sos_post.RewardTypeFee {
+				t.Errorf("got %v want %v", sosPost.RewardType, sos_post.RewardTypeFee)
 			}
 			if sosPost.ThumbnailID != sosPostImage.ID {
 				t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
@@ -222,7 +222,7 @@ func TestSosPostService(t *testing.T) {
 						{"2024-04-01", "2024-04-02"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
-					RewardAmount: sos_post.RewardAmountHour,
+					RewardType:   sos_post.RewardTypeFee,
 					ConditionIDs: conditionIDs,
 					PetIDs:       []int{addPets[0].ID},
 				})
@@ -270,8 +270,8 @@ func TestSosPostService(t *testing.T) {
 				if sosPost.CarerGender != sosPosts[idx].CarerGender {
 					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[idx].CarerGender)
 				}
-				if sosPost.RewardAmount != sosPosts[idx].RewardAmount {
-					t.Errorf("got %v want %v", sosPost.RewardAmount, sosPosts[idx].RewardAmount)
+				if sosPost.RewardType != sosPosts[idx].RewardType {
+					t.Errorf("got %v want %v", sosPost.RewardType, sosPosts[idx].RewardType)
 				}
 				if sosPost.ThumbnailID != sosPostImage.ID {
 					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
@@ -348,7 +348,7 @@ func TestSosPostService(t *testing.T) {
 					Reward:       fmt.Sprintf("Test Reward%d", i),
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
-					RewardAmount: sos_post.RewardAmountHour,
+					RewardType:   sos_post.RewardTypeFee,
 					ConditionIDs: conditionIDs,
 					PetIDs:       []int{addPets[0].ID},
 				})
@@ -396,8 +396,8 @@ func TestSosPostService(t *testing.T) {
 				if sosPost.CarerGender != sosPosts[idx].CarerGender {
 					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[idx].CarerGender)
 				}
-				if sosPost.RewardAmount != sosPosts[idx].RewardAmount {
-					t.Errorf("got %v want %v", sosPost.RewardAmount, sosPosts[idx].RewardAmount)
+				if sosPost.RewardType != sosPosts[idx].RewardType {
+					t.Errorf("got %v want %v", sosPost.RewardType, sosPosts[idx].RewardType)
 				}
 				if sosPost.ThumbnailID != sosPostImage.ID {
 					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
@@ -479,7 +479,7 @@ func TestSosPostService(t *testing.T) {
 						{"2024-04-01", "2024-04-02"}},
 					CareType:     sos_post.CareTypeFoster,
 					CarerGender:  sos_post.CarerGenderMale,
-					RewardAmount: sos_post.RewardAmountHour,
+					RewardType:   sos_post.RewardTypeFee,
 					ConditionIDs: conditionIDs,
 					PetIDs:       []int{addPets[0].ID},
 				})
@@ -522,8 +522,8 @@ func TestSosPostService(t *testing.T) {
 			if findSosPostByID.CarerGender != sosPosts[0].CarerGender {
 				t.Errorf("got %v want %v", findSosPostByID.CarerGender, sosPosts[0].CarerGender)
 			}
-			if findSosPostByID.RewardAmount != sosPosts[0].RewardAmount {
-				t.Errorf("got %v want %v", findSosPostByID.RewardAmount, sosPosts[0].RewardAmount)
+			if findSosPostByID.RewardType != sosPosts[0].RewardType {
+				t.Errorf("got %v want %v", findSosPostByID.RewardType, sosPosts[0].RewardType)
 			}
 			if findSosPostByID.ThumbnailID != sosPostImage.ID {
 				t.Errorf("got %v want %v", findSosPostByID.ThumbnailID, sosPostImage.ID)
@@ -600,7 +600,7 @@ func TestSosPostService(t *testing.T) {
 				Reward:       "Test Reward1",
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
-				RewardAmount: sos_post.RewardAmountHour,
+				RewardType:   sos_post.RewardTypeFee,
 				ConditionIDs: conditionIDs,
 				PetIDs:       []int{addPets[0].ID},
 			})
@@ -619,7 +619,7 @@ func TestSosPostService(t *testing.T) {
 					{"2024-04-01", "2024-04-02"}},
 				CareType:     sos_post.CareTypeFoster,
 				CarerGender:  sos_post.CarerGenderMale,
-				RewardAmount: sos_post.RewardAmountHour,
+				RewardType:   sos_post.RewardTypeFee,
 				ConditionIDs: []int{1, 2, 3},
 				PetIDs:       []int{addPets[0].ID},
 			}
@@ -649,8 +649,8 @@ func TestSosPostService(t *testing.T) {
 			if updateSosPost.CarerGender != updateSosPostData.CarerGender {
 				t.Errorf("got %v want %v", updateSosPost.CarerGender, updateSosPostData.CarerGender)
 			}
-			if updateSosPost.RewardAmount != updateSosPostData.RewardAmount {
-				t.Errorf("got %v want %v", updateSosPost.RewardAmount, updateSosPostData.RewardAmount)
+			if updateSosPost.RewardType != updateSosPostData.RewardType {
+				t.Errorf("got %v want %v", updateSosPost.RewardType, updateSosPostData.RewardType)
 			}
 			if updateSosPost.ThumbnailID != sosPostImage.ID {
 				t.Errorf("got %v want %v", updateSosPost.ThumbnailID, sosPostImage.ID)

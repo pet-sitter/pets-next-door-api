@@ -11,7 +11,7 @@ import (
 
 type CareType string
 type CarerGender string
-type RewardAmount string
+type RewardType string
 
 const (
 	CareTypeFoster   CareType = "foster"
@@ -25,22 +25,24 @@ const (
 )
 
 const (
-	RewardAmountHour RewardAmount = "hour"
+	RewardTypeFee        RewardType = "fee"
+	RewardTypeGifticon   RewardType = "gifticon"
+	RewardTypeNegotiable RewardType = "negotiable"
 )
 
 type SosPost struct {
-	ID           int          `field:"id"`
-	AuthorID     int          `field:"author_id"`
-	Title        string       `field:"title"`
-	Content      string       `field:"content"`
-	Reward       string       `field:"reward"`
-	CareType     CareType     `field:"care_type"`
-	CarerGender  CarerGender  `field:"carer_gender"`
-	RewardAmount RewardAmount `field:"reward_amount"`
-	ThumbnailID  int          `field:"thumbnail_id"`
-	CreatedAt    time.Time    `field:"created_at"`
-	UpdatedAt    time.Time    `field:"updated_at"`
-	DeletedAt    time.Time    `field:"deleted_at"`
+	ID          int         `field:"id"`
+	AuthorID    int         `field:"author_id"`
+	Title       string      `field:"title"`
+	Content     string      `field:"content"`
+	Reward      string      `field:"reward"`
+	CareType    CareType    `field:"care_type"`
+	CarerGender CarerGender `field:"carer_gender"`
+	RewardType  RewardType  `field:"reward_type"`
+	ThumbnailID int         `field:"thumbnail_id"`
+	CreatedAt   time.Time   `field:"created_at"`
+	UpdatedAt   time.Time   `field:"updated_at"`
+	DeletedAt   time.Time   `field:"deleted_at"`
 }
 
 type SosPostList struct {
