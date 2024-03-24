@@ -22,7 +22,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 			reward,
 			care_type,
 		 	carer_gender,
-		 	reward_amount,
+		 	reward_type,
 		 	thumbnail_id,
 			created_at,
 			updated_at
@@ -36,7 +36,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		reward,
 		care_type,
 		carer_gender,
-		reward_amount,
+		reward_type,
 		thumbnail_id
 	`
 
@@ -48,7 +48,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		request.Reward,
 		request.CareType,
 		request.CarerGender,
-		request.RewardAmount,
+		request.RewardType,
 		request.ImageIDs[0],
 	).Scan(&sosPost.ID,
 		&sosPost.AuthorID,
@@ -57,7 +57,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		&sosPost.Reward,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
-		&sosPost.RewardAmount,
+		&sosPost.RewardType,
 		&sosPost.ThumbnailID)
 
 	if err != nil {
@@ -198,7 +198,7 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 		reward,
 		care_type,
 		carer_gender,
-		reward_amount,
+		reward_type,
 		thumbnail_id,
 		created_at,
 		updated_at
@@ -231,7 +231,7 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 			&sosPost.Reward,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
-			&sosPost.RewardAmount,
+			&sosPost.RewardType,
 			&sosPost.ThumbnailID,
 			&sosPost.CreatedAt,
 			&sosPost.UpdatedAt,
@@ -273,7 +273,7 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 		reward,
 		care_type,
 		carer_gender,
-		reward_amount,
+		reward_type,
 		thumbnail_id,
 		created_at,
 		updated_at
@@ -307,7 +307,7 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 			&sosPost.Reward,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
-			&sosPost.RewardAmount,
+			&sosPost.RewardType,
 			&sosPost.ThumbnailID,
 			&sosPost.CreatedAt,
 			&sosPost.UpdatedAt,
@@ -331,7 +331,7 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.So
 		reward,
 		care_type,
 		carer_gender,
-		reward_amount,
+		reward_type,
 		thumbnail_id,
 		created_at,
 		updated_at
@@ -351,7 +351,7 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.So
 		&sosPost.Reward,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
-		&sosPost.RewardAmount,
+		&sosPost.RewardType,
 		&sosPost.ThumbnailID,
 		&sosPost.CreatedAt,
 		&sosPost.UpdatedAt,
@@ -530,7 +530,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 		reward = $3,
 		care_type = $4,
 		carer_gender = $5,
-		reward_amount = $6,
+		reward_type = $6,
 		thumbnail_id = $7,
 		updated_at = NOW()
 	WHERE
@@ -543,7 +543,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 		reward,
 		care_type,
 		carer_gender,
-		reward_amount,
+		reward_type,
 		thumbnail_id
 	`
 
@@ -553,7 +553,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 		request.Reward,
 		request.CareType,
 		request.CarerGender,
-		request.RewardAmount,
+		request.RewardType,
 		request.ImageIDs[0],
 		request.ID,
 	).Scan(
@@ -564,7 +564,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 		&sosPost.Reward,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
-		&sosPost.RewardAmount,
+		&sosPost.RewardType,
 		&sosPost.ThumbnailID,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
