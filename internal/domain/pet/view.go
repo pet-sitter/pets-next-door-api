@@ -17,6 +17,7 @@ type AddPetRequest struct {
 	Breed          string  `json:"breed" validate:"required"`
 	BirthDate      string  `json:"birthDate" validate:"required"`
 	WeightInKg     float64 `json:"weightInKg" validate:"required"`
+	Remarks        string  `json:"remarks"`
 	ProfileImageID *int    `json:"profileImageId"`
 }
 
@@ -30,6 +31,7 @@ func (r *AddPetRequest) ToBasePet(ownerID int) *BasePet {
 		Breed:      r.Breed,
 		BirthDate:  r.BirthDate,
 		WeightInKg: r.WeightInKg,
+		Remarks:    r.Remarks,
 	}
 }
 
@@ -61,6 +63,7 @@ type PetView struct {
 	Breed           string  `json:"breed"`
 	BirthDate       string  `json:"birthDate"`
 	WeightInKg      float64 `json:"weightInKg"`
+	Remarks         string  `json:"remarks"`
 	ProfileImageURL *string `json:"profileImageUrl"`
 }
 
@@ -74,6 +77,7 @@ func (pet *Pet) ToPetView() *PetView {
 		Breed:      pet.Breed,
 		BirthDate:  utils.FormatDate(pet.BirthDate),
 		WeightInKg: pet.WeightInKg,
+		Remarks:    pet.Remarks,
 	}
 }
 
@@ -95,6 +99,7 @@ func (pet *PetWithProfileImage) ToPetView() *PetView {
 		Breed:           pet.Breed,
 		BirthDate:       pet.BirthDate,
 		WeightInKg:      pet.WeightInKg,
+		Remarks:         pet.Remarks,
 		ProfileImageURL: pet.ProfileImageURL,
 	}
 }

@@ -17,6 +17,7 @@ type BasePet struct {
 	Breed      string  `field:"breed"`
 	BirthDate  string  `field:"birth_date"`
 	WeightInKg float64 `field:"weight_in_kg"`
+	Remarks    string  `field:"remarks"`
 	CreatedAt  string  `field:"created_at"`
 	UpdatedAt  string  `field:"updated_at"`
 	DeletedAt  string  `field:"deleted_at"`

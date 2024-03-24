@@ -629,6 +629,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 		pets.breed,
 		pets.birth_date,
 		pets.weight_in_kg,
+		pets.remarks,
 		pets.created_at,
 		pets.updated_at
 	FROM
@@ -661,6 +662,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 			&pet.Breed,
 			&pet.BirthDate,
 			&pet.WeightInKg,
+			&pet.Remarks,
 			&pet.CreatedAt,
 			&pet.UpdatedAt,
 		); err != nil {

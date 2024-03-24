@@ -21,11 +21,12 @@ func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWith
 			breed,
 			birth_date,
 			weight_in_kg,
+		 	remarks,
 			profile_image_id,
 			created_at,
 			updated_at
 		)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
 	RETURNING id, created_at, updated_at
 	`
 
@@ -38,6 +39,7 @@ func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWith
 		pet.Breed,
 		pet.BirthDate,
 		pet.WeightInKg,
+		pet.Remarks,
 		pet.ProfileImageID,
 	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt); err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -58,6 +60,7 @@ func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProf
 		pets.breed,
 		pets.birth_date,
 		pets.weight_in_kg,
+		pets.remarks,
 		media.url AS profile_image_url,
 		pets.created_at,
 		pets.updated_at
@@ -85,6 +88,7 @@ func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProf
 		&pet.Breed,
 		&pet.BirthDate,
 		&pet.WeightInKg,
+		&pet.Remarks,
 		&pet.ProfileImageURL,
 		&pet.CreatedAt,
 		&pet.UpdatedAt,
@@ -109,6 +113,7 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.
 		pets.breed,
 		pets.birth_date,
 		pets.weight_in_kg,
+		pets.remarks,
 		media.url AS profile_image_url,
 		pets.created_at,
 		pets.updated_at
@@ -144,6 +149,7 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.
 			&pet.Breed,
 			&pet.BirthDate,
 			&pet.WeightInKg,
+			&pet.Remarks,
 			&pet.ProfileImageURL,
 			&pet.CreatedAt,
 			&pet.UpdatedAt,
