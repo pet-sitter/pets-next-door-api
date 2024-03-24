@@ -35,7 +35,11 @@ func (service *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHe
 	}
 
 	authToken, err2 := service.authClient.VerifyIDToken(ctx, idToken)
-	return authToken, pnd.ErrInvalidFBToken(err2)
+	if err2 != nil {
+		return nil, pnd.ErrInvalidFBToken(err2)
+	}
+
+	return authToken, nil
 }
 
 func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError) {
