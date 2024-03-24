@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
-
+	"errors"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
@@ -51,6 +51,9 @@ func (sct *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 
 func (sct *Tx) Rollback() *pnd.AppError {
 	if err := sct.Tx.Rollback(); err != nil {
+		if errors.Is(err, sql.ErrTxDone) {
+			return nil
+		}
 		return pnd.FromPostgresError(err)
 	}
 
