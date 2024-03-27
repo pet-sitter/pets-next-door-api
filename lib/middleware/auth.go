@@ -2,17 +2,17 @@ package middleware
 
 import (
 	"context"
-	"net/http"
-
+	"github.com/labstack/echo/v4"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
-func BuildAuthMiddleware(app service.AuthService, authKey auth.ContextKey) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), authKey, app)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
+func BuildAuthMiddleware(app service.AuthService, authKey auth.ContextKey) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			ctx := context.WithValue(c.Request().Context(), authKey, app)
+			c.SetRequest(c.Request().WithContext(ctx))
+			return next(c)
+		}
 	}
 }

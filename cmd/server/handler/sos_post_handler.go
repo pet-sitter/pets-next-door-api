@@ -2,9 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 
-	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -32,26 +32,23 @@ func NewSosPostHandler(sosPostService service.SosPostService, authService servic
 // @Security FirebaseAuth
 // @Success 201 {object} sos_post.WriteSosPostView
 // @Router /posts/sos [post]
-func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	var writeSosPostRequest sos_post.WriteSosPostRequest
-	if err := pnd.ParseBody(r, &writeSosPostRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &writeSosPostRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.sosPostService.WriteSosPost(r.Context(), foundUser.FirebaseUID, &writeSosPostRequest)
+	res, err := h.sosPostService.WriteSosPost(c.Request().Context(), foundUser.FirebaseUID, &writeSosPostRequest)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.Created(w, nil, res)
+	return c.JSON(http.StatusCreated, res)
 }
 
 // FindSosPosts godoc
@@ -66,40 +63,36 @@ func (h *SosPostHandler) WriteSosPost(w http.ResponseWriter, r *http.Request) {
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
 // @Success 200 {object} sos_post.FindSosPostListView
 // @Router /posts/sos [get]
-func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
-	authorID, err := pnd.ParseOptionalIntQuery(r, "author_id")
+func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
+	authorID, err := pnd.ParseOptionalIntQuery(c, "author_id")
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	sortBy := "newest"
-	if sortByQuery := pnd.ParseOptionalStringQuery(r, "sort_by"); sortByQuery != nil {
+	if sortByQuery := pnd.ParseOptionalStringQuery(c, "sort_by"); sortByQuery != nil {
 		sortBy = *sortByQuery
 	}
 
-	page, size, err := pnd.ParsePaginationQueries(r, 1, 20)
+	page, size, err := pnd.ParsePaginationQueries(c, 1, 20)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	var res *sos_post.FindSosPostListView
 	if authorID != nil {
-		res, err = h.sosPostService.FindSosPostsByAuthorID(r.Context(), *authorID, page, size, sortBy)
+		res, err = h.sosPostService.FindSosPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy)
 		if err != nil {
-			render.Render(w, r, err)
-			return
+			return c.JSON(err.StatusCode, err)
 		}
 	} else {
-		res, err = h.sosPostService.FindSosPosts(r.Context(), page, size, sortBy)
+		res, err = h.sosPostService.FindSosPosts(c.Request().Context(), page, size, sortBy)
 		if err != nil {
-			render.Render(w, r, err)
-			return
+			return c.JSON(err.StatusCode, err)
 		}
 	}
 
-	render.JSON(w, r, res)
+	return c.JSON(http.StatusOK, res)
 }
 
 // FindSosPostByID godoc
@@ -111,19 +104,17 @@ func (h *SosPostHandler) FindSosPosts(w http.ResponseWriter, r *http.Request) {
 // @Param id path string true "게시글 ID"
 // @Success 200 {object} sos_post.FindSosPostView
 // @Router /posts/sos/{id} [get]
-func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request) {
-	SosPostID, err := pnd.ParseIdFromPath(r, "id")
+func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
+	SosPostID, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
-	res, err := h.sosPostService.FindSosPostByID(r.Context(), *SosPostID)
+	res, err := h.sosPostService.FindSosPostByID(c.Request().Context(), *SosPostID)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, res)
+	return c.JSON(http.StatusOK, res)
 }
 
 // UpdateSosPost godoc
@@ -136,34 +127,30 @@ func (h *SosPostHandler) FindSosPostByID(w http.ResponseWriter, r *http.Request)
 // @Param request body sos_post.UpdateSosPostRequest true "돌봄급구 수정 요청"
 // @Success 200
 // @Router /posts/sos [put]
-func (h *SosPostHandler) UpdateSosPost(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	var updateSosPostRequest sos_post.UpdateSosPostRequest
-	if err := pnd.ParseBody(r, &updateSosPostRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &updateSosPostRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	permission, err := h.sosPostService.CheckUpdatePermission(r.Context(), foundUser.FirebaseUID, updateSosPostRequest.ID)
+	permission, err := h.sosPostService.CheckUpdatePermission(c.Request().Context(), foundUser.FirebaseUID, updateSosPostRequest.ID)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 	if !permission {
-		render.Render(w, r, pnd.ErrForbidden(fmt.Errorf("해당 게시글에 대한 수정 권한이 없습니다")))
-		return
+		pndErr := pnd.ErrForbidden(fmt.Errorf("해당 게시글에 대한 수정 권한이 없습니다"))
+		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	res, err := h.sosPostService.UpdateSosPost(r.Context(), &updateSosPostRequest)
+	res, err := h.sosPostService.UpdateSosPost(c.Request().Context(), &updateSosPostRequest)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, res)
+	return c.JSON(http.StatusOK, res)
 }
