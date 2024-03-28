@@ -2,9 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 
-	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
@@ -24,49 +24,49 @@ func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.Kaka
 	}
 }
 
-// kakaoLogin godoc
+// KakaoLogin godoc
 // @Summary Kakao 로그인 페이지로 redirect 합니다.
 // @Description
 // @Tags auth
 // @Success 302
 // @Router /auth/login/kakao [get]
-func (h *authHandler) KakaoLogin(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "https://kauth.kakao.com/oauth/authorize?"+
-		"client_id="+configs.KakaoRestAPIKey+
-		"&redirect_uri="+configs.KakaoRedirectURI+
-		"&response_type=code"+
-		"&scope=profile_nickname,profile_image,account_email,gender,age_range",
+func (h *authHandler) KakaoLogin(c echo.Context) error {
+	return c.Redirect(
 		http.StatusTemporaryRedirect,
+		"https://kauth.kakao.com/oauth/authorize?"+
+			"client_id="+configs.KakaoRestAPIKey+
+			"&redirect_uri="+configs.KakaoRedirectURI+
+			"&response_type=code"+
+			"&scope=profile_nickname,profile_image,account_email,gender,age_range",
 	)
 }
 
-// kakaoCallback godoc
+// KakaoCallback godoc
 // @Summary Kakao 회원가입 콜백 API
 // @Description Kakao 로그인 콜백을 처리하고, 사용자 기본 정보와 함께 Firebase Custom Token을 발급합니다.
 // @Tags auth
 // @Success 200 {object} auth.KakaoCallbackView
 // @Router /auth/callback/kakao [get]
-func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
-	code := pnd.ParseOptionalStringQuery(r, "code")
+func (h *authHandler) KakaoCallback(c echo.Context) error {
+	code := pnd.ParseOptionalStringQuery(c, "code")
 	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
 	if err != nil {
-		render.Render(w, r, pnd.ErrUnknown(err))
-		return
+		pndErr := pnd.ErrUnknown(err)
+		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
 	userProfile, err := h.kakaoClient.FetchUserProfile(tokenView.AccessToken)
 	if err != nil {
-		render.Render(w, r, pnd.ErrUnknown(err))
-		return
+		pndErr := pnd.ErrUnknown(err)
+		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err2 := h.authService.CustomToken(r.Context(), fmt.Sprintf("%d", userProfile.ID))
+	customToken, err2 := h.authService.CustomToken(c.Request().Context(), fmt.Sprintf("%d", userProfile.ID))
 	if err2 != nil {
-		render.Render(w, r, err2)
-		return
+		return c.JSON(err2.StatusCode, err2)
 	}
 
-	render.JSON(w, r, auth.NewKakaoCallbackView(*customToken, userProfile))
+	return c.JSON(http.StatusOK, auth.NewKakaoCallbackView(*customToken, userProfile))
 }
 
 // GenerateFBCustomTokenFromKakao godoc
@@ -79,25 +79,22 @@ func (h *authHandler) KakaoCallback(w http.ResponseWriter, r *http.Request) {
 // @Success 201 {object} auth.GenerateFBCustomTokenResponse
 // @Failure 400 {object} pnd.AppError
 // @Router /auth/custom-tokens/kakao [post]
-func (h *authHandler) GenerateFBCustomTokenFromKakao(w http.ResponseWriter, r *http.Request) {
+func (h *authHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 	var tokenRequest auth.GenerateFBCustomTokenRequest
-	if err := pnd.ParseBody(r, &tokenRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &tokenRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
 	userProfile, err2 := h.kakaoClient.FetchUserProfile(tokenRequest.OAuthToken)
 	if err2 != nil {
-		render.Render(w, nil, pnd.ErrBadRequest(fmt.Errorf("유효하지 않은 Kakao 인증 정보입니다")))
-		return
+		pndErr := pnd.ErrBadRequest(fmt.Errorf("유효하지 않은 Kakao 인증 정보입니다"))
+		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err := h.authService.CustomToken(r.Context(), fmt.Sprintf("%d", userProfile.ID))
+	customToken, err := h.authService.CustomToken(c.Request().Context(), fmt.Sprintf("%d", userProfile.ID))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, auth.NewGenerateFBCustomTokenResponse(*customToken, userProfile))
+	return c.JSON(http.StatusCreated, auth.NewGenerateFBCustomTokenResponse(*customToken, userProfile))
 }

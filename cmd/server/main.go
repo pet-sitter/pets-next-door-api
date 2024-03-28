@@ -8,7 +8,6 @@ import (
 
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
-
 	_ "github.com/pet-sitter/pets-next-door-api/pkg/docs"
 )
 

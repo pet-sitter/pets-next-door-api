@@ -2,34 +2,35 @@ package main
 
 import (
 	"context"
-	"log"
-	"net/http"
-
-	"github.com/pet-sitter/pets-next-door-api/internal/service"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	pndMiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"github.com/rs/zerolog"
+	echoSwagger "github.com/swaggo/echo-swagger"
+	"log"
+	"net/http"
+	"os"
+
+	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 )
 
-func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
-	r := chi.NewRouter()
+func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
+	e := echo.New()
+	ctx := context.Background()
 
 	db, err := database.Open(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	authClient, err := app.Auth(context.Background())
+	authClient, err := app.Auth(ctx)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
@@ -59,50 +60,69 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *chi.Mux {
 	conditionHandler := handler.NewConditionHandler(*conditionService)
 
 	// Register middlewares
-	r.Use(middleware.Logger)
-	r.Use(pndMiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
+	logger := zerolog.New(os.Stdout)
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:    true,
+		LogStatus: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			logger.Info().
+				Str("URI", v.URI).
+				Int("status", v.Status).
+				Msg("request")
+
+			return nil
+		},
+	}))
+	e.Use(pndMiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
 
 	// Register routes
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		render.JSON(w, r, map[string]string{"status": "ok"})
+	e.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"),
-	))
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	r.Route("/api", func(r chi.Router) {
-		r.Route("/auth", func(r chi.Router) {
-			r.Get("/login/kakao", authHandler.KakaoLogin)
-			r.Get("/callback/kakao", authHandler.KakaoCallback)
-			r.Post("/custom-tokens/kakao", authHandler.GenerateFBCustomTokenFromKakao)
-		})
-		r.Route("/media", func(r chi.Router) {
-			r.Get("/{id}", mediaHandler.FindMediaByID)
-			r.Post("/images", mediaHandler.UploadImage)
-		})
-		r.Route("/users", func(r chi.Router) {
-			r.Post("/", userHandler.RegisterUser)
-			r.Post("/check/nickname", userHandler.CheckUserNickname)
-			r.Post("/status", userHandler.FindUserStatusByEmail)
-			r.Get("/", userHandler.FindUsers)
-			r.Get("/me", userHandler.FindMyProfile)
-			r.Put("/me", userHandler.UpdateMyProfile)
-			r.Delete("/me", userHandler.DeleteMyAccount)
-			r.Get("/me/pets", userHandler.FindMyPets)
-			r.Put("/me/pets", userHandler.AddMyPets)
-		})
-		r.Route("/breeds", func(r chi.Router) {
-			r.Get("/", breedHandler.FindBreeds)
-		})
-		r.Route("/posts", func(r chi.Router) {
-			r.Post("/sos", sosPostHandler.WriteSosPost)
-			r.Get("/sos/{id}", sosPostHandler.FindSosPostByID)
-			r.Get("/sos", sosPostHandler.FindSosPosts)
-			r.Put("/sos", sosPostHandler.UpdateSosPost)
-			r.Get("/sos/conditions", conditionHandler.FindConditions)
-		})
-	})
+	apiRouteGroup := e.Group("/api")
 
-	return r
+	authApiGroup := apiRouteGroup.Group("/auth")
+	{
+		authApiGroup.GET("/login/kakao", authHandler.KakaoLogin)
+		authApiGroup.GET("/callback/kakao", authHandler.KakaoCallback)
+		authApiGroup.POST("/custom-tokens/kakao", authHandler.GenerateFBCustomTokenFromKakao)
+	}
+
+	mediaApiGroup := apiRouteGroup.Group("/media")
+	{
+		mediaApiGroup.GET("/:id", mediaHandler.FindMediaByID)
+		mediaApiGroup.POST("/images", mediaHandler.UploadImage)
+	}
+
+	userApiGroup := apiRouteGroup.Group("/users")
+	{
+		userApiGroup.POST("/", userHandler.RegisterUser)
+		userApiGroup.POST("/check/nickname", userHandler.CheckUserNickname)
+		userApiGroup.POST("/status", userHandler.FindUserStatusByEmail)
+		userApiGroup.GET("/", userHandler.FindUsers)
+		userApiGroup.GET("/me", userHandler.FindMyProfile)
+		userApiGroup.PUT("/me", userHandler.UpdateMyProfile)
+		userApiGroup.DELETE("/me", userHandler.DeleteMyAccount)
+		userApiGroup.GET("/me/pets", userHandler.FindMyPets)
+		userApiGroup.PUT("/me/pets", userHandler.AddMyPets)
+	}
+
+	breedApiGroup := apiRouteGroup.Group("/breeds")
+	{
+		breedApiGroup.GET("/", breedHandler.FindBreeds)
+	}
+
+	postApiGroup := apiRouteGroup.Group("/posts")
+	{
+		postApiGroup.POST("/sos", sosPostHandler.WriteSosPost)
+		postApiGroup.GET("/sos/{id}", sosPostHandler.FindSosPostByID)
+		postApiGroup.GET("/sos", sosPostHandler.FindSosPosts)
+		postApiGroup.PUT("/sos", sosPostHandler.UpdateSosPost)
+		postApiGroup.GET("/sos/conditions", conditionHandler.FindConditions)
+	}
+
+	return e
 }

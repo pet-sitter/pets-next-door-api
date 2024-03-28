@@ -1,10 +1,9 @@
 package handler
 
 import (
+	"github.com/labstack/echo/v4"
 	"net/http"
 
-	"github.com/go-chi/render"
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
@@ -24,12 +23,11 @@ func NewConditionHandler(conditionService service.ConditionService) *ConditionHa
 // @Produce  json
 // @Success 200 {object} []sos_post.ConditionView
 // @Router /posts/sos/conditions [get]
-func (h *ConditionHandler) FindConditions(w http.ResponseWriter, r *http.Request) {
-	res, err := h.conditionService.FindConditions(r.Context())
+func (h *ConditionHandler) FindConditions(c echo.Context) error {
+	res, err := h.conditionService.FindConditions(c.Request().Context())
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, res)
+	return c.JSON(http.StatusOK, res)
 }

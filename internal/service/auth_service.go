@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"firebase.google.com/go/auth"
@@ -12,7 +11,7 @@ import (
 )
 
 type AuthService interface {
-	VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError)
+	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserView, *pnd.AppError)
 	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
 }
 
@@ -42,8 +41,8 @@ func (service *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHe
 	return authToken, nil
 }
 
-func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, r *http.Request) (*user.FindUserView, *pnd.AppError) {
-	authToken, err := service.verifyAuth(ctx, r.Header.Get("Authorization"))
+func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserView, *pnd.AppError) {
+	authToken, err := service.verifyAuth(ctx, authHeader)
 	if err != nil {
 		return nil, err
 	}

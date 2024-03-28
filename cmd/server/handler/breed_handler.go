@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"net/http"
-
-	"github.com/go-chi/render"
+	"github.com/labstack/echo/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
+	"net/http"
 )
 
 type BreedHandler struct {
@@ -27,19 +26,17 @@ func NewBreedHandler(breedService service.BreedService) *BreedHandler {
 // @Param pet_type query string false "펫 종류" Enums(dog, cat)
 // @Success 200 {object} pet.BreedListView
 // @Router /breeds [get]
-func (h *BreedHandler) FindBreeds(w http.ResponseWriter, r *http.Request) {
-	petType := pnd.ParseOptionalStringQuery(r, "pet_type")
-	page, size, err := pnd.ParsePaginationQueries(r, 1, 20)
+func (h *BreedHandler) FindBreeds(c echo.Context) error {
+	petType := pnd.ParseOptionalStringQuery(c, "pet_type")
+	page, size, err := pnd.ParsePaginationQueries(c, 1, 20)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.breedService.FindBreeds(r.Context(), page, size, petType)
+	res, err := h.breedService.FindBreeds(c.Request().Context(), page, size, petType)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.JSON(w, r, res)
+	return c.JSON(http.StatusOK, res)
 }

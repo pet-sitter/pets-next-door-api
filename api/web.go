@@ -1,17 +1,14 @@
 package pnd
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
-
-	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
+	"github.com/labstack/echo/v4"
+	"strconv"
 )
 
-func ParseBody(r *http.Request, payload interface{}) *AppError {
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+func ParseBody(c echo.Context, payload interface{}) *AppError {
+	if err := c.Bind(payload); err != nil {
 		return ErrInvalidBody(err)
 	}
 	if err := validator.New().Struct(payload); err != nil {
@@ -21,8 +18,8 @@ func ParseBody(r *http.Request, payload interface{}) *AppError {
 	return nil
 }
 
-func ParseIdFromPath(r *http.Request, path string) (*int, *AppError) {
-	id, err := strconv.Atoi(chi.URLParam(r, path))
+func ParseIDFromPath(c echo.Context, path string) (*int, *AppError) {
+	id, err := strconv.Atoi(c.Param(path))
 	if err != nil {
 		return nil, ErrInvalidParam(err)
 	}
@@ -33,8 +30,8 @@ func ParseIdFromPath(r *http.Request, path string) (*int, *AppError) {
 	return &id, nil
 }
 
-func ParseOptionalIntQuery(r *http.Request, query string) (*int, *AppError) {
-	queryStr := r.URL.Query().Get(query)
+func ParseOptionalIntQuery(c echo.Context, query string) (*int, *AppError) {
+	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return nil, nil
 	}
@@ -47,8 +44,8 @@ func ParseOptionalIntQuery(r *http.Request, query string) (*int, *AppError) {
 	return &value, nil
 }
 
-func ParseRequiredStringQuery(r *http.Request, query string) (*string, *AppError) {
-	queryStr := r.URL.Query().Get(query)
+func ParseRequiredStringQuery(c echo.Context, query string) (*string, *AppError) {
+	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return nil, ErrInvalidQuery(fmt.Errorf("expected non-empty string for query: %s", query))
 	}
@@ -56,8 +53,8 @@ func ParseRequiredStringQuery(r *http.Request, query string) (*string, *AppError
 	return &queryStr, nil
 }
 
-func ParseOptionalStringQuery(r *http.Request, query string) *string {
-	queryStr := r.URL.Query().Get(query)
+func ParseOptionalStringQuery(c echo.Context, query string) *string {
+	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return nil
 	}
@@ -66,9 +63,9 @@ func ParseOptionalStringQuery(r *http.Request, query string) *string {
 }
 
 // ParsePaginationQueries parses pagination parameters from query string: page, size.
-func ParsePaginationQueries(r *http.Request, defaultPage int, defaultLimit int) (page int, size int, err *AppError) {
-	pageQuery := r.URL.Query().Get("page")
-	sizeQuery := r.URL.Query().Get("size")
+func ParsePaginationQueries(c echo.Context, defaultPage int, defaultLimit int) (page int, size int, err *AppError) {
+	pageQuery := c.QueryParam("page")
+	sizeQuery := c.QueryParam("size")
 
 	page = defaultPage
 	size = defaultLimit

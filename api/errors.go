@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 )
 
@@ -38,11 +37,6 @@ type AppError struct {
 
 	Code    AppErrorCode `json:"code,omitempty"`
 	Message string       `json:"message,omitempty"`
-}
-
-func (e *AppError) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.StatusCode)
-	return nil
 }
 
 func NewAppError(err error, statusCode int, code AppErrorCode, message string) *AppError {

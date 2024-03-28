@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/labstack/echo/v4"
 	"net/http"
 
-	"github.com/go-chi/render"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -31,21 +31,18 @@ func NewUserHandler(userService service.UserService, authService service.AuthSer
 // @Param request body user.RegisterUserRequest true "사용자 회원가입 요청"
 // @Success 201 {object} user.RegisterUserView
 // @Router /users [post]
-func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) RegisterUser(c echo.Context) error {
 	var registerUserRequest user.RegisterUserRequest
-	if err := pnd.ParseBody(r, &registerUserRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &registerUserRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	ctx := r.Context()
-	res, err := h.userService.RegisterUser(ctx, &registerUserRequest)
+	res, err := h.userService.RegisterUser(c.Request().Context(), &registerUserRequest)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.Created(w, nil, res)
+	return c.JSON(http.StatusCreated, res)
 }
 
 // CheckUserNickname godoc
@@ -57,21 +54,18 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Param request body user.CheckNicknameRequest true "사용자 닉네임 중복 조회 요청"
 // @Success 200 {object} user.CheckNicknameView
 // @Router /users/check/nickname [post]
-func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 	var checkUserNicknameRequest user.CheckNicknameRequest
-	if err := pnd.ParseBody(r, &checkUserNicknameRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &checkUserNicknameRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	ctx := r.Context()
-	exists, err := h.userService.ExistsByNickname(ctx, checkUserNicknameRequest.Nickname)
+	exists, err := h.userService.ExistsByNickname(c.Request().Context(), checkUserNicknameRequest.Nickname)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, user.CheckNicknameView{IsAvailable: !exists})
+	return c.JSON(http.StatusOK, user.CheckNicknameView{IsAvailable: !exists})
 }
 
 // FindUserStatusByEmail godoc
@@ -83,23 +77,20 @@ func (h *UserHandler) CheckUserNickname(w http.ResponseWriter, r *http.Request) 
 // @Param request body user.UserStatusRequest true "사용자 가입 상태 조회 요청"
 // @Success 200 {object} user.UserStatusView
 // @Router /users/status [post]
-func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 	var providerRequest user.UserStatusRequest
-	if err := pnd.ParseBody(r, &providerRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &providerRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	ctx := r.Context()
-	userStatus, err := h.userService.FindUserStatusByEmail(ctx, providerRequest.Email)
+	userStatus, err := h.userService.FindUserStatusByEmail(c.Request().Context(), providerRequest.Email)
 	if err != nil || userStatus == nil {
-		pnd.OK(w, nil, user.UserStatusView{
+		return c.JSON(http.StatusOK, user.UserStatusView{
 			Status: user.UserStatusNotRegistered,
 		})
-		return
 	}
 
-	pnd.OK(w, nil, userStatus.ToUserStatusView())
+	return c.JSON(http.StatusOK, userStatus.ToUserStatusView())
 }
 
 // FindUsers godoc
@@ -113,30 +104,26 @@ func (h *UserHandler) FindUserStatusByEmail(w http.ResponseWriter, r *http.Reque
 // @Param nickname query string false "닉네임 (완전 일치)"
 // @Success 200 {object} user.UserWithoutPrivateInfoList
 // @Router /users [get]
-func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
-	_, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) FindUsers(c echo.Context) error {
+	_, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	nickname := pnd.ParseOptionalStringQuery(r, "nickname")
-	page, size, err := pnd.ParsePaginationQueries(r, 1, 10)
+	nickname := pnd.ParseOptionalStringQuery(c, "nickname")
+	page, size, err := pnd.ParsePaginationQueries(c, 1, 10)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	var res *user.UserWithoutPrivateInfoList
 
-	ctx := r.Context()
-	res, err = h.userService.FindUsers(ctx, page, size, nickname)
+	res, err = h.userService.FindUsers(c.Request().Context(), page, size, nickname)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.JSON(w, r, res)
+	return c.JSON(http.StatusOK, res)
 }
 
 // FindMyProfile godoc
@@ -147,14 +134,13 @@ func (h *UserHandler) FindUsers(w http.ResponseWriter, r *http.Request) {
 // @Security FirebaseAuth
 // @Success 200 {object} user.MyProfileView
 // @Router /users/me [get]
-func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
-	res, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) FindMyProfile(c echo.Context) error {
+	res, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.JSON(w, r, res.ToMyProfileView())
+	return c.JSON(http.StatusOK, res.ToMyProfileView())
 }
 
 // UpdateMyProfile godoc
@@ -167,29 +153,25 @@ func (h *UserHandler) FindMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Param request body user.UpdateUserRequest true "사용자 프로필 수정 요청"
 // @Success 200 {object} user.UpdateUserView
 // @Router /users/me [put]
-func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
-	if err := pnd.ParseBody(r, &updateUserRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &updateUserRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	ctx := r.Context()
-	userModel, err := h.userService.UpdateUserByUID(ctx, uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
+	userModel, err := h.userService.UpdateUserByUID(c.Request().Context(), uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.JSON(w, r, userModel.ToUpdateUserView())
+	return c.JSON(http.StatusOK, userModel.ToUpdateUserView())
 }
 
 // DeleteMyAccount godoc
@@ -199,19 +181,17 @@ func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Security FirebaseAuth
 // @Success 204
 // @Router /users/me [delete]
-func (h *UserHandler) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
-	user, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) DeleteMyAccount(c echo.Context) error {
+	user, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	if err := h.userService.DeleteUserByUID(r.Context(), user.FirebaseUID); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := h.userService.DeleteUserByUID(c.Request().Context(), user.FirebaseUID); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	render.Status(r, http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // AddMyPets godoc
@@ -224,28 +204,24 @@ func (h *UserHandler) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
 // @Param request body pet.AddPetsToOwnerRequest true "반려동물 등록 요청"
 // @Success 200
 // @Router /users/me/pets [put]
-func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) AddMyPets(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
-	if err := pnd.ParseBody(r, &addPetsToOwnerRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if err := pnd.ParseBody(c, &addPetsToOwnerRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	ctx := r.Context()
-	if _, err := h.userService.AddPetsToOwner(ctx, uid, addPetsToOwnerRequest); err != nil {
-		render.Render(w, r, err)
-		return
+	if _, err := h.userService.AddPetsToOwner(c.Request().Context(), uid, addPetsToOwnerRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 // FindMyPets godoc
@@ -256,21 +232,18 @@ func (h *UserHandler) AddMyPets(w http.ResponseWriter, r *http.Request) {
 // @Security FirebaseAuth
 // @Success 200 {object} pet.FindMyPetsView
 // @Router /users/me/pets [get]
-func (h *UserHandler) FindMyPets(w http.ResponseWriter, r *http.Request) {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(r.Context(), r)
+func (h *UserHandler) FindMyPets(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
 	uid := foundUser.FirebaseUID
 
-	ctx := r.Context()
-	res, err := h.userService.FindPetsByOwnerUID(ctx, uid)
+	res, err := h.userService.FindPetsByOwnerUID(c.Request().Context(), uid)
 	if err != nil {
-		render.Render(w, r, err)
-		return
+		return c.JSON(err.StatusCode, err)
 	}
 
-	pnd.OK(w, nil, res)
+	return c.JSON(http.StatusOK, res)
 }
