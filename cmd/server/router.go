@@ -99,10 +99,10 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 
 	userApiGroup := apiRouteGroup.Group("/users")
 	{
-		userApiGroup.POST("/", userHandler.RegisterUser)
+		userApiGroup.POST("", userHandler.RegisterUser)
 		userApiGroup.POST("/check/nickname", userHandler.CheckUserNickname)
 		userApiGroup.POST("/status", userHandler.FindUserStatusByEmail)
-		userApiGroup.GET("/", userHandler.FindUsers)
+		userApiGroup.GET("", userHandler.FindUsers)
 		userApiGroup.GET("/me", userHandler.FindMyProfile)
 		userApiGroup.PUT("/me", userHandler.UpdateMyProfile)
 		userApiGroup.DELETE("/me", userHandler.DeleteMyAccount)
@@ -112,7 +112,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 
 	breedApiGroup := apiRouteGroup.Group("/breeds")
 	{
-		breedApiGroup.GET("/", breedHandler.FindBreeds)
+		breedApiGroup.GET("", breedHandler.FindBreeds)
 	}
 
 	postApiGroup := apiRouteGroup.Group("/posts")
