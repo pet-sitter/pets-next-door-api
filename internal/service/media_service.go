@@ -15,11 +15,11 @@ import (
 )
 
 type MediaService struct {
-	conn     *database.DB
+	conn     database.DB
 	s3Client *s3infra.S3Client
 }
 
-func NewMediaService(conn *database.DB, s3Client *s3infra.S3Client) *MediaService {
+func NewMediaService(conn database.DB, s3Client *s3infra.S3Client) *MediaService {
 	return &MediaService{
 		conn:     conn,
 		s3Client: s3Client,
@@ -62,7 +62,7 @@ func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, medi
 }
 
 func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginSqlTx(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 }
 
 func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginSqlTx(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err

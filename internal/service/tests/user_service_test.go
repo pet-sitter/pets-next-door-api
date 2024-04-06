@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -15,10 +16,10 @@ import (
 
 func TestUserService(t *testing.T) {
 	setUp := func(t *testing.T) (*database.DB, func(t *testing.T)) {
-		db, _ := database.Open(tests.TestDatabaseURL)
+		db, _ := sql.OpenSqlDB(tests.TestDatabaseURL)
 		db.Flush()
 
-		return db, func(t *testing.T) {
+		return &db, func(t *testing.T) {
 			db.Close()
 		}
 	}
@@ -59,7 +60,7 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, err := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
@@ -68,7 +69,7 @@ func TestUserService(t *testing.T) {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -93,7 +94,7 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			service := service.NewUserService(db, nil)
+			service := service.NewUserService(*db, nil)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -119,12 +120,12 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -148,13 +149,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			targetNickname := "target"
 			targetUserRequest := &user.RegisterUserRequest{
@@ -190,13 +191,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -223,7 +224,7 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(*db, nil)
 
 			_, err := userService.FindUserByEmail(ctx, "non-existent@example.com")
 			if err == nil {
@@ -238,13 +239,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -270,7 +271,7 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(*db, nil)
 
 			_, err := userService.FindUserByUID(ctx, "non-existent")
 			if err == nil {
@@ -285,7 +286,7 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			userService := service.NewUserService(db, nil)
+			userService := service.NewUserService(*db, nil)
 
 			exists, _ := userService.ExistsByNickname(ctx, "non-existent")
 			if exists {
@@ -298,13 +299,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -329,13 +330,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -367,13 +368,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -408,13 +409,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 			owner, _ := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",

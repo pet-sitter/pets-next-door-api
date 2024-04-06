@@ -1,23 +1,15 @@
-package database
+package sql
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 type SqlTx struct {
 	*sql.Tx
-}
-
-func (sdt *DB) BeginSqlTx(ctx context.Context) (*SqlTx, *pnd.AppError) {
-	tx, err := sdt.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	return &SqlTx{tx}, nil
 }
 
 func (sct *SqlTx) EndTx(f func() *pnd.AppError) *pnd.AppError {
@@ -58,21 +50,21 @@ func (sct *SqlTx) Commit() *pnd.AppError {
 	return nil
 }
 
-func WithSqlTransaction(ctx context.Context, conn *DB, f func(tx *SqlTx) *pnd.AppError) *pnd.AppError {
-	tx, err := conn.BeginSqlTx(ctx)
+func WithTransaction(ctx context.Context, conn *database.DB, f func(tx *database.Tx) *pnd.AppError) *pnd.AppError {
+	tx, err := (*conn).BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err := f(tx); err != nil {
-		if err := (*tx).Rollback(); err != nil {
+	if err := f(&tx); err != nil {
+		if err := (tx).Rollback(); err != nil {
 			return err
 		}
 
 		return err
 	}
 
-	if err := (*tx).Commit(); err != nil {
+	if err := (tx).Commit(); err != nil {
 		return err
 	}
 

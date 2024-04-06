@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	"log"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 func main() {
-	db, err := database.Open(configs.DatabaseURL)
+	db, err := sql.OpenSqlDB(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}

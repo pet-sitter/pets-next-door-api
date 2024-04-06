@@ -10,17 +10,17 @@ import (
 )
 
 type ConditionService struct {
-	conn *database.DB
+	conn database.DB
 }
 
-func NewConditionService(conn *database.DB) *ConditionService {
+func NewConditionService(conn database.DB) *ConditionService {
 	return &ConditionService{
 		conn: conn,
 	}
 }
 
 func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post.ConditionView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err

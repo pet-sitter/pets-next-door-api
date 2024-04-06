@@ -11,17 +11,17 @@ import (
 )
 
 type SosPostService struct {
-	conn *database.DB
+	conn database.DB
 }
 
-func NewSosPostService(conn *database.DB) *SosPostService {
+func NewSosPostService(conn database.DB) *SosPostService {
 	return &SosPostService{
 		conn: conn,
 	}
 }
 
 func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, request *sos_post.WriteSosPostRequest) (*sos_post.WriteSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 }
 
 func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.FindSosPostListView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 }
 
 func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*sos_post.FindSosPostListView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 }
 
 func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*sos_post.FindSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 }
 
 func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.UpdateSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -274,7 +274,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 }
 
 func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid string, sosPostID int) (bool, *pnd.AppError) {
-	tx, err := service.conn.BeginSqlTx(ctx)
+	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return false, err

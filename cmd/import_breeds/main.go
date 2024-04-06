@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	dbSQL "database/sql"
 	"errors"
 	"flag"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	"log"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -20,7 +21,7 @@ func main() {
 
 	log.Printf("Starting to import pet types: %s to database\n", flags.petTypeToImport)
 
-	db, err := database.Open(configs.DatabaseURL)
+	db, err := sql.OpenSqlDB(configs.DatabaseURL)
 
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
@@ -40,16 +41,16 @@ func main() {
 	switch flags.petTypeToImport {
 	case Cat:
 		var catRows = client.GetCatNames(spreadsheet)
-		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
+		importBreeds(ctx, &db, pet.PetTypeCat, &catRows)
 	case Dog:
 		var dogRows = client.GetDogNames(spreadsheet)
-		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)
+		importBreeds(ctx, &db, pet.PetTypeDog, &dogRows)
 	case All:
 		var catRows = client.GetCatNames(spreadsheet)
 		var dogRows = client.GetDogNames(spreadsheet)
 
-		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
-		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)
+		importBreeds(ctx, &db, pet.PetTypeCat, &catRows)
+		importBreeds(ctx, &db, pet.PetTypeDog, &dogRows)
 	}
 
 	log.Println("Completed importing pet types to database")
@@ -93,9 +94,9 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	var breed *pet.Breed
-	err := database.WithSqlTransaction(ctx, conn, func(tx *database.SqlTx) *pnd.AppError {
-		existing, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, row.Breed)
-		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
+	err := sql.WithTransaction(ctx, conn, func(tx *database.Tx) *pnd.AppError {
+		existing, err := postgres.FindBreedByPetTypeAndName(ctx, *tx, petType, row.Breed)
+		if err != nil && !errors.Is(err.Err, dbSQL.ErrNoRows) {
 			return err
 		}
 
@@ -105,7 +106,7 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 			return nil
 		}
 
-		breed, err = postgres.CreateBreed(ctx, tx, &pet.Breed{PetType: petType, Name: row.Breed})
+		breed, err = postgres.CreateBreed(ctx, *tx, &pet.Breed{PetType: petType, Name: row.Breed})
 		if err != nil {
 			return err
 		}

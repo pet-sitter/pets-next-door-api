@@ -7,7 +7,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -25,7 +25,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	e := echo.New()
 	ctx := context.Background()
 
-	db, err := database.Open(configs.DatabaseURL)
+	db, err := sql.OpenSqlDB(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}

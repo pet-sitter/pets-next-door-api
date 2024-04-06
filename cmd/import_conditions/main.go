@@ -2,19 +2,20 @@ package main
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	"log"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 func main() {
 	log.Println("Starting to import condition")
 
-	db, err := database.Open(configs.DatabaseURL)
+	db, err := sql.OpenSqlDB(configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
@@ -23,8 +24,8 @@ func main() {
 	var err2 *pnd.AppError
 
 	ctx := context.Background()
-	err2 = database.WithSqlTransaction(ctx, db, func(tx *database.SqlTx) *pnd.AppError {
-		result, err2 = postgres.InitConditions(ctx, tx, sos_post.ConditionName)
+	err2 = sql.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
+		result, err2 = postgres.InitConditions(ctx, *tx, sos_post.ConditionName)
 		if err2 != nil {
 			return err2
 		}

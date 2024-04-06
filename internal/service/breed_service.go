@@ -10,17 +10,17 @@ import (
 )
 
 type BreedService struct {
-	conn *database.DB
+	conn database.DB
 }
 
-func NewBreedService(conn *database.DB) *BreedService {
+func NewBreedService(conn database.DB) *BreedService {
 	return &BreedService{
 		conn: conn,
 	}
 }
 
 func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedListView, *pnd.AppError) {
-	tx, err := s.conn.BeginSqlTx(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 }
 
 func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.BreedView, *pnd.AppError) {
-	tx, err := s.conn.BeginSqlTx(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err

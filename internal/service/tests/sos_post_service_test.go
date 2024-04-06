@@ -9,6 +9,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
@@ -18,17 +19,17 @@ import (
 
 func TestSosPostService(t *testing.T) {
 	setUp := func(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T)) {
-		db, _ := database.Open(tests.TestDatabaseURL)
+		db, _ := sql.OpenSqlDB(tests.TestDatabaseURL)
 		db.Flush()
 
-		if err := database.WithSqlTransaction(ctx, db, func(tx *database.SqlTx) *pnd.AppError {
-			postgres.InitConditions(ctx, tx, sos_post.ConditionName)
+		if err := sql.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
+			postgres.InitConditions(ctx, *tx, sos_post.ConditionName)
 			return nil
 		}); err != nil {
 			t.Errorf("InitConditions failed: %v", err)
 		}
 
-		return db, func(t *testing.T) {
+		return &db, func(t *testing.T) {
 			db.Close()
 		}
 	}
@@ -39,7 +40,7 @@ func TestSosPostService(t *testing.T) {
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -53,7 +54,7 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -91,7 +92,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Err.Error())
 			}
 
-			sosPostService := service.NewSosPostService(db)
+			sosPostService := service.NewSosPostService(*db)
 
 			conditionIDs := []int{1, 2}
 
@@ -155,7 +156,7 @@ func TestSosPostService(t *testing.T) {
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -169,7 +170,7 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -206,7 +207,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Err.Error())
 			}
 
-			sosPostService := service.NewSosPostService(db)
+			sosPostService := service.NewSosPostService(*db)
 
 			conditionIDs := []int{1, 2}
 
@@ -283,7 +284,7 @@ func TestSosPostService(t *testing.T) {
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -297,7 +298,7 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -334,7 +335,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Err.Error())
 			}
 
-			sosPostService := service.NewSosPostService(db)
+			sosPostService := service.NewSosPostService(*db)
 
 			conditionIDs := []int{1, 2}
 			//krLocation, _ := time.LoadLocation("Asia/Seoul")
@@ -412,7 +413,7 @@ func TestSosPostService(t *testing.T) {
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -426,7 +427,7 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -464,7 +465,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Err.Error())
 			}
 
-			sosPostService := service.NewSosPostService(db)
+			sosPostService := service.NewSosPostService(*db)
 
 			conditionIDs := []int{1, 2}
 
@@ -537,7 +538,7 @@ func TestSosPostService(t *testing.T) {
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
 
-			mediaService := service.NewMediaService(db, nil)
+			mediaService := service.NewMediaService(*db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test.com",
@@ -551,7 +552,7 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			userService := service.NewUserService(db, mediaService)
+			userService := service.NewUserService(*db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -589,7 +590,7 @@ func TestSosPostService(t *testing.T) {
 				t.Errorf(err.Err.Error())
 			}
 
-			sosPostService := service.NewSosPostService(db)
+			sosPostService := service.NewSosPostService(*db)
 
 			conditionIDs := []int{1, 2}
 
