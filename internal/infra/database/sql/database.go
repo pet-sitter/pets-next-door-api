@@ -10,7 +10,7 @@ import (
 )
 
 type DB struct {
-	DB          *sql.DB
+	conn        *sql.DB
 	databaseURL string
 }
 
@@ -19,11 +19,11 @@ func OpenSqlDB(databaseURL string) (database.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{DB: db, databaseURL: databaseURL}, nil
+	return &DB{conn: db, databaseURL: databaseURL}, nil
 }
 
 func (db *DB) Close() error {
-	return db.DB.Close()
+	return db.conn.Close()
 }
 
 func (db *DB) Flush() error {
@@ -43,7 +43,7 @@ func (db *DB) Flush() error {
 	}
 
 	for _, tableName := range tableNames {
-		_, err := db.DB.Exec("DELETE FROM " + tableName)
+		_, err := db.conn.Exec("DELETE FROM " + tableName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,7 +70,7 @@ func (db *DB) Migrate(migrationPath string) error {
 }
 
 func (db *DB) BeginTx(ctx context.Context) (database.Tx, *pnd.AppError) {
-	tx, err := db.DB.BeginTx(ctx, nil)
+	tx, err := db.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
