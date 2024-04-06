@@ -6,16 +6,16 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type UserService struct {
-	conn         database.DB
+	conn         *pgx.DB
 	mediaService *MediaService
 }
 
-func NewUserService(conn database.DB, mediaService *MediaService) *UserService {
+func NewUserService(conn *pgx.DB, mediaService *MediaService) *UserService {
 	return &UserService{
 		conn:         conn,
 		mediaService: mediaService,
@@ -35,8 +35,8 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 		}
 	}
 
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -54,8 +54,8 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 }
 
 func (service *UserService) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -75,8 +75,8 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 // FindMyProfile은 사용자의 프로필 정보를 조회한다.
 // 삭제된 유저의 경우 삭제된 유저 정보를 반환한다.
 func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*us
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -94,8 +94,8 @@ func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*us
 }
 
 func (service *UserService) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (service *UserService) FindUserByEmail(ctx context.Context, email string) (
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -113,8 +113,8 @@ func (service *UserService) FindUserByEmail(ctx context.Context, email string) (
 }
 
 func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*user.FindUserView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*use
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -132,8 +132,8 @@ func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*use
 }
 
 func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -143,7 +143,7 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 		return existsByNickname, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return existsByNickname, err
 	}
 
@@ -151,8 +151,8 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 }
 
 func (service *UserService) FindUserStatusByEmail(ctx context.Context, email string) (*user.UserStatus, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 		return userStatus, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return userStatus, err
 	}
 
@@ -170,8 +170,8 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 }
 
 func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.UserWithProfileImage, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -201,8 +201,8 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 }
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pn
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return err
 	}
 
@@ -219,8 +219,8 @@ func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pn
 }
 
 func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 		pets[i] = createdPet
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -254,8 +254,8 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 }
 
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 

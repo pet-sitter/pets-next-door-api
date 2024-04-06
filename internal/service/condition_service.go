@@ -2,26 +2,26 @@ package service
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type ConditionService struct {
-	conn database.DB
+	conn *pgx.DB
 }
 
-func NewConditionService(conn database.DB) *ConditionService {
+func NewConditionService(conn *pgx.DB) *ConditionService {
 	return &ConditionService{
 		conn: conn,
 	}
 }
 
 func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post.ConditionView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 

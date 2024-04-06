@@ -1,5 +1,7 @@
 package media
 
+import utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+
 type MediaView struct {
 	ID        int       `json:"id"`
 	MediaType MediaType `json:"mediaType"`
@@ -14,7 +16,7 @@ func (media *Media) ToMediaView() *MediaView {
 		ID:        media.ID,
 		MediaType: media.MediaType,
 		URL:       media.URL,
-		CreatedAt: media.CreatedAt,
+		CreatedAt: utils.FormatDatetime(media.CreatedAt),
 	}
 }
 

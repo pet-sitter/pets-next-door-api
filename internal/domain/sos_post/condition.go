@@ -2,17 +2,19 @@ package sos_post
 
 import (
 	"context"
+	"database/sql"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
 type Condition struct {
-	ID        int    `field:"id"`
-	Name      string `field:"name"`
-	CreatedAt string `field:"created_at"`
-	UpdatedAt string `field:"update_at"`
-	DeletedAt string `field:"deleted_at"`
+	ID        int          `field:"id"`
+	Name      string       `field:"name"`
+	CreatedAt time.Time    `field:"created_at"`
+	UpdatedAt time.Time    `field:"update_at"`
+	DeletedAt sql.NullTime `field:"deleted_at"`
 }
 
 type ConditionList []*Condition

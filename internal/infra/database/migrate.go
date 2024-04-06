@@ -1,6 +1,9 @@
 package database
 
-import "github.com/golang-migrate/migrate/v4"
+import (
+	"errors"
+	"github.com/golang-migrate/migrate/v4"
+)
 
 func Migrate(databaseURL, migrationPath string) error {
 	m, err := migrate.New(
@@ -12,7 +15,7 @@ func Migrate(databaseURL, migrationPath string) error {
 		return err
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}
 

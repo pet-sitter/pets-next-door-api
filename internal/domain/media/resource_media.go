@@ -2,6 +2,7 @@ package media
 
 import (
 	"context"
+	"database/sql"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"time"
 
@@ -21,7 +22,7 @@ type ResourceMedia struct {
 	MediaID      int          `field:"media_id"`
 	CreatedAt    time.Time    `field:"created_at"`
 	UpdatedAt    time.Time    `field:"updated_at"`
-	DeletedAt    time.Time    `field:"deleted_at"`
+	DeletedAt    sql.NullTime `field:"deleted_at"`
 }
 
 type ResourceMediaStore interface {

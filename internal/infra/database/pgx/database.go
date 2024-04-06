@@ -3,42 +3,55 @@ package pgx
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 type DB struct {
-	pool        *pgxpool.Pool
+	Pool        *pgxpool.Pool
 	databaseURL string
 }
 
-func OpenPgxDB(ctx context.Context, databaseURL string) (*DB, error) {
+func OpenPgxDB(ctx context.Context, databaseURL string) (*DB, *pnd.AppError) {
 	pool, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPgxError(err)
 	}
-	return &DB{pool: pool, databaseURL: databaseURL}, nil
+	return &DB{Pool: pool, databaseURL: databaseURL}, nil
 }
 
-func (db *DB) Close() error {
-	db.pool.Close()
+func (db *DB) Close() *pnd.AppError {
+	db.Pool.Close()
 	return nil
 }
 
-func (db *DB) Flush(ctx context.Context) error {
+func (db *DB) Flush(ctx context.Context) *pnd.AppError {
 	for _, tableName := range database.TableNames {
-		_, err := db.pool.Exec(ctx, "DELETE FROM "+tableName)
+		_, err := db.Pool.Exec(ctx, "DELETE FROM "+tableName)
 		if err != nil {
-			return err
+			return pnd.FromPgxError(err)
 		}
 	}
 
 	return nil
 }
 
-func (db *DB) BeginTx(ctx context.Context) (database.Tx, error) {
-	tx, err := db.pool.Begin(ctx)
+// BeginTx 는 database.Tx 를 반환한다.
+// 사용하지는 않지만 database.DB 인터페이스 구현을 위해 정의되었다.
+func (db *DB) BeginTx(ctx context.Context) (database.Tx, *pnd.AppError) {
+	tx, err := db.Pool.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPgxError(err)
 	}
-	return &PgxTx{tx: tx, ctx: ctx}, nil
+	return &PgxTx{tx: tx}, nil
+}
+
+// BeginPgxTx 는 pgx.Tx 를 반환한다.
+// database.DB 인터페이스와 호환이 되지 않는다.
+func (db *DB) BeginPgxTx(ctx context.Context) (*PgxTx, *pnd.AppError) {
+	tx, err := db.Pool.Begin(ctx)
+	if err != nil {
+		return nil, pnd.FromPgxError(err)
+	}
+	return &PgxTx{tx: tx}, nil
 }

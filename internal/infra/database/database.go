@@ -23,8 +23,8 @@ var TableNames = []string{
 }
 
 type DB interface {
-	Close() error
-	Flush() error
+	Close() *pnd.AppError
+	Flush() *pnd.AppError
 	BeginTx(ctx context.Context) (Tx, *pnd.AppError)
 }
 
@@ -35,14 +35,14 @@ func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError
 	}
 
 	if err := f(&tx); err != nil {
-		if err := (tx).Rollback(); err != nil {
+		if err := (tx).Rollback(ctx); err != nil {
 			return err
 		}
 
 		return err
 	}
 
-	if err := (tx).Commit(); err != nil {
+	if err := (tx).Commit(ctx); err != nil {
 		return err
 	}
 

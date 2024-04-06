@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateUser(ctx context.Context, tx database.Transactioner, request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
+func CreateUser(ctx context.Context, tx *pgx.PgxTx, request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		users
@@ -28,7 +28,7 @@ func CreateUser(ctx context.Context, tx database.Transactioner, request *user.Re
 	`
 
 	user := &user.User{}
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRow(ctx, sql,
 		request.Email,
 		request.Nickname,
 		request.Fullname,
@@ -53,7 +53,7 @@ func CreateUser(ctx context.Context, tx database.Transactioner, request *user.Re
 	return user, nil
 }
 
-func FindUsers(ctx context.Context, tx database.Transactioner, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+func FindUsers(ctx context.Context, tx *pgx.PgxTx, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -75,9 +75,9 @@ func FindUsers(ctx context.Context, tx database.Transactioner, page int, size in
 	`
 
 	userList := user.NewUserWithoutPrivateInfoList(page, size)
-	rows, err := tx.QueryContext(ctx, sql, nickname, size+1, (page-1)*size)
+	rows, err := tx.Query(ctx, sql, nickname, size+1, (page-1)*size)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -99,7 +99,7 @@ func FindUsers(ctx context.Context, tx database.Transactioner, page int, size in
 	return userList, nil
 }
 
-func FindUserByID(ctx context.Context, tx database.Transactioner, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByID(ctx context.Context, tx *pgx.PgxTx, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -124,7 +124,7 @@ func FindUserByID(ctx context.Context, tx database.Transactioner, id int, includ
 	`
 
 	var user user.UserWithProfileImage
-	if err := tx.QueryRowContext(ctx, sql, id, includeDeleted).Scan(
+	if err := tx.QueryRow(ctx, sql, id, includeDeleted).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Nickname,
@@ -142,7 +142,7 @@ func FindUserByID(ctx context.Context, tx database.Transactioner, id int, includ
 	return &user, nil
 }
 
-func FindUserByEmail(ctx context.Context, tx database.Transactioner, email string) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByEmail(ctx context.Context, tx *pgx.PgxTx, email string) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -166,7 +166,7 @@ func FindUserByEmail(ctx context.Context, tx database.Transactioner, email strin
 	`
 
 	var user user.UserWithProfileImage
-	if err := tx.QueryRowContext(ctx, sql, email).Scan(
+	if err := tx.QueryRow(ctx, sql, email).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Nickname,
@@ -183,7 +183,7 @@ func FindUserByEmail(ctx context.Context, tx database.Transactioner, email strin
 	return &user, nil
 }
 
-func FindUserByUID(ctx context.Context, tx database.Transactioner, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByUID(ctx context.Context, tx *pgx.PgxTx, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -207,7 +207,7 @@ func FindUserByUID(ctx context.Context, tx database.Transactioner, uid string) (
 	`
 
 	var user user.UserWithProfileImage
-	if err := tx.QueryRowContext(ctx, sql, uid).Scan(
+	if err := tx.QueryRow(ctx, sql, uid).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Nickname,
@@ -224,7 +224,7 @@ func FindUserByUID(ctx context.Context, tx database.Transactioner, uid string) (
 	return &user, nil
 }
 
-func FindUserIDByFbUID(ctx context.Context, tx database.Transactioner, fbUid string) (int, *pnd.AppError) {
+func FindUserIDByFbUID(ctx context.Context, tx *pgx.PgxTx, fbUid string) (int, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id
@@ -236,14 +236,14 @@ func FindUserIDByFbUID(ctx context.Context, tx database.Transactioner, fbUid str
 	`
 
 	var userID int
-	if err := tx.QueryRowContext(ctx, sql, fbUid).Scan(&userID); err != nil {
+	if err := tx.QueryRow(ctx, sql, fbUid).Scan(&userID); err != nil {
 		return 0, pnd.FromPostgresError(err)
 	}
 
 	return userID, nil
 }
 
-func ExistsUserByNickname(ctx context.Context, tx database.Transactioner, nickname string) (bool, *pnd.AppError) {
+func ExistsUserByNickname(ctx context.Context, tx *pgx.PgxTx, nickname string) (bool, *pnd.AppError) {
 	const sql = `
 	SELECT
 		CASE
@@ -261,14 +261,14 @@ func ExistsUserByNickname(ctx context.Context, tx database.Transactioner, nickna
 	`
 
 	var exists bool
-	if err := tx.QueryRowContext(ctx, sql, nickname).Scan(&exists); err != nil {
+	if err := tx.QueryRow(ctx, sql, nickname).Scan(&exists); err != nil {
 		return false, pnd.FromPostgresError(err)
 	}
 
 	return exists, nil
 }
 
-func FindUserStatusByEmail(ctx context.Context, tx database.Transactioner, email string) (*user.UserStatus, *pnd.AppError) {
+func FindUserStatusByEmail(ctx context.Context, tx *pgx.PgxTx, email string) (*user.UserStatus, *pnd.AppError) {
 	const sql = `
 	SELECT
 		fb_provider_type
@@ -280,14 +280,14 @@ func FindUserStatusByEmail(ctx context.Context, tx database.Transactioner, email
 	`
 
 	var userStatus user.UserStatus
-	if err := tx.QueryRowContext(ctx, sql, email).Scan(&userStatus.FirebaseProviderType); err != nil {
+	if err := tx.QueryRow(ctx, sql, email).Scan(&userStatus.FirebaseProviderType); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
 	return &userStatus, nil
 }
 
-func UpdateUserByUID(ctx context.Context, tx database.Transactioner, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
+func UpdateUserByUID(ctx context.Context, tx *pgx.PgxTx, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
 	const sql = `
 	UPDATE
 		users
@@ -311,7 +311,7 @@ func UpdateUserByUID(ctx context.Context, tx database.Transactioner, uid string,
 	`
 
 	var user user.User
-	err := tx.QueryRowContext(ctx, sql,
+	err := tx.QueryRow(ctx, sql,
 		nickname,
 		profileImageID,
 		uid,
@@ -333,7 +333,7 @@ func UpdateUserByUID(ctx context.Context, tx database.Transactioner, uid string,
 	return &user, nil
 }
 
-func DeleteUserByUID(ctx context.Context, tx database.Transactioner, uid string) *pnd.AppError {
+func DeleteUserByUID(ctx context.Context, tx *pgx.PgxTx, uid string) *pnd.AppError {
 	const sql = `
 	UPDATE
 		users
@@ -343,8 +343,8 @@ func DeleteUserByUID(ctx context.Context, tx database.Transactioner, uid string)
 		fb_uid = $1
 	`
 
-	if _, err := tx.ExecContext(ctx, sql, uid); err != nil {
-		return pnd.FromPostgresError(err)
+	if _, err := tx.Exec(ctx, sql, uid); err != nil {
+		return err
 	}
 
 	return nil

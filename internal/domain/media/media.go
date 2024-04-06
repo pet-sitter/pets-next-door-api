@@ -2,7 +2,9 @@ package media
 
 import (
 	"context"
+	"database/sql"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
@@ -14,12 +16,12 @@ const (
 )
 
 type Media struct {
-	ID        int       `field:"id"`
-	MediaType MediaType `field:"media_type"`
-	URL       string    `field:"url"`
-	CreatedAt string    `field:"created_at"`
-	UpdatedAt string    `field:"updated_at"`
-	DeletedAt string    `field:"deleted_at"`
+	ID        int          `field:"id"`
+	MediaType MediaType    `field:"media_type"`
+	URL       string       `field:"url"`
+	CreatedAt time.Time    `field:"created_at"`
+	UpdatedAt time.Time    `field:"updated_at"`
+	DeletedAt sql.NullTime `field:"deleted_at"`
 }
 
 type MediaList []*Media

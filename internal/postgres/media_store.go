@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateMedia(ctx context.Context, tx database.Transactioner, media *media.Media) (*media.Media, *pnd.AppError) {
+func CreateMedia(ctx context.Context, tx *pgx.PgxTx, media *media.Media) (*media.Media, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		media
@@ -22,7 +22,7 @@ func CreateMedia(ctx context.Context, tx database.Transactioner, media *media.Me
 	RETURNING id, created_at, updated_at
 	`
 
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRow(ctx, sql,
 		media.MediaType,
 		media.URL,
 	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt); err != nil {
@@ -32,7 +32,7 @@ func CreateMedia(ctx context.Context, tx database.Transactioner, media *media.Me
 	return media, nil
 }
 
-func FindMediaByID(ctx context.Context, tx database.Transactioner, id int) (*media.Media, *pnd.AppError) {
+func FindMediaByID(ctx context.Context, tx *pgx.PgxTx, id int) (*media.Media, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -48,7 +48,7 @@ func FindMediaByID(ctx context.Context, tx database.Transactioner, id int) (*med
 	`
 
 	media := &media.Media{}
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRow(ctx, sql,
 		id,
 	).Scan(
 		&media.ID,

@@ -2,6 +2,7 @@ package sos_post
 
 import (
 	"context"
+	"database/sql"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"time"
 
@@ -31,18 +32,18 @@ const (
 )
 
 type SosPost struct {
-	ID          int         `field:"id"`
-	AuthorID    int         `field:"author_id"`
-	Title       string      `field:"title"`
-	Content     string      `field:"content"`
-	Reward      string      `field:"reward"`
-	CareType    CareType    `field:"care_type"`
-	CarerGender CarerGender `field:"carer_gender"`
-	RewardType  RewardType  `field:"reward_type"`
-	ThumbnailID int         `field:"thumbnail_id"`
-	CreatedAt   time.Time   `field:"created_at"`
-	UpdatedAt   time.Time   `field:"updated_at"`
-	DeletedAt   time.Time   `field:"deleted_at"`
+	ID          int          `field:"id"`
+	AuthorID    int          `field:"author_id"`
+	Title       string       `field:"title"`
+	Content     string       `field:"content"`
+	Reward      string       `field:"reward"`
+	CareType    CareType     `field:"care_type"`
+	CarerGender CarerGender  `field:"carer_gender"`
+	RewardType  RewardType   `field:"reward_type"`
+	ThumbnailID int          `field:"thumbnail_id"`
+	CreatedAt   time.Time    `field:"created_at"`
+	UpdatedAt   time.Time    `field:"updated_at"`
+	DeletedAt   sql.NullTime `field:"deleted_at"`
 }
 
 type SosPostList struct {
@@ -56,12 +57,12 @@ func NewSosPostList(page int, size int) *SosPostList {
 }
 
 type SosDates struct {
-	ID          int       `field:"id"`
-	DateStartAt string    `field:"date_start_at"`
-	DateEndAt   string    `field:"date_end_at"`
-	CreatedAt   time.Time `field:"created_at"`
-	UpdatedAt   time.Time `field:"updated_at"`
-	DeletedAt   time.Time `field:"deleted_at"`
+	ID          int          `field:"id"`
+	DateStartAt time.Time    `field:"date_start_at"`
+	DateEndAt   time.Time    `field:"date_end_at"`
+	CreatedAt   time.Time    `field:"created_at"`
+	UpdatedAt   time.Time    `field:"updated_at"`
+	DeletedAt   sql.NullTime `field:"deleted_at"`
 }
 
 type SosDatesList []*SosDates

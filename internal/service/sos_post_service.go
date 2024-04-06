@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -11,18 +11,18 @@ import (
 )
 
 type SosPostService struct {
-	conn database.DB
+	conn *pgx.DB
 }
 
-func NewSosPostService(conn database.DB) *SosPostService {
+func NewSosPostService(conn *pgx.DB) *SosPostService {
 	return &SosPostService{
 		conn: conn,
 	}
 }
 
 func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, request *sos_post.WriteSosPostRequest) (*sos_post.WriteSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -70,8 +70,8 @@ func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, r
 }
 
 func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size int, sortBy string) (*sos_post.FindSosPostListView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +123,8 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 }
 
 func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string) (*sos_post.FindSosPostListView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 		sosPostViews.Items = append(sosPostViews.Items, *findByAuthorSosPostView)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -180,8 +180,8 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 }
 
 func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*sos_post.FindSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -230,8 +230,8 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 }
 
 func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.UpdateSosPostView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -274,8 +274,8 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 }
 
 func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid string, sosPostID int) (bool, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := service.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -290,7 +290,7 @@ func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid 
 		return false, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return false, err
 	}
 

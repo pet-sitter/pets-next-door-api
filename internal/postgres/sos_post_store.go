@@ -3,15 +3,15 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func WriteSosPost(ctx context.Context, tx *pgx.PgxTx, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		sos_posts
@@ -41,7 +41,7 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 	`
 
 	sosPost := &sos_post.SosPost{}
-	err := tx.QueryRowContext(ctx, sql,
+	err := tx.QueryRow(ctx, sql,
 		authorID,
 		request.Title,
 		request.Content,
@@ -81,7 +81,7 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
-		if err := tx.QueryRowContext(ctx, sql2,
+		if err := tx.QueryRow(ctx, sql2,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -97,7 +97,7 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 	}
 
 	for _, sosDate := range sosDates {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_dates
 			(
@@ -111,12 +111,12 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 			sosPost.ID,
 			sosDate.ID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
 	for _, imageID := range request.ImageIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			resource_media
 			(
@@ -131,12 +131,12 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 			sosPost.ID,
 			media.SosResourceType,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_conditions
 			(
@@ -149,12 +149,12 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 			sosPost.ID,
 			conditionID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
 	for _, petID := range request.PetIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_pets
 			(
@@ -167,14 +167,14 @@ func WriteSosPost(ctx context.Context, tx database.Transactioner, authorID int, 
 			sosPost.ID,
 			petID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
 	return sosPost, nil
 }
 
-func FindSosPosts(ctx context.Context, tx database.Transactioner, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPosts(ctx context.Context, tx *pgx.PgxTx, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 	switch sortBy {
@@ -214,9 +214,9 @@ func FindSosPosts(ctx context.Context, tx database.Transactioner, page int, size
 		sortOrder,
 	)
 
-	rows, err := tx.QueryContext(ctx, query, size+1, (page-1)*size)
+	rows, err := tx.Query(ctx, query, size+1, (page-1)*size)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -248,7 +248,7 @@ func FindSosPosts(ctx context.Context, tx database.Transactioner, page int, size
 	return sosPostList, nil
 }
 
-func FindSosPostsByAuthorID(ctx context.Context, tx database.Transactioner, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPostsByAuthorID(ctx context.Context, tx *pgx.PgxTx, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 
@@ -290,9 +290,9 @@ func FindSosPostsByAuthorID(ctx context.Context, tx database.Transactioner, auth
 		sortOrder,
 	)
 
-	rows, err := tx.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
+	rows, err := tx.Query(ctx, query, authorID, size+1, (page-1)*size)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -321,7 +321,7 @@ func FindSosPostsByAuthorID(ctx context.Context, tx database.Transactioner, auth
 	return sosPostList, nil
 }
 
-func FindSosPostByID(ctx context.Context, tx database.Transactioner, id int) (*sos_post.SosPost, *pnd.AppError) {
+func FindSosPostByID(ctx context.Context, tx *pgx.PgxTx, id int) (*sos_post.SosPost, *pnd.AppError) {
 	const query = `
 	SELECT
 		id,
@@ -343,7 +343,7 @@ func FindSosPostByID(ctx context.Context, tx database.Transactioner, id int) (*s
 	`
 
 	sosPost := &sos_post.SosPost{}
-	if err := tx.QueryRowContext(ctx, query, id).Scan(
+	if err := tx.QueryRow(ctx, query, id).Scan(
 		&sosPost.ID,
 		&sosPost.AuthorID,
 		&sosPost.Title,
@@ -362,10 +362,10 @@ func FindSosPostByID(ctx context.Context, tx database.Transactioner, id int) (*s
 	return sosPost, nil
 }
 
-func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func UpdateSosPost(ctx context.Context, tx *pgx.PgxTx, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
 
-	if _, err := tx.ExecContext(ctx, `
+	if _, err := tx.Exec(ctx, `
 		UPDATE
 			sos_posts_dates
 		SET
@@ -374,10 +374,10 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			sos_post_id = $1
 	`, request.ID,
 	); err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
-	if _, err := tx.ExecContext(ctx, `
+	if _, err := tx.Exec(ctx, `
 		UPDATE
 			resource_media
 		SET
@@ -386,7 +386,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			resource_id = $1
 	`, request.ID,
 	); err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	const sql = `
@@ -406,7 +406,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 
 	for _, date := range request.Dates {
 		SosDate := sos_post.SosDates{}
-		if err := tx.QueryRowContext(ctx, sql,
+		if err := tx.QueryRow(ctx, sql,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -422,7 +422,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 	}
 
 	for _, sosDate := range sosDates {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_dates
 			(
@@ -436,12 +436,12 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			request.ID,
 			sosDate.ID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
 	for _, imageID := range request.ImageIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			resource_media
 			(
@@ -457,11 +457,11 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			request.ID,
 			media.SosResourceType,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
-	if _, err := tx.ExecContext(ctx, `
+	if _, err := tx.Exec(ctx, `
 		UPDATE
 			sos_posts_conditions
 		SET
@@ -469,11 +469,11 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 		WHERE
 			sos_post_id = $1
     `, request.ID); err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	for _, conditionID := range request.ConditionIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_conditions
 			(
@@ -487,11 +487,11 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			request.ID,
 			conditionID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
-	if _, err := tx.ExecContext(ctx, `
+	if _, err := tx.Exec(ctx, `
 		UPDATE
 			sos_posts_pets
 		SET
@@ -499,11 +499,11 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 		WHERE
 			sos_post_id = $1
     `, request.ID); err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	for _, petID := range request.PetIDs {
-		if _, err := tx.ExecContext(ctx, `
+		if _, err := tx.Exec(ctx, `
 		INSERT INTO
 			sos_posts_pets
 			(
@@ -517,7 +517,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 			request.ID,
 			petID,
 		); err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 	}
 
@@ -547,7 +547,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 		thumbnail_id
 	`
 
-	if err := tx.QueryRowContext(ctx, sql2,
+	if err := tx.QueryRow(ctx, sql2,
 		request.Title,
 		request.Content,
 		request.Reward,
@@ -573,7 +573,7 @@ func UpdateSosPost(ctx context.Context, tx database.Transactioner, request *sos_
 	return sosPost, nil
 }
 
-func FindConditionByID(ctx context.Context, tx database.Transactioner, id int) (*sos_post.ConditionList, *pnd.AppError) {
+func FindConditionByID(ctx context.Context, tx *pgx.PgxTx, id int) (*sos_post.ConditionList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		sos_conditions.id,
@@ -592,9 +592,9 @@ func FindConditionByID(ctx context.Context, tx database.Transactioner, id int) (
 	`
 
 	conditions := sos_post.ConditionList{}
-	rows, err := tx.QueryContext(ctx, sql, id)
+	rows, err := tx.Query(ctx, sql, id)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -617,7 +617,7 @@ func FindConditionByID(ctx context.Context, tx database.Transactioner, id int) (
 	return &conditions, nil
 }
 
-func FindPetsByID(ctx context.Context, tx database.Transactioner, id int) (*pet.PetList, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx *pgx.PgxTx, id int) (*pet.PetList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -644,9 +644,9 @@ func FindPetsByID(ctx context.Context, tx database.Transactioner, id int) (*pet.
 	`
 
 	pets := pet.PetList{}
-	rows, err := tx.QueryContext(ctx, sql, id)
+	rows, err := tx.Query(ctx, sql, id)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -677,7 +677,7 @@ func FindPetsByID(ctx context.Context, tx database.Transactioner, id int) (*pet.
 	return &pets, nil
 }
 
-func FindDatesBySosPostID(ctx context.Context, tx database.Transactioner, sosPostID int) (*sos_post.SosDatesList, *pnd.AppError) {
+func FindDatesBySosPostID(ctx context.Context, tx *pgx.PgxTx, sosPostID int) (*sos_post.SosDatesList, *pnd.AppError) {
 	const sql = `
 		SELECT
 		    sos_dates.id,
@@ -696,9 +696,9 @@ func FindDatesBySosPostID(ctx context.Context, tx database.Transactioner, sosPos
 	`
 
 	var sosDates sos_post.SosDatesList
-	rows, err := tx.QueryContext(ctx, sql, sosPostID)
+	rows, err := tx.Query(ctx, sql, sosPostID)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 

@@ -3,12 +3,11 @@ package postgres
 import (
 	"context"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 )
 
-func CreatePet(ctx context.Context, tx database.Transactioner, pet *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
+func CreatePet(ctx context.Context, tx *pgx.PgxTx, pet *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		pets
@@ -30,7 +29,7 @@ func CreatePet(ctx context.Context, tx database.Transactioner, pet *pet.Pet) (*p
 	RETURNING id, created_at, updated_at
 	`
 
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRow(ctx, sql,
 		pet.OwnerID,
 		pet.Name,
 		pet.PetType,
@@ -48,7 +47,7 @@ func CreatePet(ctx context.Context, tx database.Transactioner, pet *pet.Pet) (*p
 	return FindPetByID(ctx, tx, pet.ID)
 }
 
-func FindPetByID(ctx context.Context, tx database.Transactioner, id int) (*pet.PetWithProfileImage, *pnd.AppError) {
+func FindPetByID(ctx context.Context, tx *pgx.PgxTx, id int) (*pet.PetWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -76,7 +75,7 @@ func FindPetByID(ctx context.Context, tx database.Transactioner, id int) (*pet.P
 	`
 
 	var pet pet.PetWithProfileImage
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRow(ctx, sql,
 		id,
 	).Scan(
 		&pet.ID,
@@ -96,12 +95,10 @@ func FindPetByID(ctx context.Context, tx database.Transactioner, id int) (*pet.P
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	pet.BirthDate = utils.FormatDate(pet.BirthDate)
-
 	return &pet, nil
 }
 
-func FindPetsByOwnerID(ctx context.Context, tx database.Transactioner, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
+func FindPetsByOwnerID(ctx context.Context, tx *pgx.PgxTx, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -129,11 +126,11 @@ func FindPetsByOwnerID(ctx context.Context, tx database.Transactioner, ownerID i
 	`
 
 	var pets pet.PetWithProfileList
-	rows, err := tx.QueryContext(ctx, sql,
+	rows, err := tx.Query(ctx, sql,
 		ownerID,
 	)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -156,7 +153,6 @@ func FindPetsByOwnerID(ctx context.Context, tx database.Transactioner, ownerID i
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		pet.BirthDate = utils.FormatDate(pet.BirthDate)
 		pets = append(pets, &pet)
 	}
 	if err := rows.Err(); err != nil {

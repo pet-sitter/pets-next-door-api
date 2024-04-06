@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 	"io"
 	"path/filepath"
 
@@ -9,17 +10,16 @@ import (
 	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type MediaService struct {
-	conn     database.DB
+	conn     *pgx.DB
 	s3Client *s3infra.S3Client
 }
 
-func NewMediaService(conn database.DB, s3Client *s3infra.S3Client) *MediaService {
+func NewMediaService(conn *pgx.DB, s3Client *s3infra.S3Client) *MediaService {
 	return &MediaService{
 		conn:     conn,
 		s3Client: s3Client,
@@ -62,8 +62,8 @@ func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, medi
 }
 
 func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := s.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -81,8 +81,8 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 }
 
 func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := s.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media,
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 

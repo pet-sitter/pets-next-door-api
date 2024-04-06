@@ -2,26 +2,26 @@ package service
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type BreedService struct {
-	conn database.DB
+	conn *pgx.DB
 }
 
-func NewBreedService(conn database.DB) *BreedService {
+func NewBreedService(conn *pgx.DB) *BreedService {
 	return &BreedService{
 		conn: conn,
 	}
 }
 
 func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedListView, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := s.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -39,8 +39,8 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 }
 
 func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.BreedView, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
+	tx, err := s.conn.BeginPgxTx(ctx)
+	defer tx.Rollback(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pe
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 

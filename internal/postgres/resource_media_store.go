@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateResourceMedia(ctx context.Context, tx database.Transactioner, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
+func CreateResourceMedia(ctx context.Context, tx *pgx.PgxTx, resourceID int, mediaID int, resourceType string) (*media.ResourceMedia, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		resource_media
@@ -24,7 +24,7 @@ func CreateResourceMedia(ctx context.Context, tx database.Transactioner, resourc
 	`
 
 	resourceMedia := &media.ResourceMedia{}
-	err := tx.QueryRowContext(ctx, sql,
+	err := tx.QueryRow(ctx, sql,
 		resourceID,
 		mediaID,
 		resourceType,
@@ -36,7 +36,7 @@ func CreateResourceMedia(ctx context.Context, tx database.Transactioner, resourc
 	return resourceMedia, nil
 }
 
-func FindResourceMediaByResourceID(ctx context.Context, tx database.Transactioner, resourceID int, resourceType string) (*media.MediaList, *pnd.AppError) {
+func FindResourceMediaByResourceID(ctx context.Context, tx *pgx.PgxTx, resourceID int, resourceType string) (*media.MediaList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		m.id,
@@ -57,12 +57,12 @@ func FindResourceMediaByResourceID(ctx context.Context, tx database.Transactione
 	`
 
 	var mediaList media.MediaList
-	rows, err := tx.QueryContext(ctx, sql,
+	rows, err := tx.Query(ctx, sql,
 		resourceID,
 		resourceType,
 	)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	defer rows.Close()
 

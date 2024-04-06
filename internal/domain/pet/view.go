@@ -29,7 +29,7 @@ func (r *AddPetRequest) ToBasePet(ownerID int) *BasePet {
 		Sex:        r.Sex,
 		Neutered:   r.Neutered,
 		Breed:      r.Breed,
-		BirthDate:  r.BirthDate,
+		BirthDate:  utils.DateStrToDate(r.BirthDate),
 		WeightInKg: r.WeightInKg,
 		Remarks:    r.Remarks,
 	}
@@ -97,7 +97,7 @@ func (pet *PetWithProfileImage) ToPetView() *PetView {
 		Sex:             pet.Sex,
 		Neutered:        pet.Neutered,
 		Breed:           pet.Breed,
-		BirthDate:       pet.BirthDate,
+		BirthDate:       utils.FormatDate(pet.BirthDate),
 		WeightInKg:      pet.WeightInKg,
 		Remarks:         pet.Remarks,
 		ProfileImageURL: pet.ProfileImageURL,

@@ -7,7 +7,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -25,14 +25,14 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	e := echo.New()
 	ctx := context.Background()
 
-	db, err := sql.OpenSqlDB(configs.DatabaseURL)
+	db, err := pgx.OpenPgxDB(ctx, configs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	authClient, err := app.Auth(ctx)
-	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
+	authClient, err2 := app.Auth(ctx)
+	if err2 != nil {
+		log.Fatalf("error initializing app: %v\n", err2)
 	}
 
 	// Initialize services

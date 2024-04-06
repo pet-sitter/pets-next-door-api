@@ -3,23 +3,22 @@ package service_test
 import (
 	"context"
 	"fmt"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/sql"
+	"github.com/pet-sitter/pets-next-door-api/internal/infra/database/pgx"
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
 
 func TestUserService(t *testing.T) {
-	setUp := func(t *testing.T) (*database.DB, func(t *testing.T)) {
-		db, _ := sql.OpenSqlDB(tests.TestDatabaseURL)
-		db.Flush()
+	setUp := func(ctx context.Context, t *testing.T) (*pgx.DB, func(t *testing.T)) {
+		db, _ := pgx.OpenPgxDB(ctx, tests.TestDatabaseURL)
+		db.Flush(ctx)
 
-		return &db, func(t *testing.T) {
+		return db, func(t *testing.T) {
 			db.Close()
 		}
 	}
@@ -56,11 +55,11 @@ func TestUserService(t *testing.T) {
 
 	t.Run("RegisterUser", func(t *testing.T) {
 		t.Run("사용자를 새로 생성한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, err := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
@@ -69,7 +68,7 @@ func TestUserService(t *testing.T) {
 				t.Errorf("got %v want %v", err, nil)
 			}
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -90,11 +89,11 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자의 프로필 이미지가 존재하지 않아도 생성한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			service := service.NewUserService(*db, nil)
+			service := service.NewUserService(db, nil)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -116,16 +115,16 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 이미 존재할 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -145,17 +144,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUsers", func(t *testing.T) {
 		t.Run("사용자를 닉네임으로 검색한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			targetNickname := "target"
 			targetUserRequest := &user.RegisterUserRequest{
@@ -187,17 +186,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUserByEmail", func(t *testing.T) {
 		t.Run("사용자를 이메일로 찾는다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -220,11 +219,11 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 존재하지 않을 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			userService := service.NewUserService(*db, nil)
+			userService := service.NewUserService(db, nil)
 
 			_, err := userService.FindUserByEmail(ctx, "non-existent@example.com")
 			if err == nil {
@@ -235,17 +234,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUserByUID", func(t *testing.T) {
 		t.Run("사용자를 UID로 찾는다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
@@ -267,11 +266,11 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 존재하지 않을 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			userService := service.NewUserService(*db, nil)
+			userService := service.NewUserService(db, nil)
 
 			_, err := userService.FindUserByUID(ctx, "non-existent")
 			if err == nil {
@@ -282,11 +281,11 @@ func TestUserService(t *testing.T) {
 
 	t.Run("ExistsByNickname", func(t *testing.T) {
 		t.Run("사용자의 닉네임이 존재하지 않을 경우 false를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			userService := service.NewUserService(*db, nil)
+			userService := service.NewUserService(db, nil)
 
 			exists, _ := userService.ExistsByNickname(ctx, "non-existent")
 			if exists {
@@ -295,17 +294,17 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자의 닉네임이 존재할 경우 true를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -326,17 +325,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUserStatusByEmail", func(t *testing.T) {
 		t.Run("사용자의 상태를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -364,17 +363,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("UpdateUserByUID", func(t *testing.T) {
 		t.Run("사용자를 업데이트한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 
 			user := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -405,17 +404,17 @@ func TestUserService(t *testing.T) {
 
 	t.Run("AddPetsToOwner", func(t *testing.T) {
 		t.Run("사용자에게 반려동물을 추가한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
 			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
 
-			mediaService := service.NewMediaService(*db, nil)
+			mediaService := service.NewMediaService(db, nil)
 			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
-			userService := service.NewUserService(*db, mediaService)
+			userService := service.NewUserService(db, mediaService)
 			owner, _ := userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
