@@ -25,6 +25,6 @@ type Media struct {
 type MediaList []*Media
 
 type MediaStore interface {
-	CreateMedia(ctx context.Context, tx *database.Tx, media *Media) (*Media, *pnd.AppError)
-	FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*Media, *pnd.AppError)
+	CreateMedia(ctx context.Context, tx database.Tx, media *Media) (*Media, *pnd.AppError)
+	FindMediaByID(ctx context.Context, tx database.Tx, id int) (*Media, *pnd.AppError)
 }

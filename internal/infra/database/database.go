@@ -14,10 +14,6 @@ type DB struct {
 	databaseURL string
 }
 
-type Tx struct {
-	*sql.Tx
-}
-
 func Open(databaseURL string) (*DB, error) {
 	db, err := sql.Open("postgres", databaseURL)
 	if err != nil {

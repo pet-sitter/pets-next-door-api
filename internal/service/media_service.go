@@ -62,7 +62,7 @@ func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, medi
 }
 
 func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
+	tx, err := s.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) 
 }
 
 func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
+	tx, err := s.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err

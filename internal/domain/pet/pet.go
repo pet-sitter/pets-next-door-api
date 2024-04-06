@@ -38,9 +38,9 @@ type PetWithProfileImage struct {
 type PetWithProfileList []*PetWithProfileImage
 
 type PetStore interface {
-	CreatePet(ctx context.Context, tx *database.Tx, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
-	FindPetByID(ctx context.Context, tx *database.Tx, petID int) (*PetWithProfileImage, *pnd.AppError)
-	FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*PetWithProfileList, *pnd.AppError)
+	CreatePet(ctx context.Context, tx database.Tx, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
+	FindPetByID(ctx context.Context, tx database.Tx, petID int) (*PetWithProfileImage, *pnd.AppError)
+	FindPetsByOwnerID(ctx context.Context, tx database.Tx, ownerID int) (*PetWithProfileList, *pnd.AppError)
 }
 
 type PetType string

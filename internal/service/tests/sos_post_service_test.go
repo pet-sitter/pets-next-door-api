@@ -21,7 +21,7 @@ func TestSosPostService(t *testing.T) {
 		db, _ := database.Open(tests.TestDatabaseURL)
 		db.Flush()
 
-		if err := database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
+		if err := database.WithSqlTransaction(ctx, db, func(tx *database.SqlTx) *pnd.AppError {
 			postgres.InitConditions(ctx, tx, sos_post.ConditionName)
 			return nil
 		}); err != nil {

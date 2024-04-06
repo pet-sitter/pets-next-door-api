@@ -35,7 +35,7 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 		}
 	}
 
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (service *UserService) RegisterUser(ctx context.Context, registerUserReques
 }
 
 func (service *UserService) FindUsers(ctx context.Context, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 // FindMyProfile은 사용자의 프로필 정보를 조회한다.
 // 삭제된 유저의 경우 삭제된 유저 정보를 반환한다.
 func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*us
 }
 
 func (service *UserService) FindUserByEmail(ctx context.Context, email string) (*user.UserWithProfileImage, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (service *UserService) FindUserByEmail(ctx context.Context, email string) (
 }
 
 func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*user.FindUserView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*use
 }
 
 func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return false, err
@@ -151,7 +151,7 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 }
 
 func (service *UserService) FindUserStatusByEmail(ctx context.Context, email string) (*user.UserStatus, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 }
 
 func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nickname string, profileImageID *int) (*user.UserWithProfileImage, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -201,7 +201,7 @@ func (service *UserService) UpdateUserByUID(ctx context.Context, uid string, nic
 }
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pnd.AppError {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return err
@@ -219,7 +219,7 @@ func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pn
 }
 
 func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest) ([]pet.PetView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 }
 
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err

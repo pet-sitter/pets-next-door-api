@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
+func CreatePet(ctx context.Context, tx database.Tx, pet *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		pets
@@ -48,7 +48,7 @@ func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWith
 	return FindPetByID(ctx, tx, pet.ID)
 }
 
-func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProfileImage, *pnd.AppError) {
+func FindPetByID(ctx context.Context, tx database.Tx, id int) (*pet.PetWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -101,7 +101,7 @@ func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProf
 	return &pet, nil
 }
 
-func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
+func FindPetsByOwnerID(ctx context.Context, tx database.Tx, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,

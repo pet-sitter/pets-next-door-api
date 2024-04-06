@@ -28,6 +28,6 @@ const (
 var ConditionName = []SosCondition{CCTVPermission, IDVerification, PhonePermission}
 
 type ConditionStore interface {
-	InitConditions(ctx context.Context, tx *database.Tx, conditions []SosCondition) (string, *pnd.AppError)
-	FindConditions(ctx context.Context, tx *database.Tx) (*ConditionList, *pnd.AppError)
+	InitConditions(ctx context.Context, tx database.Tx, conditions []SosCondition) (string, *pnd.AppError)
+	FindConditions(ctx context.Context, tx database.Tx) (*ConditionList, *pnd.AppError)
 }

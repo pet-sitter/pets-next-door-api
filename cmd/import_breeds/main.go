@@ -93,7 +93,7 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	var breed *pet.Breed
-	err := database.WithTransaction(ctx, conn, func(tx *database.Tx) *pnd.AppError {
+	err := database.WithSqlTransaction(ctx, conn, func(tx *database.SqlTx) *pnd.AppError {
 		existing, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, row.Breed)
 		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
 			return err

@@ -27,7 +27,7 @@ func NewBreedList(page int, size int) *BreedList {
 }
 
 type BreedStore interface {
-	FindBreeds(ctx context.Context, tx *database.Tx, page int, size int, petType *string) (*BreedList, *pnd.AppError)
-	FindBreedByPetTypeAndName(ctx context.Context, tx *database.Tx, petType PetType, name string) (*Breed, *pnd.AppError)
-	CreateBreed(ctx context.Context, tx *database.Tx, breed *Breed) (*Breed, *pnd.AppError)
+	FindBreeds(ctx context.Context, tx database.Tx, page int, size int, petType *string) (*BreedList, *pnd.AppError)
+	FindBreedByPetTypeAndName(ctx context.Context, tx database.Tx, petType PetType, name string) (*Breed, *pnd.AppError)
+	CreateBreed(ctx context.Context, tx database.Tx, breed *Breed) (*Breed, *pnd.AppError)
 }

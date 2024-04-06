@@ -11,7 +11,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func WriteSosPost(ctx context.Context, tx database.Tx, authorID int, request *sos_post.WriteSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		sos_posts
@@ -174,7 +174,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 	return sosPost, nil
 }
 
-func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPosts(ctx context.Context, tx database.Tx, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 	switch sortBy {
@@ -248,7 +248,7 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 	return sosPostList, nil
 }
 
-func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
+func FindSosPostsByAuthorID(ctx context.Context, tx database.Tx, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
 	var sortColumn string
 	var sortOrder string
 
@@ -321,7 +321,7 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 	return sosPostList, nil
 }
 
-func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.SosPost, *pnd.AppError) {
+func FindSosPostByID(ctx context.Context, tx database.Tx, id int) (*sos_post.SosPost, *pnd.AppError) {
 	const query = `
 	SELECT
 		id,
@@ -362,7 +362,7 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.So
 	return sosPost, nil
 }
 
-func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
+func UpdateSosPost(ctx context.Context, tx database.Tx, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {
 	sosPost := &sos_post.SosPost{}
 
 	if _, err := tx.ExecContext(ctx, `
@@ -573,7 +573,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.Updat
 	return sosPost, nil
 }
 
-func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.ConditionList, *pnd.AppError) {
+func FindConditionByID(ctx context.Context, tx database.Tx, id int) (*sos_post.ConditionList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		sos_conditions.id,
@@ -617,7 +617,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.
 	return &conditions, nil
 }
 
-func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx database.Tx, id int) (*pet.PetList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -677,7 +677,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 	return &pets, nil
 }
 
-func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sos_post.SosDatesList, *pnd.AppError) {
+func FindDatesBySosPostID(ctx context.Context, tx database.Tx, sosPostID int) (*sos_post.SosDatesList, *pnd.AppError) {
 	const sql = `
 		SELECT
 		    sos_dates.id,

@@ -67,13 +67,13 @@ type SosDates struct {
 type SosDatesList []*SosDates
 
 type SosPostStore interface {
-	WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
-	FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
-	FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
-	FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*SosPost, *pnd.AppError)
-	UpdateSosPost(ctx context.Context, tx *database.Tx, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
-	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*ConditionList, *pnd.AppError)
-	FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError)
-	WriteDates(ctx context.Context, tx *database.Tx, dates []string, sosPostID int) (*SosDatesList, *pnd.AppError)
-	FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*SosDatesList, *pnd.AppError)
+	WriteSosPost(ctx context.Context, tx database.Tx, authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
+	FindSosPosts(ctx context.Context, tx database.Tx, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
+	FindSosPostsByAuthorID(ctx context.Context, tx database.Tx, authorID int, page int, size int, sortBy string) (*SosPostList, *pnd.AppError)
+	FindSosPostByID(ctx context.Context, tx database.Tx, id int) (*SosPost, *pnd.AppError)
+	UpdateSosPost(ctx context.Context, tx database.Tx, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
+	FindConditionByID(ctx context.Context, tx database.Tx, id int) (*ConditionList, *pnd.AppError)
+	FindPetsByID(ctx context.Context, tx database.Tx, id int) (*pet.PetList, *pnd.AppError)
+	WriteDates(ctx context.Context, tx database.Tx, dates []string, sosPostID int) (*SosDatesList, *pnd.AppError)
+	FindDatesBySosPostID(ctx context.Context, tx database.Tx, sosPostID int) (*SosDatesList, *pnd.AppError)
 }

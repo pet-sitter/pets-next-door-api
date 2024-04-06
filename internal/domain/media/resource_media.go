@@ -25,6 +25,6 @@ type ResourceMedia struct {
 }
 
 type ResourceMediaStore interface {
-	CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, mediaID int, resourceType string) (*ResourceMedia, *pnd.AppError)
-	FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) (*MediaList, *pnd.AppError)
+	CreateResourceMedia(ctx context.Context, tx database.Tx, resourceID int, mediaID int, resourceType string) (*ResourceMedia, *pnd.AppError)
+	FindResourceMediaByResourceID(ctx context.Context, tx database.Tx, resourceID int, resourceType string) (*MediaList, *pnd.AppError)
 }

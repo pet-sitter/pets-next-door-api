@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
+func CreateUser(ctx context.Context, tx database.Tx, request *user.RegisterUserRequest) (*user.User, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		users
@@ -53,7 +53,7 @@ func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUser
 	return user, nil
 }
 
-func FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+func FindUsers(ctx context.Context, tx database.Tx, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -99,7 +99,7 @@ func FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nicknam
 	return userList, nil
 }
 
-func FindUserByID(ctx context.Context, tx *database.Tx, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByID(ctx context.Context, tx database.Tx, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -142,7 +142,7 @@ func FindUserByID(ctx context.Context, tx *database.Tx, id int, includeDeleted b
 	return &user, nil
 }
 
-func FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByEmail(ctx context.Context, tx database.Tx, email string) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -183,7 +183,7 @@ func FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*user.
 	return &user, nil
 }
 
-func FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByUID(ctx context.Context, tx database.Tx, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -224,7 +224,7 @@ func FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*user.User
 	return &user, nil
 }
 
-func FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUid string) (int, *pnd.AppError) {
+func FindUserIDByFbUID(ctx context.Context, tx database.Tx, fbUid string) (int, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id
@@ -243,7 +243,7 @@ func FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUid string) (int,
 	return userID, nil
 }
 
-func ExistsUserByNickname(ctx context.Context, tx *database.Tx, nickname string) (bool, *pnd.AppError) {
+func ExistsUserByNickname(ctx context.Context, tx database.Tx, nickname string) (bool, *pnd.AppError) {
 	const sql = `
 	SELECT
 		CASE
@@ -268,7 +268,7 @@ func ExistsUserByNickname(ctx context.Context, tx *database.Tx, nickname string)
 	return exists, nil
 }
 
-func FindUserStatusByEmail(ctx context.Context, tx *database.Tx, email string) (*user.UserStatus, *pnd.AppError) {
+func FindUserStatusByEmail(ctx context.Context, tx database.Tx, email string) (*user.UserStatus, *pnd.AppError) {
 	const sql = `
 	SELECT
 		fb_provider_type
@@ -287,7 +287,7 @@ func FindUserStatusByEmail(ctx context.Context, tx *database.Tx, email string) (
 	return &userStatus, nil
 }
 
-func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
+func UpdateUserByUID(ctx context.Context, tx database.Tx, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
 	const sql = `
 	UPDATE
 		users
@@ -333,7 +333,7 @@ func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid string, nickname 
 	return &user, nil
 }
 
-func DeleteUserByUID(ctx context.Context, tx *database.Tx, uid string) *pnd.AppError {
+func DeleteUserByUID(ctx context.Context, tx database.Tx, uid string) *pnd.AppError {
 	const sql = `
 	UPDATE
 		users

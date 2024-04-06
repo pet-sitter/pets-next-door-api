@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateMedia(ctx context.Context, tx *database.Tx, media *media.Media) (*media.Media, *pnd.AppError) {
+func CreateMedia(ctx context.Context, tx database.Tx, media *media.Media) (*media.Media, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		media
@@ -32,7 +32,7 @@ func CreateMedia(ctx context.Context, tx *database.Tx, media *media.Media) (*med
 	return media, nil
 }
 
-func FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*media.Media, *pnd.AppError) {
+func FindMediaByID(ctx context.Context, tx database.Tx, id int) (*media.Media, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,

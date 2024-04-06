@@ -20,7 +20,7 @@ func NewConditionService(conn *database.DB) *ConditionService {
 }
 
 func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post.ConditionView, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
+	tx, err := service.conn.BeginSqlTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
