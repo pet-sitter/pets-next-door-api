@@ -24,7 +24,7 @@ func main() {
 	var err2 *pnd.AppError
 
 	ctx := context.Background()
-	err2 = sql.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
+	err2 = database.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
 		result, err2 = postgres.InitConditions(ctx, *tx, sos_post.ConditionName)
 		if err2 != nil {
 			return err2

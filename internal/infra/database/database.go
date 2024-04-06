@@ -7,9 +7,44 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
+var TableNames = []string{
+	"users",
+	"breeds",
+	"resource_media",
+	"sos_posts_pets",
+	"media",
+	"pets",
+	"sos_posts_conditions",
+	"sos_conditions",
+	"sos_posts_dates",
+	"sos_dates",
+	"sos_posts",
+	"base_posts",
+}
+
 type DB interface {
 	Close() error
 	Flush() error
-	Migrate(migrationPath string) error
 	BeginTx(ctx context.Context) (Tx, *pnd.AppError)
+}
+
+func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError) *pnd.AppError {
+	tx, err := (*conn).BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := f(&tx); err != nil {
+		if err := (tx).Rollback(); err != nil {
+			return err
+		}
+
+		return err
+	}
+
+	if err := (tx).Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -121,3 +121,20 @@ func FromPostgresError(err error) *AppError {
 		return NewAppError(err, http.StatusInternalServerError, ErrCodeUnknown, "알 수 없는 오류가 발생했습니다")
 	}
 }
+
+func FromPgxError(err error) *AppError {
+	errStr := err.Error()
+	if strings.Contains(errStr, "no rows in result set") {
+		return NewAppError(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
+	} else if strings.Contains(errStr, "violates foreign key constraint") {
+		return NewAppError(err, http.StatusNotFound, ErrCodeNotFound, "해당하는 자원이 없습니다")
+	} else if strings.Contains(errStr, "violates not-null constraint") {
+		return NewAppError(err, http.StatusBadRequest, ErrCodeBadRequest, "필수 값이 누락되었습니다")
+	} else if strings.Contains(errStr, "violates check constraint") {
+		return NewAppError(err, http.StatusBadRequest, ErrCodeBadRequest, "잘못된 값입니다")
+	} else if strings.Contains(errStr, "violates unique constraint") {
+		return NewAppError(err, http.StatusConflict, ErrCodeConflict, "중복된 값입니다")
+	} else {
+		return NewAppError(err, http.StatusInternalServerError, ErrCodeUnknown, "알 수 없는 오류가 발생했습니다")
+	}
+}

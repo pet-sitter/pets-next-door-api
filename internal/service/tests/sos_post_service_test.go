@@ -22,7 +22,7 @@ func TestSosPostService(t *testing.T) {
 		db, _ := sql.OpenSqlDB(tests.TestDatabaseURL)
 		db.Flush()
 
-		if err := sql.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
+		if err := database.WithTransaction(ctx, &db, func(tx *database.Tx) *pnd.AppError {
 			postgres.InitConditions(ctx, *tx, sos_post.ConditionName)
 			return nil
 		}); err != nil {

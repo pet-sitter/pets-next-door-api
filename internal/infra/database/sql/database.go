@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"github.com/golang-migrate/migrate/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"log"
@@ -27,43 +26,11 @@ func (db *DB) Close() error {
 }
 
 func (db *DB) Flush() error {
-	var tableNames = []string{
-		"users",
-		"breeds",
-		"resource_media",
-		"sos_posts_pets",
-		"media",
-		"pets",
-		"sos_posts_conditions",
-		"sos_conditions",
-		"sos_posts_dates",
-		"sos_dates",
-		"sos_posts",
-		"base_posts",
-	}
-
-	for _, tableName := range tableNames {
+	for _, tableName := range database.TableNames {
 		_, err := db.conn.Exec("DELETE FROM " + tableName)
 		if err != nil {
 			log.Fatal(err)
 		}
-	}
-
-	return nil
-}
-
-func (db *DB) Migrate(migrationPath string) error {
-	m, err := migrate.New(
-		"file://"+migrationPath,
-		db.databaseURL,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
 	}
 
 	return nil
@@ -76,4 +43,20 @@ func (db *DB) BeginTx(ctx context.Context) (database.Tx, *pnd.AppError) {
 	}
 
 	return &SqlTx{tx}, nil
+}
+
+func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return db.conn.ExecContext(ctx, query, args...)
+}
+
+func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return db.conn.QueryContext(ctx, query, args...)
+}
+
+func (db *DB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	return db.conn.QueryRowContext(ctx, query, args...)
+}
+
+func (db *DB) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return db.conn.PrepareContext(ctx, query)
 }

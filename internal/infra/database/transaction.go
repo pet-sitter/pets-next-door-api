@@ -16,3 +16,10 @@ type Tx interface {
 	QueryRowContext(context context.Context, query string, args ...any) *sql.Row
 	PrepareContext(context context.Context, query string) (*sql.Stmt, error)
 }
+
+type Transactioner interface {
+	ExecContext(context context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(context context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(context context.Context, query string, args ...any) *sql.Row
+	PrepareContext(context context.Context, query string) (*sql.Stmt, error)
+}

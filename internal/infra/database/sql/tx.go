@@ -1,11 +1,9 @@
 package sql
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
 type SqlTx struct {
@@ -45,27 +43,6 @@ func (sct *SqlTx) Rollback() *pnd.AppError {
 func (sct *SqlTx) Commit() *pnd.AppError {
 	if err := sct.Tx.Commit(); err != nil {
 		return pnd.FromPostgresError(err)
-	}
-
-	return nil
-}
-
-func WithTransaction(ctx context.Context, conn *database.DB, f func(tx *database.Tx) *pnd.AppError) *pnd.AppError {
-	tx, err := (*conn).BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err := f(&tx); err != nil {
-		if err := (tx).Rollback(); err != nil {
-			return err
-		}
-
-		return err
-	}
-
-	if err := (tx).Commit(); err != nil {
-		return err
 	}
 
 	return nil
