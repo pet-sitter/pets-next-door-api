@@ -14,12 +14,12 @@ const (
 )
 
 type Media struct {
-	ID        int       `field:"id"`
-	MediaType MediaType `field:"media_type"`
-	URL       string    `field:"url"`
-	CreatedAt string    `field:"created_at"`
-	UpdatedAt string    `field:"updated_at"`
-	DeletedAt string    `field:"deleted_at"`
+	ID        int       `field:"id" json:"id"`
+	MediaType MediaType `field:"media_type" json:"media_type"`
+	URL       string    `field:"url" json:"url"`
+	CreatedAt string    `field:"created_at" json:"created_at"`
+	UpdatedAt string    `field:"updated_at" json:"updated_at"`
+	DeletedAt string    `field:"deleted_at" json:"deleted_at"`
 }
 
 type MediaList []*Media
