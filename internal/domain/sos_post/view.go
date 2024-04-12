@@ -1,19 +1,18 @@
 package sos_post
 
 import (
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"time"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
 type ConditionView struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+type ConditionViewList []*ConditionView
 
 func (c *Condition) ToConditionView() *ConditionView {
 	return &ConditionView{
@@ -57,8 +56,8 @@ type WriteSosPostView struct {
 	CarerGender CarerGender         `json:"carerGender"`
 	RewardType  RewardType          `json:"rewardType"`
 	ThumbnailID int                 `json:"thumbnailId"`
-	CreatedAt   time.Time           `json:"createdAt"`
-	UpdatedAt   time.Time           `json:"updatedAt"`
+	CreatedAt   string              `json:"createdAt"`
+	UpdatedAt   string              `json:"updatedAt"`
 }
 
 func (p *SosPost) ToWriteSosPostView(
@@ -100,8 +99,8 @@ type FindSosPostView struct {
 	CarerGender CarerGender                  `json:"carerGender"`
 	RewardType  RewardType                   `json:"rewardType"`
 	ThumbnailID int                          `json:"thumbnailId"`
-	CreatedAt   time.Time                    `json:"createdAt"`
-	UpdatedAt   time.Time                    `json:"updatedAt"`
+	CreatedAt   string                       `json:"createdAt"`
+	UpdatedAt   string                       `json:"updatedAt"`
 }
 
 func (p *SosPost) ToFindSosPostView(
@@ -142,6 +141,40 @@ func FromEmptySosPostList(sosPosts *SosPostList) *FindSosPostListView {
 	}
 }
 
+func FromEmptySosPostInfoList(sosPosts *SosPostInfoList) *FindSosPostListView {
+	return &FindSosPostListView{
+		PaginatedView: pnd.NewPaginatedView(
+			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSosPostView, 0),
+		),
+	}
+}
+
+func (p *SosPostInfo) ToFindSosPostInfoView(
+	author *user.UserWithoutPrivateInfo,
+	media media.MediaViewList,
+	conditions []ConditionView,
+	pets []pet.PetView,
+	sosDates []SosDateView,
+) *FindSosPostView {
+	return &FindSosPostView{
+		ID:          p.ID,
+		Author:      author,
+		Title:       p.Title,
+		Content:     p.Content,
+		Media:       media,
+		Conditions:  conditions,
+		Pets:        pets,
+		Reward:      p.Reward,
+		Dates:       sosDates,
+		CareType:    p.CareType,
+		CarerGender: p.CarerGender,
+		RewardType:  p.RewardType,
+		ThumbnailID: p.ThumbnailID,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
+	}
+}
+
 type UpdateSosPostRequest struct {
 	ID           int           `json:"id" validate:"required"`
 	Title        string        `json:"title" validate:"required"`
@@ -170,8 +203,8 @@ type UpdateSosPostView struct {
 	CarerGender CarerGender         `json:"carerGender"`
 	RewardType  RewardType          `json:"rewardType"`
 	ThumbnailID int                 `json:"thumbnailId"`
-	CreatedAt   time.Time           `json:"createdAt"`
-	UpdatedAt   time.Time           `json:"updatedAt"`
+	CreatedAt   string              `json:"createdAt"`
+	UpdatedAt   string              `json:"updatedAt"`
 }
 
 func (p *SosPost) ToUpdateSosPostView(
@@ -200,14 +233,14 @@ func (p *SosPost) ToUpdateSosPostView(
 }
 
 type SosDateView struct {
-	DateStartAt string `field:"dateStartAt"`
-	DateEndAt   string `field:"dateEndAt"`
+	DateStartAt string `json:"dateStartAt"`
+	DateEndAt   string `json:"dateEndAt"`
 }
 
 func (d *SosDates) ToSosDateView() SosDateView {
 	return SosDateView{
-		DateStartAt: utils.FormatDate(d.DateStartAt),
-		DateEndAt:   utils.FormatDate(d.DateEndAt),
+		DateStartAt: d.DateStartAt,
+		DateEndAt:   d.DateEndAt,
 	}
 }
 
