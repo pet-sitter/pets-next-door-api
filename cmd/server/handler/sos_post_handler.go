@@ -61,6 +61,7 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
+// @Param filter_type query string false "필터링 기준" Enums(dog, cat, all)
 // @Success 200 {object} sos_post.FindSosPostListView
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
@@ -73,6 +74,10 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 	if sortByQuery := pnd.ParseOptionalStringQuery(c, "sort_by"); sortByQuery != nil {
 		sortBy = *sortByQuery
 	}
+	filterType := "all"
+	if filterTypeQuery := pnd.ParseOptionalStringQuery(c, "filter_type"); filterTypeQuery != nil {
+		filterType = *filterTypeQuery
+	}
 
 	page, size, err := pnd.ParsePaginationQueries(c, 1, 20)
 	if err != nil {
@@ -81,12 +86,12 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 
 	var res *sos_post.FindSosPostListView
 	if authorID != nil {
-		res, err = h.sosPostService.FindSosPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy)
+		res, err = h.sosPostService.FindSosPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy, filterType)
 		if err != nil {
 			return c.JSON(err.StatusCode, err)
 		}
 	} else {
-		res, err = h.sosPostService.FindSosPosts(c.Request().Context(), page, size, sortBy)
+		res, err = h.sosPostService.FindSosPosts(c.Request().Context(), page, size, sortBy, filterType)
 		if err != nil {
 			return c.JSON(err.StatusCode, err)
 		}
