@@ -2,7 +2,6 @@ package pet
 
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 )
 
 type FindMyPetsView struct {
@@ -38,7 +37,7 @@ func (pet *Pet) ToPetView() *PetView {
 		Sex:        pet.Sex,
 		Neutered:   pet.Neutered,
 		Breed:      pet.Breed,
-		BirthDate:  utils.FormatDate(pet.BirthDate),
+		BirthDate:  pet.BirthDate,
 		WeightInKg: pet.WeightInKg,
 		Remarks:    pet.Remarks,
 	}
