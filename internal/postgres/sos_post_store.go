@@ -2,7 +2,10 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"time"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -174,150 +177,224 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 	return sosPost, nil
 }
 
-func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
-	var sortColumn string
-	var sortOrder string
+func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string, filterType string) (*sos_post.SosPostInfoList, *pnd.AppError) {
+	var sortString string
 	switch sortBy {
 	case "newest":
-		sortColumn = "created_at"
-		sortOrder = "DESC"
+		sortString = "v_sos_posts.created_at DESC"
 	case "deadline":
-		sortColumn = "date_end_at"
-		sortOrder = "ASC"
+		sortString = "earliest_date_start_at ASC"
 	default:
-		sortColumn = "created_at"
-		sortOrder = "DESC"
+		sortString = "sos_posts.created_at DESC"
+	}
+
+	var filterString string
+	switch filterType {
+	case "dog":
+		filterString = "'dog' = ANY(pet_type_list)"
+	case "cat":
+		filterString = "'cat' = ANY(pet_type_list)"
+	case "all":
+		filterString = "'dog' = ANY(pet_type_list) " +
+			"OR 'cat' = ANY(pet_type_list)"
 	}
 
 	query := fmt.Sprintf(`
-	SELECT
-		id,
-		author_id,
-		title,
-		content,
-		reward,
-		care_type,
-		carer_gender,
-		reward_type,
-		thumbnail_id,
-		created_at,
-		updated_at
-	FROM
-		sos_posts
-	WHERE
-		deleted_at IS NULL
-	ORDER BY %s %s
-	LIMIT $1
-	OFFSET $2
+		SELECT
+			v_sos_posts.id,
+			v_sos_posts.title,
+			v_sos_posts.content,
+			v_sos_posts.reward,
+			v_sos_posts.reward_type,
+			v_sos_posts.care_type,
+			v_sos_posts.carer_gender,
+			v_sos_posts.thumbnail_id,
+			v_sos_posts.author_id,
+			v_sos_posts.created_at,
+			v_sos_posts.updated_at,
+			v_sos_posts.dates,
+			v_pets.pets_info,
+			v_media.media_info,
+			v_conditions.conditions_info
+		FROM
+			v_sos_posts
+				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
+				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+		WHERE
+		    %s
+			AND v_sos_posts.earliest_date_start_at >= '%s'
+		ORDER BY
+			$1
+		LIMIT $2
+		OFFSET $3;
+
 	`,
-		sortColumn,
-		sortOrder,
+		filterString,
+		utils.FormatDate(time.Now().String()),
 	)
 
-	rows, err := tx.QueryContext(ctx, query, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, sortString, size+1, (page-1)*size)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return &sos_post.SosPostInfoList{}, pnd.FromPostgresError(err)
 	}
 	defer rows.Close()
 
-	sosPostList := sos_post.NewSosPostList(page, size)
+	sosPostList := sos_post.NewSosPostInfoList(page, size)
 	for rows.Next() {
-		sosPost := sos_post.SosPost{}
+		sosPost := sos_post.SosPostInfo{}
+		var datesData, petsData, mediaData, conditionsData string
+
 		if err := rows.Scan(
 			&sosPost.ID,
-			&sosPost.AuthorID,
 			&sosPost.Title,
 			&sosPost.Content,
 			&sosPost.Reward,
+			&sosPost.RewardType,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
-			&sosPost.RewardType,
 			&sosPost.ThumbnailID,
+			&sosPost.AuthorID,
 			&sosPost.CreatedAt,
 			&sosPost.UpdatedAt,
-		); err != nil {
+			&datesData,
+			&petsData,
+			&mediaData,
+			&conditionsData); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
+
+		if err := json.Unmarshal([]byte(datesData), &sosPost.Dates); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(petsData), &sosPost.Pets); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(mediaData), &sosPost.Media); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(conditionsData), &sosPost.Conditions); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-
 	sosPostList.CalcLastPage()
+
 	return sosPostList, nil
 }
 
-func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string) (*sos_post.SosPostList, *pnd.AppError) {
-	var sortColumn string
-	var sortOrder string
-
+func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string, filterType string) (*sos_post.SosPostInfoList, *pnd.AppError) {
+	var sortString string
 	switch sortBy {
 	case "newest":
-		sortColumn = "created_at"
-		sortOrder = "DESC"
+		sortString = "v_sos_posts.created_at DESC"
 	case "deadline":
-		sortColumn = "date_end_at"
-		sortOrder = "ASC"
+		sortString = "earliest_date_start_at ASC"
 	default:
-		sortColumn = "created_at"
-		sortOrder = "DESC"
+		sortString = "sos_posts.created_at DESC"
+	}
+
+	var filterString string
+	switch filterType {
+	case "dog":
+		filterString = "'dog' = ANY(pet_type_list)"
+	case "cat":
+		filterString = "'cat' = ANY(pet_type_list)"
+	case "all":
+		filterString = "'dog' = ANY(pet_type_list) " +
+			"OR 'cat' = ANY(pet_type_list)"
 	}
 
 	query := fmt.Sprintf(`
-	SELECT
-		id,
-		author_id,
-		title,
-		content,
-		reward,
-		care_type,
-		carer_gender,
-		reward_type,
-		thumbnail_id,
-		created_at,
-		updated_at
-	FROM
-		sos_posts
-	WHERE
-		author_id = $1 AND
-		deleted_at IS NULL
-	ORDER BY %s %s
-	LIMIT $2
-	OFFSET $3
+		SELECT
+			v_sos_posts.id,
+			v_sos_posts.title,
+			v_sos_posts.content,
+			v_sos_posts.reward,
+			v_sos_posts.reward_type,
+			v_sos_posts.care_type,
+			v_sos_posts.carer_gender,
+			v_sos_posts.thumbnail_id,
+			v_sos_posts.author_id,
+			v_sos_posts.created_at,
+			v_sos_posts.updated_at,
+			v_sos_posts.dates,
+			v_pets.pets_info,
+			v_media.media_info,
+			v_conditions.conditions_info
+		FROM
+			v_sos_posts
+				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
+				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+		WHERE
+		    %s
+			AND v_sos_posts.earliest_date_start_at >= '%s'
+			AND v_sos_posts.author_id = $1
+		ORDER BY
+			$2
+		LIMIT $3
+		OFFSET $4;
+
 	`,
-		sortColumn,
-		sortOrder,
+		filterString,
+		utils.FormatDate(time.Now().String()),
 	)
 
-	rows, err := tx.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, authorID, sortString, size+1, (page-1)*size)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return &sos_post.SosPostInfoList{}, pnd.FromPostgresError(err)
 	}
 	defer rows.Close()
 
-	sosPostList := sos_post.NewSosPostList(page, size)
+	sosPostList := sos_post.NewSosPostInfoList(page, size)
 	for rows.Next() {
-		sosPost := sos_post.SosPost{}
+		sosPost := sos_post.SosPostInfo{}
+		var datesData, petsData, mediaData, conditionsData string
+
 		if err := rows.Scan(
 			&sosPost.ID,
-			&sosPost.AuthorID,
 			&sosPost.Title,
 			&sosPost.Content,
 			&sosPost.Reward,
+			&sosPost.RewardType,
 			&sosPost.CareType,
 			&sosPost.CarerGender,
-			&sosPost.RewardType,
 			&sosPost.ThumbnailID,
+			&sosPost.AuthorID,
 			&sosPost.CreatedAt,
 			&sosPost.UpdatedAt,
-		); err != nil {
+			&datesData,
+			&petsData,
+			&mediaData,
+			&conditionsData); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
+
+		if err := json.Unmarshal([]byte(datesData), &sosPost.Dates); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(petsData), &sosPost.Pets); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(mediaData), &sosPost.Media); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal([]byte(conditionsData), &sosPost.Conditions); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
-
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
 	sosPostList.CalcLastPage()
+
 	return sosPostList, nil
 }
 
