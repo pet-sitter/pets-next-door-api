@@ -1,0 +1,61 @@
+CREATE OR REPLACE VIEW v_sos_posts AS
+SELECT
+    sos_posts.id,
+    sos_posts.title,
+    sos_posts.content,
+    sos_posts.reward,
+    sos_posts.reward_type,
+    sos_posts.care_type,
+    sos_posts.carer_gender,
+    sos_posts.thumbnail_id,
+    sos_posts.author_id,
+    sos_posts.created_at,
+    sos_posts.updated_at,
+    MIN(sos_dates.date_start_at) AS earliest_date_start_at,
+    json_agg(sos_dates.*) FILTER (WHERE sos_dates.deleted_at IS NULL) AS dates
+FROM
+    sos_posts
+        LEFT JOIN sos_posts_dates ON sos_posts.id = sos_posts_dates.sos_post_id
+        LEFT JOIN sos_dates ON sos_posts_dates.sos_dates_id = sos_dates.id
+WHERE
+    sos_posts.deleted_at IS NULL
+  AND sos_dates.deleted_at IS NULL
+  AND sos_posts_dates.deleted_at IS NULL
+GROUP BY sos_posts.id;
+
+CREATE OR REPLACE VIEW v_pets AS
+SELECT
+    sos_posts_pets.sos_post_id,
+    array_agg(pets.pet_type) AS pet_type_list,
+    json_agg(pets.*) FILTER (WHERE pets.deleted_at IS NULL) AS pets_info
+FROM
+    sos_posts_pets
+        LEFT JOIN pets ON sos_posts_pets.pet_id = pets.id
+WHERE
+    pets.deleted_at IS NULL
+  AND sos_posts_pets.deleted_at IS NULL
+GROUP BY sos_posts_pets.sos_post_id;
+
+CREATE OR REPLACE VIEW v_media AS
+SELECT
+    resource_media.resource_id AS sos_post_id,
+    json_agg(media.*) FILTER (WHERE media.deleted_at IS NULL) AS media_info
+FROM
+    resource_media
+        LEFT JOIN media ON resource_media.media_id = media.id
+WHERE
+    media.deleted_at IS NULL AND
+    resource_media.deleted_at IS NULL
+GROUP BY resource_media.resource_id;
+
+CREATE OR REPLACE VIEW v_conditions AS
+SELECT
+    sos_posts_conditions.sos_post_id,
+    json_agg(sos_conditions.*) FILTER (WHERE sos_conditions.deleted_at IS NULL) AS conditions_info
+FROM
+    sos_posts_conditions
+        LEFT JOIN sos_conditions ON sos_posts_conditions.sos_condition_id = sos_conditions.id
+WHERE
+    sos_conditions.deleted_at IS NULL AND
+    sos_posts_conditions.deleted_at IS NULL
+GROUP BY sos_posts_conditions.sos_post_id;
