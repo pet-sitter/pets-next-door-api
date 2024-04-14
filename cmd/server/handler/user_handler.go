@@ -283,3 +283,30 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, res)
 }
+
+// DeleteMyPet godoc
+// @Summary 내 반려동물을 삭제합니다.
+// @Description
+// @Tags users,pets
+// @Security FirebaseAuth
+// @Param petID path int true "반려동물 ID"
+// @Success 204
+// @Router /users/me/pets/{petID} [delete]
+func (h *UserHandler) DeleteMyPet(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+	uid := foundUser.FirebaseUID
+
+	petID, err := pnd.ParseIDFromPath(c, "petID")
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	if err := h.userService.DeletePet(c.Request().Context(), uid, *petID); err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
