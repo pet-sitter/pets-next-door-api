@@ -1017,7 +1017,7 @@ func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaVi
 			t.Errorf("got %v want %v", got[i].URL, media.URL)
 		}
 		if got[i].CreatedAt != media.CreatedAt {
-			t.Errorf("got %v want %v", got[i].CreatedAt[:len(got[i].CreatedAt)-6], media.CreatedAt[:len(got[i].CreatedAt)-1])
+			t.Errorf("got %v want %v", got[i].CreatedAt[:len(got[i].CreatedAt)-6], media.CreatedAt[:len(media.CreatedAt)-1])
 
 		}
 	}
