@@ -183,20 +183,25 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 	case "newest":
 		sortString = "v_sos_posts.created_at DESC"
 	case "deadline":
-		sortString = "earliest_date_start_at ASC"
-	default:
-		sortString = "sos_posts.created_at DESC"
+		sortString = "v_sos_posts.earliest_date_start_at"
 	}
 
 	var filterString string
 	switch filterType {
 	case "dog":
-		filterString = "'dog' = ANY(pet_type_list)"
+		filterString = "AND " +
+			"NOT EXISTS " +
+			"(SELECT 1 " +
+			"FROM unnest(pet_type_list) AS pet_type " +
+			"WHERE pet_type <> 'dog')"
 	case "cat":
-		filterString = "'cat' = ANY(pet_type_list)"
+		filterString = "AND " +
+			"NOT EXISTS " +
+			"(SELECT 1 " +
+			"FROM unnest(pet_type_list) AS pet_type " +
+			"WHERE pet_type <> 'cat')"
 	case "all":
-		filterString = "'dog' = ANY(pet_type_list) " +
-			"OR 'cat' = ANY(pet_type_list)"
+		filterString = ""
 	}
 
 	query := fmt.Sprintf(`
@@ -222,19 +227,20 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
 				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 		WHERE
-		    %s
-			AND v_sos_posts.earliest_date_start_at >= '%s'
+		    v_sos_posts.earliest_date_start_at >= '%s'
+			%s
 		ORDER BY
-			$1
-		LIMIT $2
-		OFFSET $3;
+			%s
+		LIMIT $1
+		OFFSET $2;
 
 	`,
-		filterString,
 		utils.FormatDate(time.Now().String()),
+		filterString,
+		sortString,
 	)
 
-	rows, err := tx.QueryContext(ctx, query, sortString, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, size+1, (page-1)*size)
 	if err != nil {
 		return &sos_post.SosPostInfoList{}, pnd.FromPostgresError(err)
 	}
@@ -244,7 +250,6 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 	for rows.Next() {
 		sosPost := sos_post.SosPostInfo{}
 		var datesData, petsData, mediaData, conditionsData string
-
 		if err := rows.Scan(
 			&sosPost.ID,
 			&sosPost.Title,
@@ -276,7 +281,7 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 		if err := json.Unmarshal([]byte(conditionsData), &sosPost.Conditions); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
+		fmt.Println(sosPost.ID)
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
 	if err := rows.Err(); err != nil {
@@ -293,20 +298,25 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 	case "newest":
 		sortString = "v_sos_posts.created_at DESC"
 	case "deadline":
-		sortString = "earliest_date_start_at ASC"
-	default:
-		sortString = "sos_posts.created_at DESC"
+		sortString = "v_sos_posts.earliest_date_start_at"
 	}
 
 	var filterString string
 	switch filterType {
 	case "dog":
-		filterString = "'dog' = ANY(pet_type_list)"
+		filterString = "AND " +
+			"NOT EXISTS " +
+			"(SELECT 1 " +
+			"FROM unnest(pet_type_list) AS pet_type " +
+			"WHERE pet_type <> 'dog')"
 	case "cat":
-		filterString = "'cat' = ANY(pet_type_list)"
+		filterString = "AND " +
+			"NOT EXISTS " +
+			"(SELECT 1 " +
+			"FROM unnest(pet_type_list) AS pet_type " +
+			"WHERE pet_type <> 'cat')"
 	case "all":
-		filterString = "'dog' = ANY(pet_type_list) " +
-			"OR 'cat' = ANY(pet_type_list)"
+		filterString = ""
 	}
 
 	query := fmt.Sprintf(`
@@ -332,20 +342,21 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
 				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 		WHERE
-		    %s
-			AND v_sos_posts.earliest_date_start_at >= '%s'
+			v_sos_posts.earliest_date_start_at >= '%s'
 			AND v_sos_posts.author_id = $1
+			%s
 		ORDER BY
-			$2
-		LIMIT $3
-		OFFSET $4;
+			%s
+		LIMIT $2
+		OFFSET $3;
 
 	`,
-		filterString,
 		utils.FormatDate(time.Now().String()),
+		filterString,
+		sortString,
 	)
 
-	rows, err := tx.QueryContext(ctx, query, authorID, sortString, size+1, (page-1)*size)
+	rows, err := tx.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
 	if err != nil {
 		return &sos_post.SosPostInfoList{}, pnd.FromPostgresError(err)
 	}
