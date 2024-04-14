@@ -757,8 +757,8 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			sosPostImage.CreatedAt = sosPostImage.CreatedAt[:len(sosPostImage.CreatedAt)-1]
-			sosPostImage2.CreatedAt = sosPostImage2.CreatedAt[:len(sosPostImage2.CreatedAt)-1]
+			sosPostImage.CreatedAt = sosPostImage.CreatedAt[:len(sosPostImage.CreatedAt)-6]
+			sosPostImage2.CreatedAt = sosPostImage2.CreatedAt[:len(sosPostImage2.CreatedAt)-6]
 
 			userService := service.NewUserService(db, mediaService)
 
