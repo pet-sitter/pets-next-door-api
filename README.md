@@ -15,7 +15,7 @@ $ cp .env.template .env
 필요에 따라 swagger-gen.sh 파일에 exec 권한을 부여합니다.
 
 ```bash
-$ chmod +x ./swagger-gen.sh
+$ chmod +x ./scripts/swagger-gen.sh
 ```
 
 추가로, 파이어베이스 프로젝트의 서비스 계정 키를 다운로드하여 `firebase-credentials.json` 파일로 루트 디렉토리에 저장합니다.
@@ -101,7 +101,7 @@ $ ./migrate
 API 문서는 [swaggo](https://github.com/swaggo/swag)를 사용하여 자동으로 생성됩니다.
 
 ```bash
-$ source ./swagger-gen.sh
+$ source ./scripts/swagger-gen.sh
 ```
 
 `swagger/index.html` 또는 `/swagger/doc.json`을 열어 확인할 수 있습니다.

@@ -31,7 +31,7 @@ lint:
 
 ## Build ##
 docs:
-	. ./swagger-gen.sh
+	. ./scripts/swagger-gen.sh
 docs\:open:
 	open ${SERVER_URL}${SWAGGER_ROUTE}
 docs\:clean:
