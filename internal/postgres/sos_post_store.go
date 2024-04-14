@@ -249,7 +249,7 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 	sosPostList := sos_post.NewSosPostInfoList(page, size)
 	for rows.Next() {
 		sosPost := sos_post.SosPostInfo{}
-		var datesData, petsData, mediaData, conditionsData string
+		var datesData, petsData, mediaData, conditionsData []byte
 		if err := rows.Scan(
 			&sosPost.ID,
 			&sosPost.Title,
@@ -269,19 +269,18 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		if err := json.Unmarshal([]byte(datesData), &sosPost.Dates); err != nil {
+		if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(petsData), &sosPost.Pets); err != nil {
+		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(mediaData), &sosPost.Media); err != nil {
+		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(conditionsData), &sosPost.Conditions); err != nil {
+		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		fmt.Println(sosPost.ID)
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
 	if err := rows.Err(); err != nil {
@@ -358,14 +357,14 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 
 	rows, err := tx.QueryContext(ctx, query, authorID, size+1, (page-1)*size)
 	if err != nil {
-		return &sos_post.SosPostInfoList{}, pnd.FromPostgresError(err)
+		return nil, pnd.FromPostgresError(err)
 	}
 	defer rows.Close()
 
 	sosPostList := sos_post.NewSosPostInfoList(page, size)
 	for rows.Next() {
 		sosPost := sos_post.SosPostInfo{}
-		var datesData, petsData, mediaData, conditionsData string
+		var datesData, petsData, mediaData, conditionsData []byte
 
 		if err := rows.Scan(
 			&sosPost.ID,
@@ -386,16 +385,16 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		if err := json.Unmarshal([]byte(datesData), &sosPost.Dates); err != nil {
+		if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(petsData), &sosPost.Pets); err != nil {
+		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(mediaData), &sosPost.Media); err != nil {
+		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal([]byte(conditionsData), &sosPost.Conditions); err != nil {
+		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 
@@ -409,45 +408,73 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 	return sosPostList, nil
 }
 
-func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.SosPost, *pnd.AppError) {
-	const query = `
-	SELECT
-		id,
-		author_id,
-		title,
-		content,
-		reward,
-		care_type,
-		carer_gender,
-		reward_type,
-		thumbnail_id,
-		created_at,
-		updated_at
-	FROM
-		sos_posts
-	WHERE
-		id = $1 AND
-		deleted_at IS NULL
-	`
+func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.SosPostInfo, *pnd.AppError) {
+	query := fmt.Sprintf(`
+		SELECT
+			v_sos_posts.id,
+			v_sos_posts.title,
+			v_sos_posts.content,
+			v_sos_posts.reward,
+			v_sos_posts.reward_type,
+			v_sos_posts.care_type,
+			v_sos_posts.carer_gender,
+			v_sos_posts.thumbnail_id,
+			v_sos_posts.author_id,
+			v_sos_posts.created_at,
+			v_sos_posts.updated_at,
+			v_sos_posts.dates,
+			v_pets.pets_info,
+			v_media.media_info,
+			v_conditions.conditions_info
+		FROM
+			v_sos_posts
+				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
+				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+		WHERE
+			v_sos_posts.id = $1;
 
-	sosPost := &sos_post.SosPost{}
-	if err := tx.QueryRowContext(ctx, query, id).Scan(
+	`,
+	)
+
+	row := tx.QueryRowContext(ctx, query, id)
+
+	sosPost := sos_post.SosPostInfo{}
+
+	var datesData, petsData, mediaData, conditionsData []byte
+	if err := row.Scan(
 		&sosPost.ID,
-		&sosPost.AuthorID,
 		&sosPost.Title,
 		&sosPost.Content,
 		&sosPost.Reward,
+		&sosPost.RewardType,
 		&sosPost.CareType,
 		&sosPost.CarerGender,
-		&sosPost.RewardType,
 		&sosPost.ThumbnailID,
+		&sosPost.AuthorID,
 		&sosPost.CreatedAt,
 		&sosPost.UpdatedAt,
-	); err != nil {
+		&datesData,
+		&petsData,
+		&mediaData,
+		&conditionsData); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return sosPost, nil
+	if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	return &sosPost, nil
 }
 
 func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sos_post.UpdateSosPostRequest) (*sos_post.SosPost, *pnd.AppError) {

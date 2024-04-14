@@ -104,17 +104,16 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 // @Summary 게시글 ID로 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
-// @Accept  json
 // @Produce  json
-// @Param id path string true "게시글 ID"
+// @Param id path int true "게시글 ID"
 // @Success 200 {object} sos_post.FindSosPostView
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
-	SosPostID, err := pnd.ParseIDFromPath(c, "id")
+	id, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
-	res, err := h.sosPostService.FindSosPostByID(c.Request().Context(), *SosPostID)
+	res, err := h.sosPostService.FindSosPostByID(c.Request().Context(), *id)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

@@ -669,7 +669,6 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 
 			conditionIDs := []int{1, 2}
-			//krLocation, _ := time.LoadLocation("Asia/Seoul")
 
 			sosPosts := make([]sos_post.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
@@ -757,6 +756,9 @@ func TestSosPostService(t *testing.T) {
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "https://test3.com",
 			})
+
+			sosPostImage.CreatedAt = sosPostImage.CreatedAt[:len(sosPostImage.CreatedAt)-1]
+			sosPostImage2.CreatedAt = sosPostImage2.CreatedAt[:len(sosPostImage2.CreatedAt)-1]
 
 			userService := service.NewUserService(db, mediaService)
 
