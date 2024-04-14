@@ -757,9 +757,6 @@ func TestSosPostService(t *testing.T) {
 				URL:       "https://test3.com",
 			})
 
-			sosPostImage.CreatedAt = sosPostImage.CreatedAt[:len(sosPostImage.CreatedAt)-6]
-			sosPostImage2.CreatedAt = sosPostImage2.CreatedAt[:len(sosPostImage2.CreatedAt)-6]
-
 			userService := service.NewUserService(db, mediaService)
 
 			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
@@ -821,7 +818,6 @@ func TestSosPostService(t *testing.T) {
 				if err != nil {
 					t.Errorf(err.Err.Error())
 				}
-
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
@@ -1011,8 +1007,18 @@ func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
 
 func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaViewList) {
 	for i, media := range want {
-		if !reflect.DeepEqual(got[i], media) {
-			t.Errorf("got %v want %v", got[i], media)
+		if got[i].ID != media.ID {
+			t.Errorf("got %v want %v", got[i].ID, media.ID)
+		}
+		if got[i].MediaType != media.MediaType {
+			t.Errorf("got %v want %v", got[i].MediaType, media.MediaType)
+		}
+		if got[i].URL != media.URL {
+			t.Errorf("got %v want %v", got[i].URL, media.URL)
+		}
+		if got[i].CreatedAt != media.CreatedAt {
+			t.Errorf("got %v want %v", got[i].CreatedAt[:len(got[i].CreatedAt)-6], media.CreatedAt)
+
 		}
 	}
 }
