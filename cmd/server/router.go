@@ -108,6 +108,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 		userApiGroup.DELETE("/me", userHandler.DeleteMyAccount)
 		userApiGroup.GET("/me/pets", userHandler.FindMyPets)
 		userApiGroup.PUT("/me/pets", userHandler.AddMyPets)
+		userApiGroup.PUT("/me/pets/{petID}", userHandler.UpdateMyPet)
 	}
 
 	breedApiGroup := apiRouteGroup.Group("/breeds")

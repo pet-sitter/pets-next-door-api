@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func AddDummyMedia(t *testing.T, mediaService *service.MediaService) *media.Media {
+func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {
 	media, err := mediaService.CreateMedia(context.Background(), &media.Media{
 		MediaType: media.IMAGE_MEDIA_TYPE,
 		URL:       "http://example.com",
@@ -27,13 +27,14 @@ func RegisterDummyUser(
 	userService *service.UserService,
 	mediaService *service.MediaService,
 ) *user.RegisterUserView {
-	profileImage := AddDummyMedia(t, mediaService)
-	user, err := userService.RegisterUser(ctx, GenerateDummyRegisterUserRequest(&profileImage.ID))
+	profileImage := AddDummyMedia(t, ctx, mediaService)
+	userRequest := GenerateDummyRegisterUserRequest(&profileImage.ID)
+	registeredUser, err := userService.RegisterUser(ctx, userRequest)
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)
 	}
 
-	return user
+	return registeredUser
 }
 
 func AddDummyPets(

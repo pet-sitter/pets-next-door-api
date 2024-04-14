@@ -247,3 +247,39 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, res)
 }
+
+// UpdateMyPet godoc
+// @Summary 내 반려동물 정보를 수정합니다.
+// @Description
+// @Tags users,pets
+// @Accept json
+// @Produce json
+// @Security FirebaseAuth
+// @Param petID path int true "반려동물 ID"
+// @Param request body pet.UpdatePetRequest true "반려동물 수정 요청"
+// @Success 200 {object} pet.PetView
+// @Router /users/me/pets/{petID} [put]
+func (h *UserHandler) UpdateMyPet(c echo.Context) error {
+	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+	uid := foundUser.FirebaseUID
+
+	petID, err := pnd.ParseIDFromPath(c, "petID")
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	var updatePetRequest pet.UpdatePetRequest
+	if err := pnd.ParseBody(c, &updatePetRequest); err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	res, err := h.userService.UpdatePet(c.Request().Context(), uid, *petID, updatePetRequest)
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
