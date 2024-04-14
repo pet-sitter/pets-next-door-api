@@ -165,3 +165,36 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.
 
 	return &pets, nil
 }
+
+func UpdatePet(ctx context.Context, tx *database.Tx, petID int, updatePetRequest *pet.UpdatePetRequest) *pnd.AppError {
+	const sql = `
+	UPDATE
+		pets
+	SET
+		name = $1,
+		neutered = $2,
+		breed = $3,
+		birth_date = $4,
+		weight_in_kg = $5,
+		remarks = $6,
+		profile_image_id = $7,
+		updated_at = NOW()
+	WHERE
+		id = $8
+	`
+
+	if _, err := tx.ExecContext(ctx, sql,
+		updatePetRequest.Name,
+		updatePetRequest.Neutered,
+		updatePetRequest.Breed,
+		updatePetRequest.BirthDate,
+		updatePetRequest.WeightInKg,
+		updatePetRequest.Remarks,
+		updatePetRequest.ProfileImageID,
+		petID,
+	); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	return nil
+}

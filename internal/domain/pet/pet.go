@@ -41,6 +41,7 @@ type PetStore interface {
 	CreatePet(ctx context.Context, tx *database.Tx, pet *Pet) (*PetWithProfileImage, *pnd.AppError)
 	FindPetByID(ctx context.Context, tx *database.Tx, petID int) (*PetWithProfileImage, *pnd.AppError)
 	FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*PetWithProfileList, *pnd.AppError)
+	UpdatePet(ctx context.Context, tx *database.Tx, updatePetRequest *UpdatePetRequest) *pnd.AppError
 }
 
 type PetType string

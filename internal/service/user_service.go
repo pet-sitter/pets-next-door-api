@@ -72,6 +72,25 @@ func (service *UserService) FindUsers(ctx context.Context, page int, size int, n
 	return userList, nil
 }
 
+func (service *UserService) findUserByUID(ctx context.Context, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 // FindMyProfile은 사용자의 프로필 정보를 조회한다.
 // 삭제된 유저의 경우 삭제된 유저 정보를 반환한다.
 func (service *UserService) FindPublicUserByID(ctx context.Context, id int) (*user.UserWithoutPrivateInfo, *pnd.AppError) {
@@ -253,6 +272,45 @@ func (service *UserService) AddPetsToOwner(ctx context.Context, uid string, addP
 	return pets.ToPetViewList(), nil
 }
 
+func (service *UserService) UpdatePet(ctx context.Context, uid string, petID int, updatePetRequest pet.UpdatePetRequest) (*pet.PetView, *pnd.AppError) {
+	owner, err := service.findUserByUID(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	petToUpdate, err := service.findPetByID(ctx, petID)
+	if err != nil {
+		return nil, err
+	}
+
+	if petToUpdate.OwnerID != owner.ID {
+		return nil, pnd.ErrForbidden(fmt.Errorf("해당 반려동물을 수정할 권한이 없습니다"))
+	}
+
+	if updatePetRequest.ProfileImageID != nil {
+		if _, err := service.mediaService.FindMediaByID(ctx, *updatePetRequest.ProfileImageID); err != nil {
+			return nil, err
+		}
+	}
+
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return nil, err
+	}
+
+	err = postgres.UpdatePet(ctx, tx, petID, &updatePetRequest)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	updatedPet, err := service.findPetByID(ctx, petID)
+	return updatedPet.ToPetView(), nil
+}
+
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -275,4 +333,23 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 	}
 
 	return pets.ToFindMyPetsView(), nil
+}
+
+func (service *UserService) findPetByID(ctx context.Context, petID int) (*pet.PetWithProfileImage, *pnd.AppError) {
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return nil, err
+	}
+
+	pet, err := postgres.FindPetByID(ctx, tx, petID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return pet, nil
 }
