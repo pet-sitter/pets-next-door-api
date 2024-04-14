@@ -198,3 +198,22 @@ func UpdatePet(ctx context.Context, tx *database.Tx, petID int, updatePetRequest
 
 	return nil
 }
+
+func DeletePet(ctx context.Context, tx *database.Tx, petID int) *pnd.AppError {
+	const sql = `
+	UPDATE
+		pets
+	SET
+		deleted_at = NOW()
+	WHERE
+		id = $1
+	`
+
+	if _, err := tx.ExecContext(ctx, sql,
+		petID,
+	); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	return nil
+}

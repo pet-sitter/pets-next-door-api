@@ -311,6 +311,38 @@ func (service *UserService) UpdatePet(ctx context.Context, uid string, petID int
 	return updatedPet.ToPetView(), nil
 }
 
+func (service *UserService) DeletePet(ctx context.Context, uid string, petID int) *pnd.AppError {
+	owner, err := service.findUserByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	petToDelete, err := service.findPetByID(ctx, petID)
+	if err != nil {
+		return err
+	}
+
+	if petToDelete.OwnerID != owner.ID {
+		return pnd.ErrForbidden(fmt.Errorf("해당 반려동물을 삭제할 권한이 없습니다"))
+	}
+
+	tx, err := service.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return err
+	}
+
+	if err := postgres.DeletePet(ctx, tx, petID); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()

@@ -435,4 +435,31 @@ func TestUserService(t *testing.T) {
 			assertUpdatedPetEquals(t, updatedPetRequest, found.Pets[0])
 		})
 	})
+
+	t.Run("DeletePet", func(t *testing.T) {
+		t.Run("반려동물을 삭제한다", func(t *testing.T) {
+			db, tearDown := setUp(t)
+			defer tearDown(t)
+			ctx := context.Background()
+
+			// Given
+			mediaService := service.NewMediaService(db, nil)
+			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+
+			petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+			petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
+			createdPets, _ := userService.AddPetsToOwner(ctx, userRequest.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			createdPet := createdPets[0]
+
+			// When
+			userService.DeletePet(ctx, userRequest.FirebaseUID, createdPet.ID)
+
+			// Then
+			found, _ := userService.FindPetsByOwnerUID(ctx, userRequest.FirebaseUID)
+			if len(found.Pets) != 0 {
+				t.Errorf("got %v want %v", len(found.Pets), 0)
+			}
+		})
+	})
 }
