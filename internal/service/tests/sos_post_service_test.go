@@ -78,7 +78,7 @@ func TestSosPostService(t *testing.T) {
 						Sex:            "male",
 						Neutered:       true,
 						Breed:          "poodle",
-						BirthDate:      "2020-01-01T00:00:00Z",
+						BirthDate:      "2020-01-01",
 						WeightInKg:     10.0,
 						Remarks:        "",
 						ProfileImageID: nil,
@@ -193,7 +193,7 @@ func TestSosPostService(t *testing.T) {
 						Sex:            "male",
 						Neutered:       true,
 						Breed:          "poodle",
-						BirthDate:      "2020-01-01T00:00:00Z",
+						BirthDate:      "2020-01-01",
 						WeightInKg:     10.0,
 						Remarks:        "",
 						ProfileImageID: nil,
@@ -240,7 +240,7 @@ func TestSosPostService(t *testing.T) {
 				Nickname:        owner.Nickname,
 			}
 
-			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest")
+			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest", "all")
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -321,7 +321,7 @@ func TestSosPostService(t *testing.T) {
 						Sex:            "male",
 						Neutered:       true,
 						Breed:          "poodle",
-						BirthDate:      "2020-01-01T00:00:00Z",
+						BirthDate:      "2020-01-01",
 						WeightInKg:     10.0,
 						Remarks:        "",
 						ProfileImageID: nil,
@@ -360,7 +360,7 @@ func TestSosPostService(t *testing.T) {
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
-			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(ctx, owner.ID, 1, 3, "newest")
+			sosPostListByAuthorID, err := sosPostService.FindSosPostsByAuthorID(ctx, owner.ID, 1, 3, "newest", "all")
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -451,7 +451,7 @@ func TestSosPostService(t *testing.T) {
 						Sex:            "male",
 						Neutered:       true,
 						Breed:          "poodle",
-						BirthDate:      "2020-01-01T00:00:00Z",
+						BirthDate:      "2020-01-01",
 						WeightInKg:     10.0,
 						Remarks:        "",
 						ProfileImageID: nil,
@@ -576,7 +576,7 @@ func TestSosPostService(t *testing.T) {
 						Sex:            "male",
 						Neutered:       true,
 						Breed:          "poodle",
-						BirthDate:      "2020-01-01T00:00:00Z",
+						BirthDate:      "2020-01-01",
 						WeightInKg:     10.0,
 						Remarks:        "",
 						ProfileImageID: nil,
