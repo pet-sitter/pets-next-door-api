@@ -2,6 +2,7 @@ package sos_post
 
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -239,8 +240,8 @@ type SosDateView struct {
 
 func (d *SosDates) ToSosDateView() SosDateView {
 	return SosDateView{
-		DateStartAt: d.DateStartAt,
-		DateEndAt:   d.DateEndAt,
+		DateStartAt: utils.FormatDate(d.DateStartAt),
+		DateEndAt:   utils.FormatDate(d.DateEndAt),
 	}
 }
 
