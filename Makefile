@@ -29,6 +29,10 @@ lint\:install:
 lint:
 	golangci-lint run --enable-all
 
+## Version ##
+version:
+	. ./scripts/version.sh
+
 ## Build ##
 docs:
 	. ./scripts/swagger-gen.sh
