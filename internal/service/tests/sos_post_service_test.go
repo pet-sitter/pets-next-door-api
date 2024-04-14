@@ -34,7 +34,7 @@ func TestSosPostService(t *testing.T) {
 	}
 
 	t.Run("CreateSosPost", func(t *testing.T) {
-		t.Run("돌봄 급구 게시글을 작성합니다.", func(t *testing.T) {
+		t.Run("돌봄 급구 게시글을 작성힌다", func(t *testing.T) {
 			ctx := context.Background()
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
@@ -150,7 +150,7 @@ func TestSosPostService(t *testing.T) {
 	})
 
 	t.Run("FindSosPosts", func(t *testing.T) {
-		t.Run("전체 돌봄 급구 게시글을 조회합니다.", func(t *testing.T) {
+		t.Run("전체 돌봄 급구 게시글을 조회한다", func(t *testing.T) {
 			ctx := context.Background()
 			db, tearDown := setUp(ctx, t)
 			defer tearDown(t)
@@ -248,6 +248,338 @@ func TestSosPostService(t *testing.T) {
 			for i, sosPost := range sosPostList.Items {
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], addPets[0])
+				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertAuthorEquals(t, sosPost.Author, author)
+
+				idx := len(sosPostList.Items) - i - 1
+
+				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
+
+				if sosPost.Title != sosPosts[idx].Title {
+					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
+				}
+				if sosPost.Content != sosPosts[idx].Content {
+					t.Errorf("got %v want %v", sosPost.Content, sosPosts[idx].Content)
+				}
+				if sosPost.Reward != sosPosts[idx].Reward {
+					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[idx].Reward)
+				}
+				if sosPost.CareType != sosPosts[idx].CareType {
+					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
+				}
+				if sosPost.CarerGender != sosPosts[idx].CarerGender {
+					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[idx].CarerGender)
+				}
+				if sosPost.RewardType != sosPosts[idx].RewardType {
+					t.Errorf("got %v want %v", sosPost.RewardType, sosPosts[idx].RewardType)
+				}
+				if sosPost.ThumbnailID != sosPostImage.ID {
+					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
+				}
+			}
+		})
+		t.Run("전체 돌봄 급구 게시글의 정렬기준을 'deadline'으로 조회한다", func(t *testing.T) {
+			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
+
+			mediaService := service.NewMediaService(db, nil)
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test.com",
+			})
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test2.com",
+			})
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test3.com",
+			})
+
+			userService := service.NewUserService(db, mediaService)
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             "nickname",
+				Fullname:             "fullname",
+				ProfileImageID:       &profileImage.ID,
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
+				FirebaseUID:          "1234",
+			})
+			if err != nil {
+				t.Errorf("RegisterUser failed: %v", err)
+				return
+			}
+
+			uid := owner.FirebaseUID
+
+			pets := pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
+					{
+						Name:           "dog_1",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01",
+						WeightInKg:     10.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+					{
+						Name:           "dog_2",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-02-01",
+						WeightInKg:     10.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+					{
+						Name:           "cat_1",
+						PetType:        "cat",
+						Sex:            "female",
+						Neutered:       true,
+						Breed:          "munchkin",
+						BirthDate:      "2020-03-01",
+						WeightInKg:     8.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+				},
+			}
+
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
+			if err != nil {
+				t.Errorf(err.Err.Error())
+			}
+
+			sosPostService := service.NewSosPostService(db)
+
+			conditionIDs := []int{1, 2}
+
+			var sosPosts []sos_post.WriteSosPostView
+
+			for i := 1; i < 4; i++ {
+				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
+					Title:    fmt.Sprintf("Title%d", i),
+					Content:  fmt.Sprintf("Test Content%d", i),
+					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+					Reward:   fmt.Sprintf("Test Reward%d", i),
+					Dates: []sos_post.SosDateView{
+						{fmt.Sprintf("2024-04-1%d", i), "2024-04-20"},
+						{fmt.Sprintf("2024-05-0%d", i), "2024-05-10"}},
+					CareType:     sos_post.CareTypeFoster,
+					CarerGender:  sos_post.CarerGenderMale,
+					RewardType:   sos_post.RewardTypeFee,
+					ConditionIDs: conditionIDs,
+					PetIDs:       []int{addPets[i-1].ID},
+				})
+
+				if err != nil {
+					t.Errorf(err.Err.Error())
+				}
+
+				sosPosts = append(sosPosts, *sosPost)
+			}
+
+			author := &user.UserWithoutPrivateInfo{
+				ID:              owner.ID,
+				ProfileImageURL: owner.ProfileImageURL,
+				Nickname:        owner.Nickname,
+			}
+
+			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest", "all")
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
+			for i, sosPost := range sosPostList.Items {
+				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
+				assertPetEquals(t, sosPost.Pets[i-1], addPets[i-1])
+				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertAuthorEquals(t, sosPost.Author, author)
+
+				idx := len(sosPostList.Items) - i - 1
+
+				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
+
+				if sosPost.Title != sosPosts[idx].Title {
+					t.Errorf("got %v want %v", sosPost.Title, sosPosts[idx].Title)
+				}
+				if sosPost.Content != sosPosts[idx].Content {
+					t.Errorf("got %v want %v", sosPost.Content, sosPosts[idx].Content)
+				}
+				if sosPost.Reward != sosPosts[idx].Reward {
+					t.Errorf("got %v want %v", sosPost.Reward, sosPosts[idx].Reward)
+				}
+				if sosPost.CareType != sosPosts[idx].CareType {
+					t.Errorf("got %v want %v", sosPost.CareType, sosPosts[idx].CareType)
+				}
+				if sosPost.CarerGender != sosPosts[idx].CarerGender {
+					t.Errorf("got %v want %v", sosPost.CarerGender, sosPosts[idx].CarerGender)
+				}
+				if sosPost.RewardType != sosPosts[idx].RewardType {
+					t.Errorf("got %v want %v", sosPost.RewardType, sosPosts[idx].RewardType)
+				}
+				if sosPost.ThumbnailID != sosPostImage.ID {
+					t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostImage.ID)
+				}
+			}
+		})
+		t.Run("전체 돌봄 급구 게시글 중 반려동물이 'dog'인 경우만 조회한다", func(t *testing.T) {
+			ctx := context.Background()
+			db, tearDown := setUp(ctx, t)
+			defer tearDown(t)
+
+			mediaService := service.NewMediaService(db, nil)
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test.com",
+			})
+			sosPostImage, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test2.com",
+			})
+			sosPostImage2, _ := mediaService.CreateMedia(ctx, &media.Media{
+				MediaType: media.IMAGE_MEDIA_TYPE,
+				URL:       "https://test3.com",
+			})
+
+			userService := service.NewUserService(db, mediaService)
+			owner, err := userService.RegisterUser(ctx, &user.RegisterUserRequest{
+				Email:                "test@example.com",
+				Nickname:             "nickname",
+				Fullname:             "fullname",
+				ProfileImageID:       &profileImage.ID,
+				FirebaseProviderType: user.FirebaseProviderTypeKakao,
+				FirebaseUID:          "1234",
+			})
+			if err != nil {
+				t.Errorf("RegisterUser failed: %v", err)
+				return
+			}
+
+			uid := owner.FirebaseUID
+
+			pets := pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
+					{
+						Name:           "dog_1",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-01-01",
+						WeightInKg:     10.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+					{
+						Name:           "dog_2",
+						PetType:        "dog",
+						Sex:            "male",
+						Neutered:       true,
+						Breed:          "poodle",
+						BirthDate:      "2020-02-01",
+						WeightInKg:     10.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+					{
+						Name:           "cat_1",
+						PetType:        "cat",
+						Sex:            "female",
+						Neutered:       true,
+						Breed:          "munchkin",
+						BirthDate:      "2020-03-01",
+						WeightInKg:     8.0,
+						Remarks:        "",
+						ProfileImageID: nil,
+					},
+				},
+			}
+
+			addPets, err := userService.AddPetsToOwner(ctx, uid, pets)
+			if err != nil {
+				t.Errorf(err.Err.Error())
+			}
+
+			sosPostService := service.NewSosPostService(db)
+
+			conditionIDs := []int{1, 2}
+
+			var sosPosts []sos_post.WriteSosPostView
+
+			// 강아지인 경우
+			for i := 1; i < 3; i++ {
+				sosPost, err := sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
+					Title:    fmt.Sprintf("Title%d", i),
+					Content:  fmt.Sprintf("Test Content%d", i),
+					ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+					Reward:   fmt.Sprintf("Test Reward%d", i),
+					Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
+						{"2024-04-01", "2024-04-02"}},
+					CareType:     sos_post.CareTypeFoster,
+					CarerGender:  sos_post.CarerGenderMale,
+					RewardType:   sos_post.RewardTypeFee,
+					ConditionIDs: conditionIDs,
+					PetIDs:       []int{addPets[i-1].ID},
+				})
+
+				if err != nil {
+					t.Errorf(err.Err.Error())
+				}
+
+				sosPosts = append(sosPosts, *sosPost)
+			}
+
+			// 고양이인 경우
+			_, err = sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
+				Title:    "Title3",
+				Content:  "Test Content3",
+				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+				Reward:   "Test Reward3",
+				Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
+					{"2024-04-01", "2024-04-02"}},
+				CareType:     sos_post.CareTypeFoster,
+				CarerGender:  sos_post.CarerGenderMale,
+				RewardType:   sos_post.RewardTypeFee,
+				ConditionIDs: conditionIDs,
+				PetIDs:       []int{addPets[2].ID},
+			})
+
+			// 강아지, 고양이인 경우
+			_, err = sosPostService.WriteSosPost(ctx, uid, &sos_post.WriteSosPostRequest{
+				Title:    "Title4",
+				Content:  "Test Content4",
+				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+				Reward:   "Test Reward4",
+				Dates: []sos_post.SosDateView{{"2024-03-30", "2024-03-30"},
+					{"2024-04-01", "2024-04-02"}},
+				CareType:     sos_post.CareTypeFoster,
+				CarerGender:  sos_post.CarerGenderMale,
+				RewardType:   sos_post.RewardTypeFee,
+				ConditionIDs: conditionIDs,
+				PetIDs:       []int{addPets[0].ID, addPets[2].ID},
+			})
+
+			author := &user.UserWithoutPrivateInfo{
+				ID:              owner.ID,
+				ProfileImageURL: owner.ProfileImageURL,
+				Nickname:        owner.Nickname,
+			}
+
+			sosPostList, err := sosPostService.FindSosPosts(ctx, 1, 3, "newest", "all")
+			if err != nil {
+				t.Errorf("got %v want %v", err, nil)
+			}
+
+			for i, sosPost := range sosPostList.Items {
+				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
+				assertPetEquals(t, sosPost.Pets[i-1], addPets[i-1])
 				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 				assertAuthorEquals(t, sosPost.Author, author)
 
