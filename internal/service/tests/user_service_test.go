@@ -59,32 +59,19 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, err := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			profileImage := tests.AddDummyMedia(t, mediaService)
 
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			created, err := userService.RegisterUser(ctx, user)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			// When
+			created, _ := userService.RegisterUser(ctx, userRequest)
 
-			if created.Email != user.Email {
-				t.Errorf("got %v want %v", created.Email, user.Email)
+			// Then
+			if created.Email != userRequest.Email {
+				t.Errorf("got %v want %v", created.Email, userRequest.Email)
 			}
 		})
 
@@ -93,9 +80,9 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
-			service := service.NewUserService(db, nil)
-
-			user := &user.RegisterUserRequest{
+			// Given
+			userService := service.NewUserService(db, nil)
+			userRequest := &user.RegisterUserRequest{
 				Email:                "test@example.com",
 				Nickname:             "nickname",
 				Fullname:             "fullname",
@@ -104,13 +91,12 @@ func TestUserService(t *testing.T) {
 				FirebaseUID:          "uid",
 			}
 
-			created, err := service.RegisterUser(ctx, user)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			// When
+			created, _ := userService.RegisterUser(ctx, userRequest)
 
-			if created.Email != user.Email {
-				t.Errorf("got %v want %v", created.Email, user.Email)
+			// Then
+			if created.Email != userRequest.Email {
+				t.Errorf("got %v want %v", created.Email, userRequest.Email)
 			}
 		})
 
@@ -119,24 +105,17 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
+			profileImage := tests.AddDummyMedia(t, mediaService)
+
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
+			userService.RegisterUser(ctx, userRequest)
 
-			userService.RegisterUser(ctx, user)
-			if _, err := userService.RegisterUser(ctx, user); err == nil {
+			// When & Then
+			if _, err := userService.RegisterUser(ctx, userRequest); err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
 		})
@@ -148,14 +127,11 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
+			profileImage := tests.AddDummyMedia(t, mediaService)
 
 			userService := service.NewUserService(db, mediaService)
-
 			targetNickname := "target"
 			targetUserRequest := &user.RegisterUserRequest{
 				Email:                "test@example.com",
@@ -165,6 +141,7 @@ func TestUserService(t *testing.T) {
 				FirebaseProviderType: user.FirebaseProviderTypeKakao,
 				FirebaseUID:          "uid",
 			}
+
 			userService.RegisterUser(ctx, targetUserRequest)
 			for i := 0; i < 2; i++ {
 				userService.RegisterUser(ctx, &user.RegisterUserRequest{
@@ -177,7 +154,10 @@ func TestUserService(t *testing.T) {
 				})
 			}
 
+			// When
 			found, _ := userService.FindUsers(ctx, 1, 20, &targetNickname)
+
+			// Then
 			if len(found.Items) != 1 {
 				t.Errorf("got %v want %v", len(found.Items), 1)
 			}
@@ -190,31 +170,20 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
+			profileImage := tests.AddDummyMedia(t, mediaService)
 
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+			created, _ := userService.RegisterUser(ctx, userRequest)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			created, _ := userService.RegisterUser(ctx, user)
+			// When
+			found, _ := userService.FindUserByEmail(ctx, created.Email)
 
-			found, err := userService.FindUserByEmail(ctx, created.Email)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
-
-			if found.Email != user.Email {
-				t.Errorf("got %v want %v", found.Email, user.Email)
+			// Then
+			if found.Email != userRequest.Email {
+				t.Errorf("got %v want %v", found.Email, userRequest.Email)
 			}
 		})
 
@@ -223,9 +192,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			userService := service.NewUserService(db, nil)
 
+			// When
 			_, err := userService.FindUserByEmail(ctx, "non-existent@example.com")
+
+			// Then
 			if err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -238,30 +211,20 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
+			profileImage := tests.AddDummyMedia(t, mediaService)
 
 			userService := service.NewUserService(db, mediaService)
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			created, _ := userService.RegisterUser(ctx, user)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+			created, _ := userService.RegisterUser(ctx, userRequest)
 
-			found, err := userService.FindUserByUID(ctx, created.FirebaseUID)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			// When
+			found, _ := userService.FindUserByUID(ctx, created.FirebaseUID)
 
-			if found.FirebaseUID != user.FirebaseUID {
-				t.Errorf("got %v want %v", found.FirebaseUID, user.FirebaseUID)
+			// Then
+			if found.FirebaseUID != userRequest.FirebaseUID {
+				t.Errorf("got %v want %v", found.FirebaseUID, userRequest.FirebaseUID)
 			}
 		})
 
@@ -270,9 +233,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			userService := service.NewUserService(db, nil)
 
+			// When
 			_, err := userService.FindUserByUID(ctx, "non-existent")
+
+			// Then
 			if err == nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -285,9 +252,13 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			userService := service.NewUserService(db, nil)
 
+			// When
 			exists, _ := userService.ExistsByNickname(ctx, "non-existent")
+
+			// Then
 			if exists {
 				t.Errorf("got %v want %v", exists, false)
 			}
@@ -298,25 +269,18 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
+			profileImage := tests.AddDummyMedia(t, mediaService)
 
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+			userService.RegisterUser(ctx, userRequest)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			userService.RegisterUser(ctx, user)
+			// When
+			exists, _ := userService.ExistsByNickname(ctx, userRequest.Nickname)
 
-			exists, _ := userService.ExistsByNickname(ctx, user.Nickname)
+			// Then
 			if !exists {
 				t.Errorf("got %v want %v", exists, true)
 			}
@@ -329,34 +293,23 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
+			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
 				MediaType: media.IMAGE_MEDIA_TYPE,
 				URL:       "http://example.com",
 			})
 
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+			created, _ := userService.RegisterUser(ctx, userRequest)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			created, err := userService.RegisterUser(ctx, user)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			// When
+			status, _ := userService.FindUserStatusByEmail(ctx, created.Email)
 
-			status, err := userService.FindUserStatusByEmail(ctx, created.Email)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
-
-			if status.FirebaseProviderType != user.FirebaseProviderType {
-				t.Errorf("got %v want %v", status.FirebaseProviderType, user.FirebaseProviderType)
+			// Then
+			if status.FirebaseProviderType != userRequest.FirebaseProviderType {
+				t.Errorf("got %v want %v", status.FirebaseProviderType, userRequest.FirebaseProviderType)
 			}
 		})
 	})
@@ -367,37 +320,25 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
 
 			userService := service.NewUserService(db, mediaService)
+			userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
-			user := &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			}
-			created, _ := userService.RegisterUser(ctx, user)
-
+			// When
 			updatedNickname := "updated"
-			_, err := userService.UpdateUserByUID(ctx, created.FirebaseUID, updatedNickname, &profile_image.ID)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			updatedProfileImage := tests.AddDummyMedia(t, mediaService)
+			userService.UpdateUserByUID(ctx, userRequest.FirebaseUID, updatedNickname, &updatedProfileImage.ID)
 
-			found, err := userService.FindUserByUID(ctx, created.FirebaseUID)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
-
+			// Then
+			found, _ := userService.FindUserByUID(ctx, userRequest.FirebaseUID)
 			if found.Nickname != updatedNickname {
 				t.Errorf("got %v want %v", found.Nickname, updatedNickname)
+			}
+
+			if *found.ProfileImageURL != updatedProfileImage.URL {
+				t.Errorf("got %v want %v", *found.ProfileImageURL, updatedProfileImage.URL)
 			}
 		})
 	})
@@ -408,46 +349,19 @@ func TestUserService(t *testing.T) {
 			defer tearDown(t)
 			ctx := context.Background()
 
+			// Given
 			mediaService := service.NewMediaService(db, nil)
-			profile_image, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
-				URL:       "http://example.com",
-			})
-
 			userService := service.NewUserService(db, mediaService)
-			owner, _ := userService.RegisterUser(ctx, &user.RegisterUserRequest{
-				Email:                "test@example.com",
-				Nickname:             "nickname",
-				Fullname:             "fullname",
-				ProfileImageID:       &profile_image.ID,
-				FirebaseProviderType: user.FirebaseProviderTypeKakao,
-				FirebaseUID:          "uid",
-			})
 
-			pets := pet.AddPetsToOwnerRequest{
-				Pets: []pet.AddPetRequest{
-					{
-						Name:       "name",
-						PetType:    "dog",
-						Sex:        "male",
-						Neutered:   true,
-						Breed:      "poodle",
-						BirthDate:  "2020-01-01",
-						WeightInKg: 10.0,
-					},
-				},
-			}
+			owner := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+			profileImage := tests.AddDummyMedia(t, mediaService)
+			pets := pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*tests.GenerateDummyAddPetRequest(&profileImage.ID)}}
 
-			_, err := userService.AddPetsToOwner(ctx, owner.FirebaseUID, pets)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
+			// When
+			userService.AddPetsToOwner(ctx, owner.FirebaseUID, pets)
 
-			found, err := userService.FindPetsByOwnerUID(ctx, owner.FirebaseUID)
-			if err != nil {
-				t.Errorf("got %v want %v", err, nil)
-			}
-
+			// Then
+			found, _ := userService.FindPetsByOwnerUID(ctx, owner.FirebaseUID)
 			if len(found.Pets) != 1 {
 				t.Errorf("got %v want %v", len(found.Pets), 1)
 			}
