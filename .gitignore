@@ -41,3 +41,6 @@ pkg/docs
 
 ### Firebase ###
 firebase-credentials.json
+
+## Binaries ##
+bin
