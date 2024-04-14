@@ -145,26 +145,6 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
-	if err != nil {
-		return nil, err
-	}
-
-	conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
-	if err != nil {
-		return nil, err
-	}
-
 	author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 	if err != nil {
 		return nil, err
@@ -174,12 +154,12 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	return sosPost.ToFindSosPostView(
+	return sosPost.ToFindSosPostInfoView(
 		author.ToUserWithoutPrivateInfo(),
-		mediaData.ToMediaViewList(),
-		conditions.ToConditionViewList(),
-		pets.ToPetViewList(),
-		dates.ToSosDateViewList(),
+		sosPost.Media.ToMediaViewList(),
+		sosPost.Conditions.ToConditionViewList(),
+		sosPost.Pets.ToPetViewList(),
+		sosPost.Dates.ToSosDateViewList(),
 	), nil
 }
 
