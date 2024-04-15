@@ -218,13 +218,13 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sort
 			v_sos_posts.created_at,
 			v_sos_posts.updated_at,
 			v_sos_posts.dates,
-			v_pets.pets_info,
-			v_media.media_info,
+			v_pets_for_sos_posts.pets_info,
+			v_media_for_sos_posts.media_info,
 			v_conditions.conditions_info
 		FROM
 			v_sos_posts
-				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
-				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+				LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
 				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 		WHERE
 		    v_sos_posts.earliest_date_start_at >= '%s'
@@ -332,13 +332,13 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, 
 			v_sos_posts.created_at,
 			v_sos_posts.updated_at,
 			v_sos_posts.dates,
-			v_pets.pets_info,
-			v_media.media_info,
+			v_pets_for_sos_posts.pets_info,
+			v_media_for_sos_posts.media_info,
 			v_conditions.conditions_info
 		FROM
 			v_sos_posts
-				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
-				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+				LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
 				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 		WHERE
 			v_sos_posts.earliest_date_start_at >= '%s'
@@ -423,13 +423,13 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.So
 			v_sos_posts.created_at,
 			v_sos_posts.updated_at,
 			v_sos_posts.dates,
-			v_pets.pets_info,
-			v_media.media_info,
+			v_pets_for_sos_posts.pets_info,
+			v_media_for_sos_posts.media_info,
 			v_conditions.conditions_info
 		FROM
 			v_sos_posts
-				LEFT JOIN v_pets ON v_sos_posts.id = v_pets.sos_post_id
-				LEFT JOIN v_media ON v_sos_posts.id = v_media.sos_post_id
+				LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+				LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
 				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 		WHERE
 			v_sos_posts.id = $1;
