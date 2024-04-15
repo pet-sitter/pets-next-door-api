@@ -6,6 +6,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
+	"time"
 )
 
 type CareType string
@@ -39,9 +40,9 @@ type SosPost struct {
 	CarerGender CarerGender `field:"carer_gender"`
 	RewardType  RewardType  `field:"reward_type"`
 	ThumbnailID int         `field:"thumbnail_id"`
-	CreatedAt   string      `field:"created_at"`
-	UpdatedAt   string      `field:"updated_at"`
-	DeletedAt   string      `field:"deleted_at"`
+	CreatedAt   time.Time   `field:"created_at"`
+	UpdatedAt   time.Time   `field:"updated_at"`
+	DeletedAt   time.Time   `field:"deleted_at"`
 }
 
 type SosPostList struct {
@@ -62,8 +63,9 @@ type SosPostInfo struct {
 	CarerGender CarerGender     `field:"carerGender" json:"carerGender"`
 	RewardType  RewardType      `field:"rewardType" json:"rewardType"`
 	ThumbnailID int             `field:"thumbnailId" json:"thumbnailId"`
-	CreatedAt   string          `field:"createdAt" json:"createdAt"`
-	UpdatedAt   string          `field:"updatedAt" json:"updatedAt"`
+	CreatedAt   time.Time       `field:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time       `field:"updatedAt" json:"updatedAt"`
+	DeletedAt   time.Time       `field:"deletedAt" json:"deletedAt"`
 }
 
 type SosPostInfoList struct {
@@ -83,12 +85,12 @@ func NewSosPostInfoList(page int, size int) *SosPostInfoList {
 }
 
 type SosDates struct {
-	ID          int    `field:"id" json:"id"`
-	DateStartAt string `field:"date_start_at" json:"date_start_at"`
-	DateEndAt   string `field:"date_end_at" json:"date_end_at"`
-	CreatedAt   string `field:"created_at" json:"created_at"`
-	UpdatedAt   string `field:"updated_at" json:"updated_at"`
-	DeletedAt   string `field:"deleted_at" json:"deleted_at"`
+	ID          int       `field:"id" json:"id"`
+	DateStartAt string    `field:"date_start_at" json:"date_start_at"`
+	DateEndAt   string    `field:"date_end_at" json:"date_end_at"`
+	CreatedAt   time.Time `field:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `field:"updated_at" json:"updated_at"`
+	DeletedAt   time.Time `field:"deleted_at" json:"deleted_at"`
 }
 
 type SosDatesList []*SosDates
