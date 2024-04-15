@@ -108,8 +108,8 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 		userApiGroup.DELETE("/me", userHandler.DeleteMyAccount)
 		userApiGroup.GET("/me/pets", userHandler.FindMyPets)
 		userApiGroup.PUT("/me/pets", userHandler.AddMyPets)
-		userApiGroup.PUT("/me/pets/{petID}", userHandler.UpdateMyPet)
-		userApiGroup.DELETE("/me/pets/{petID}", userHandler.DeleteMyPet)
+		userApiGroup.PUT("/me/pets/:petID", userHandler.UpdateMyPet)
+		userApiGroup.DELETE("/me/pets/:petID", userHandler.DeleteMyPet)
 	}
 
 	breedApiGroup := apiRouteGroup.Group("/breeds")
@@ -120,7 +120,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	postApiGroup := apiRouteGroup.Group("/posts")
 	{
 		postApiGroup.POST("/sos", sosPostHandler.WriteSosPost)
-		postApiGroup.GET("/sos/{id}", sosPostHandler.FindSosPostByID)
+		postApiGroup.GET("/sos/:id", sosPostHandler.FindSosPostByID)
 		postApiGroup.GET("/sos", sosPostHandler.FindSosPosts)
 		postApiGroup.PUT("/sos", sosPostHandler.UpdateSosPost)
 		postApiGroup.GET("/sos/conditions", conditionHandler.FindConditions)
