@@ -81,8 +81,8 @@ func (p *SosPost) ToWriteSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
+		CreatedAt:   p.CreatedAt.String(),
+		UpdatedAt:   p.UpdatedAt.String(),
 	}
 }
 
@@ -125,8 +125,8 @@ func (p *SosPost) ToFindSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
+		CreatedAt:   p.CreatedAt.String(),
+		UpdatedAt:   p.UpdatedAt.String(),
 	}
 }
 
@@ -171,8 +171,8 @@ func (p *SosPostInfo) ToFindSosPostInfoView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
+		CreatedAt:   p.CreatedAt.String(),
+		UpdatedAt:   p.UpdatedAt.String(),
 	}
 }
 
@@ -228,8 +228,8 @@ func (p *SosPost) ToUpdateSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
+		CreatedAt:   p.CreatedAt.String(),
+		UpdatedAt:   p.UpdatedAt.String(),
 	}
 }
 
