@@ -1,3 +1,4 @@
+-- 돌봄 급구(SosPosts) 테이블 VIEW 생성
 CREATE OR REPLACE VIEW v_sos_posts AS
 SELECT
     sos_posts.id,
@@ -23,7 +24,21 @@ WHERE
   AND sos_posts_dates.deleted_at IS NULL
 GROUP BY sos_posts.id;
 
-CREATE OR REPLACE VIEW v_pets AS
+-- 돌봄 급구 Conditions 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_conditions AS
+SELECT
+    sos_posts_conditions.sos_post_id,
+    json_agg(sos_conditions.*) FILTER (WHERE sos_conditions.deleted_at IS NULL) AS conditions_info
+FROM
+    sos_posts_conditions
+        LEFT JOIN sos_conditions ON sos_posts_conditions.sos_condition_id = sos_conditions.id
+WHERE
+    sos_conditions.deleted_at IS NULL AND
+    sos_posts_conditions.deleted_at IS NULL
+GROUP BY sos_posts_conditions.sos_post_id;
+
+-- 돌봄 급구 관련 Pets 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_pets_for_sos_posts AS
 SELECT
     sos_posts_pets.sos_post_id,
     array_agg(pets.pet_type) AS pet_type_list,
@@ -36,7 +51,8 @@ WHERE
   AND sos_posts_pets.deleted_at IS NULL
 GROUP BY sos_posts_pets.sos_post_id;
 
-CREATE OR REPLACE VIEW v_media AS
+-- 돌봄 급구 관련 Media 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_media_for_sos_posts AS
 SELECT
     resource_media.resource_id AS sos_post_id,
     json_agg(media.*) FILTER (WHERE media.deleted_at IS NULL) AS media_info
@@ -47,15 +63,3 @@ WHERE
     media.deleted_at IS NULL AND
     resource_media.deleted_at IS NULL
 GROUP BY resource_media.resource_id;
-
-CREATE OR REPLACE VIEW v_conditions AS
-SELECT
-    sos_posts_conditions.sos_post_id,
-    json_agg(sos_conditions.*) FILTER (WHERE sos_conditions.deleted_at IS NULL) AS conditions_info
-FROM
-    sos_posts_conditions
-        LEFT JOIN sos_conditions ON sos_posts_conditions.sos_condition_id = sos_conditions.id
-WHERE
-    sos_conditions.deleted_at IS NULL AND
-    sos_posts_conditions.deleted_at IS NULL
-GROUP BY sos_posts_conditions.sos_post_id;
