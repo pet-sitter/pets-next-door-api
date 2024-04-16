@@ -732,7 +732,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sos_post.
 	return &conditions, nil
 }
 
-func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProfileList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		pets.id,
@@ -746,19 +746,25 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 		pets.weight_in_kg,
 		pets.remarks,
 		pets.created_at,
-		pets.updated_at
+		pets.updated_at,
+		media.url AS profile_image_url
 	FROM
 		pets
 	INNER JOIN
 		sos_posts_pets
 	ON
 		pets.id = sos_posts_pets.pet_id
+	LEFT JOIN
+		media
+	ON
+		pets.profile_image_id = media.id
 	WHERE
 		sos_posts_pets.sos_post_id = $1 AND
-		sos_posts_pets.deleted_at IS NULL
+		sos_posts_pets.deleted_at IS NULL;
+
 	`
 
-	pets := pet.PetList{}
+	pets := pet.PetWithProfileList{}
 	rows, err := tx.QueryContext(ctx, sql, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -766,7 +772,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 	defer rows.Close()
 
 	for rows.Next() {
-		pet := pet.Pet{}
+		pet := pet.PetWithProfileImage{}
 		if err := rows.Scan(
 			&pet.ID,
 			&pet.OwnerID,
@@ -780,6 +786,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *
 			&pet.Remarks,
 			&pet.CreatedAt,
 			&pet.UpdatedAt,
+			&pet.ProfileImageURL,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
