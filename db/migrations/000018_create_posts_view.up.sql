@@ -42,14 +42,35 @@ CREATE OR REPLACE VIEW v_pets_for_sos_posts AS
 SELECT
     sos_posts_pets.sos_post_id,
     array_agg(pets.pet_type) AS pet_type_list,
-    json_agg(pets.*) FILTER (WHERE pets.deleted_at IS NULL) AS pets_info
+    json_agg(
+    json_build_object(
+            'id', pets.id,
+            'owner_id', pets.owner_id,
+            'name', pets.name,
+            'pet_type', pets.pet_type,
+            'sex', pets.sex,
+            'neutered', pets.neutered,
+            'breed', pets.breed,
+            'birth_date', pets.birth_date,
+            'weight_in_kg', pets.weight_in_kg,
+            'additional_note', pets.additional_note,
+            'created_at', pets.created_at,
+            'updated_at', pets.updated_at,
+            'deleted_at', pets.deleted_at,
+            'remarks', pets.remarks,
+            'profile_image_id', pets.profile_image_id,
+            'profile_image_url', media.url
+    )
+            ) FILTER (WHERE pets.deleted_at IS NULL) AS pets_info
 FROM
     sos_posts_pets
-        LEFT JOIN pets ON sos_posts_pets.pet_id = pets.id
+        INNER JOIN pets ON sos_posts_pets.pet_id = pets.id AND pets.deleted_at IS NULL
+        LEFT JOIN media ON pets.profile_image_id = media.id
 WHERE
-    pets.deleted_at IS NULL
-  AND sos_posts_pets.deleted_at IS NULL
+    sos_posts_pets.deleted_at IS NULL
 GROUP BY sos_posts_pets.sos_post_id;
+
+
 
 -- 돌봄 급구 관련 Media 테이블 VIEW 생성
 CREATE OR REPLACE VIEW v_media_for_sos_posts AS
