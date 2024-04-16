@@ -13,3 +13,9 @@ func FormatDate(datetimeStr string) string {
 func FormatTime(datetime time.Time) string {
 	return datetime.Format("15:04")
 }
+
+// FormatDateTime formats datetime time.Time to datetime string.
+// Example: 2021-01-01T10:06:23.9999999Z -> 2021-01-01T10:06:23
+func FormatDateTime(datetime time.Time) string {
+	return datetime.Format("2006-01-02T15:04:05")
+}
