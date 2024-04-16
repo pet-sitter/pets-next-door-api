@@ -60,7 +60,7 @@ func (pet *PetWithProfileImage) ToPetView() *PetView {
 		Sex:             pet.Sex,
 		Neutered:        pet.Neutered,
 		Breed:           pet.Breed,
-		BirthDate:       pet.BirthDate,
+		BirthDate:       utils.FormatDate(pet.BirthDate),
 		WeightInKg:      pet.WeightInKg,
 		Remarks:         pet.Remarks,
 		ProfileImageURL: pet.ProfileImageURL,

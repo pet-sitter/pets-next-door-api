@@ -81,8 +81,8 @@ func (p *SosPost) ToWriteSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt.String(),
-		UpdatedAt:   p.UpdatedAt.String(),
+		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
 	}
 }
 
@@ -125,8 +125,8 @@ func (p *SosPost) ToFindSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt.String(),
-		UpdatedAt:   p.UpdatedAt.String(),
+		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
 	}
 }
 
@@ -171,8 +171,8 @@ func (p *SosPostInfo) ToFindSosPostInfoView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt.String(),
-		UpdatedAt:   p.UpdatedAt.String(),
+		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
 	}
 }
 
@@ -228,8 +228,8 @@ func (p *SosPost) ToUpdateSosPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   p.CreatedAt.String(),
-		UpdatedAt:   p.UpdatedAt.String(),
+		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
 	}
 }
 
