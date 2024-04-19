@@ -16,6 +16,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
 
+//nolint:gocognit
 func TestSOSPostService(t *testing.T) {
 	setUp := func(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T)) {
 		t.Helper()
