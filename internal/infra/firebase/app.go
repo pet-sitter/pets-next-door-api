@@ -23,7 +23,7 @@ func NewFirebaseAppFromCredentialsPath(firebaseCredentialsPath string) (*Firebas
 	opt := option.WithCredentialsFile(firebaseCredentialsPath)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing app: %v", err)
+		return nil, fmt.Errorf("error initializing app: %w", err)
 	}
 
 	return &FirebaseApp{app}, nil
@@ -32,7 +32,7 @@ func NewFirebaseAppFromCredentialsPath(firebaseCredentialsPath string) (*Firebas
 func NewFirebaseAppFromCredentialsJSON(firebaseCredentialsJSON configs.FirebaseCredentialsJSONType) (*FirebaseApp, error) {
 	firebaseCredentialsJSONBytes, err := json.Marshal(firebaseCredentialsJSON)
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling firebase credentials json: %v", err)
+		return nil, fmt.Errorf("error marshalling firebase credentials json: %w", err)
 	}
 
 	opt := option.WithCredentials(
@@ -43,7 +43,7 @@ func NewFirebaseAppFromCredentialsJSON(firebaseCredentialsJSON configs.FirebaseC
 	)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing app: %v", err)
+		return nil, fmt.Errorf("error initializing app: %w", err)
 	}
 
 	return &FirebaseApp{app}, nil
