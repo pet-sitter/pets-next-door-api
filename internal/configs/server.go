@@ -22,6 +22,7 @@ var (
 
 var FirebaseCredentialsPath = os.Getenv("FIREBASE_CREDENTIALS_PATH")
 
+//nolint:tagliatelle
 type FirebaseCredentialsJSONType struct {
 	Type                    string `json:"type"`
 	ProjectID               string `json:"project_id"`

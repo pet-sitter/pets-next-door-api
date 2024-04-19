@@ -2,6 +2,7 @@ package kakaoinfra
 
 import "net/url"
 
+//nolint:tagliatelle
 type KakaoTokenRequest struct {
 	GrantType   string `json:"grant_type"`
 	ClientID    string `json:"client_id"`
@@ -28,6 +29,7 @@ func (r KakaoTokenRequest) ToURLValues() url.Values {
 	return values
 }
 
+//nolint:tagliatelle
 type KakaoTokenResponse struct {
 	TokenType             string `json:"token_type"`
 	AccessToken           string `json:"access_token"`
@@ -37,6 +39,7 @@ type KakaoTokenResponse struct {
 	Scope                 string `json:"scope"`
 }
 
+//nolint:tagliatelle
 type KakaoUserProfile struct {
 	ID           int64        `json:"id"`
 	ConnectedAt  string       `json:"connected_at"`
@@ -44,18 +47,21 @@ type KakaoUserProfile struct {
 	KakaoAccount kakaoAccount `json:"kakao_account"`
 }
 
+//nolint:tagliatelle
 type properties struct {
 	Nickname       string `json:"nickname"`
 	ProfileImage   string `json:"profile_image"`
 	ThumbnailImage string `json:"thumbnail_image"`
 }
 
+//nolint:tagliatelle
 type kakaoProfile struct {
 	Nickname          string `json:"nickname"`
 	ProfileImageURL   string `json:"profile_image_url"`
 	ThumbnailImageURL string `json:"thumbnail_image_url"`
 }
 
+//nolint:tagliatelle
 type kakaoAccount struct {
 	ProfileNeedsAgreement  bool         `json:"profile_needs_agreement"`
 	Profile                kakaoProfile `json:"profile"`
