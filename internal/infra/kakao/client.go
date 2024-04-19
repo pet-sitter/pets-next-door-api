@@ -31,7 +31,7 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(ctx context.Context, cod
 
 	req, _ := http.NewRequestWithContext(
 		ctx,
-		"POST",
+		http.MethodPost,
 		"https://kauth.kakao.com/oauth/token",
 		strings.NewReader(kakaoTokenRequest.ToURLValues().Encode()),
 	)
@@ -65,8 +65,7 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(ctx context.Context, cod
 
 func (kakaoClient *KakaoDefaultClient) FetchUserProfile(ctx context.Context, code string) (*KakaoUserProfile, error) {
 	client := &http.Client{}
-	req, _ := http.NewRequestWithContext(ctx,
-		"GET", "https://kapi.kakao.com/v2/user/me", nil)
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://kapi.kakao.com/v2/user/me", nil)
 	req.Header.Add("Authorization", "Bearer "+code)
 	res, err := client.Do(req)
 	if err != nil {
