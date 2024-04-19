@@ -27,62 +27,6 @@ func TestUserService(t *testing.T) {
 		}
 	}
 
-	assertPetEquals := func(t *testing.T, expected pet.AddPetRequest, found pet.PetView) {
-		t.Helper()
-
-		if expected.Name != found.Name {
-			t.Errorf("got %v want %v", expected.Name, found.Name)
-		}
-
-		if expected.PetType != found.PetType {
-			t.Errorf("got %v want %v", expected.PetType, found.PetType)
-		}
-
-		if expected.Sex != found.Sex {
-			t.Errorf("got %v want %v", expected.Sex, found.PetType)
-		}
-
-		if expected.Neutered != found.Neutered {
-			t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
-		}
-
-		if expected.Breed != found.Breed {
-			t.Errorf("got %v want %v", expected.Breed, found.Breed)
-		}
-
-		if expected.BirthDate != found.BirthDate {
-			t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
-		}
-
-		if expected.WeightInKg != found.WeightInKg {
-			t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
-		}
-	}
-
-	assertUpdatedPetEquals := func(t *testing.T, expected pet.UpdatePetRequest, found pet.PetView) {
-		t.Helper()
-
-		if expected.Name != found.Name {
-			t.Errorf("got %v want %v", expected.Name, found.Name)
-		}
-
-		if expected.Neutered != found.Neutered {
-			t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
-		}
-
-		if expected.Breed != found.Breed {
-			t.Errorf("got %v want %v", expected.Breed, found.Breed)
-		}
-
-		if expected.BirthDate != found.BirthDate {
-			t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
-		}
-
-		if expected.WeightInKg != found.WeightInKg {
-			t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
-		}
-	}
-
 	t.Run("RegisterUser", func(t *testing.T) {
 		t.Run("사용자를 새로 생성한다", func(t *testing.T) {
 			db, tearDown := setUp(t)
@@ -398,7 +342,7 @@ func TestUserService(t *testing.T) {
 
 			for _, expected := range pets.Pets {
 				for _, found := range found.Pets {
-					assertPetEquals(t, expected, found)
+					assertPetRequestAndViewEquals(t, expected, found)
 				}
 			}
 		})
@@ -475,4 +419,60 @@ func TestUserService(t *testing.T) {
 			}
 		})
 	})
+}
+
+func assertPetRequestAndViewEquals(t *testing.T, expected pet.AddPetRequest, found pet.PetView) {
+	t.Helper()
+
+	if expected.Name != found.Name {
+		t.Errorf("got %v want %v", expected.Name, found.Name)
+	}
+
+	if expected.PetType != found.PetType {
+		t.Errorf("got %v want %v", expected.PetType, found.PetType)
+	}
+
+	if expected.Sex != found.Sex {
+		t.Errorf("got %v want %v", expected.Sex, found.PetType)
+	}
+
+	if expected.Neutered != found.Neutered {
+		t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
+	}
+
+	if expected.Breed != found.Breed {
+		t.Errorf("got %v want %v", expected.Breed, found.Breed)
+	}
+
+	if expected.BirthDate != found.BirthDate {
+		t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
+	}
+
+	if expected.WeightInKg != found.WeightInKg {
+		t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
+	}
+}
+
+func assertUpdatedPetEquals(t *testing.T, expected pet.UpdatePetRequest, found pet.PetView) {
+	t.Helper()
+
+	if expected.Name != found.Name {
+		t.Errorf("got %v want %v", expected.Name, found.Name)
+	}
+
+	if expected.Neutered != found.Neutered {
+		t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
+	}
+
+	if expected.Breed != found.Breed {
+		t.Errorf("got %v want %v", expected.Breed, found.Breed)
+	}
+
+	if expected.BirthDate != found.BirthDate {
+		t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
+	}
+
+	if expected.WeightInKg != found.WeightInKg {
+		t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
+	}
 }
