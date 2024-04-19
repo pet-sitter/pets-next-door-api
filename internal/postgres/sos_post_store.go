@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -177,6 +178,54 @@ func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 	return sosPost, nil
 }
 
+func readSOSPostRows(rows *sql.Rows, page, size int) (*sospost.SOSPostInfoList, *pnd.AppError) {
+	sosPostList := sospost.NewSOSPostInfoList(page, size)
+
+	for rows.Next() {
+		sosPost := sospost.SOSPostInfo{}
+		var datesData, petsData, mediaData, conditionsData []byte
+		if err := rows.Scan(
+			&sosPost.ID,
+			&sosPost.Title,
+			&sosPost.Content,
+			&sosPost.Reward,
+			&sosPost.RewardType,
+			&sosPost.CareType,
+			&sosPost.CarerGender,
+			&sosPost.ThumbnailID,
+			&sosPost.AuthorID,
+			&sosPost.CreatedAt,
+			&sosPost.UpdatedAt,
+			&datesData,
+			&petsData,
+			&mediaData,
+			&conditionsData); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
+		if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		sosPostList.Items = append(sosPostList.Items, sosPost)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	sosPostList.CalcLastPage()
+
+	return sosPostList, nil
+}
+
 func FindSOSPosts(
 	ctx context.Context, tx *database.Tx, page, size int, sortBy, filterType string,
 ) (*sospost.SOSPostInfoList, *pnd.AppError) {
@@ -248,47 +297,10 @@ func FindSOSPosts(
 	}
 	defer rows.Close()
 
-	sosPostList := sospost.NewSOSPostInfoList(page, size)
-	for rows.Next() {
-		sosPost := sospost.SOSPostInfo{}
-		var datesData, petsData, mediaData, conditionsData []byte
-		if err := rows.Scan(
-			&sosPost.ID,
-			&sosPost.Title,
-			&sosPost.Content,
-			&sosPost.Reward,
-			&sosPost.RewardType,
-			&sosPost.CareType,
-			&sosPost.CarerGender,
-			&sosPost.ThumbnailID,
-			&sosPost.AuthorID,
-			&sosPost.CreatedAt,
-			&sosPost.UpdatedAt,
-			&datesData,
-			&petsData,
-			&mediaData,
-			&conditionsData); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-
-		if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		sosPostList.Items = append(sosPostList.Items, sosPost)
+	sosPostList, err2 := readSOSPostRows(rows, page, size)
+	if err2 != nil {
+		return nil, err2
 	}
-	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	sosPostList.CalcLastPage()
 
 	return sosPostList, nil
 }
@@ -365,49 +377,10 @@ func FindSOSPostsByAuthorID(
 	}
 	defer rows.Close()
 
-	sosPostList := sospost.NewSOSPostInfoList(page, size)
-	for rows.Next() {
-		sosPost := sospost.SOSPostInfo{}
-		var datesData, petsData, mediaData, conditionsData []byte
-
-		if err := rows.Scan(
-			&sosPost.ID,
-			&sosPost.Title,
-			&sosPost.Content,
-			&sosPost.Reward,
-			&sosPost.RewardType,
-			&sosPost.CareType,
-			&sosPost.CarerGender,
-			&sosPost.ThumbnailID,
-			&sosPost.AuthorID,
-			&sosPost.CreatedAt,
-			&sosPost.UpdatedAt,
-			&datesData,
-			&petsData,
-			&mediaData,
-			&conditionsData); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-
-		if err := json.Unmarshal(datesData, &sosPost.Dates); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-
-		sosPostList.Items = append(sosPostList.Items, sosPost)
+	sosPostList, err2 := readSOSPostRows(rows, page, size)
+	if err2 != nil {
+		return nil, err2
 	}
-	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	sosPostList.CalcLastPage()
 
 	return sosPostList, nil
 }
