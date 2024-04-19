@@ -21,14 +21,14 @@ type BreedList struct {
 	*pnd.PaginatedView[Breed]
 }
 
-func NewBreedList(page int, size int) *BreedList {
+func NewBreedList(page, size int) *BreedList {
 	return &BreedList{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]Breed, 0),
 	)}
 }
 
 type BreedStore interface {
-	FindBreeds(ctx context.Context, tx *database.Tx, page int, size int, petType *string) (*BreedList, *pnd.AppError)
+	FindBreeds(ctx context.Context, tx *database.Tx, page, size int, petType *string) (*BreedList, *pnd.AppError)
 	FindBreedByPetTypeAndName(ctx context.Context, tx *database.Tx, petType PetType, name string) (*Breed, *pnd.AppError)
 	CreateBreed(ctx context.Context, tx *database.Tx, breed *Breed) (*Breed, *pnd.AppError)
 }

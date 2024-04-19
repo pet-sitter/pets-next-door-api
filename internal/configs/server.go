@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	// Load environment variables from .env file
 	_ "github.com/joho/godotenv/autoload"
 )
 

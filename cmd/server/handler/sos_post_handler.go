@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
@@ -29,9 +29,9 @@ func NewSosPostHandler(sosPostService service.SosPostService, authService servic
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param request body sos_post.WriteSosPostRequest true "돌봄급구 게시글 업로드 요청"
+// @Param request body sospost.WriteSosPostRequest true "돌봄급구 게시글 업로드 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} sos_post.WriteSosPostView
+// @Success 201 {object} sospost.WriteSosPostView
 // @Router /posts/sos [post]
 func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -39,7 +39,7 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var writeSosPostRequest sos_post.WriteSosPostRequest
+	var writeSosPostRequest sospost.WriteSosPostRequest
 	if err := pnd.ParseBody(c, &writeSosPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -63,7 +63,7 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
 // @Param filter_type query string false "필터링 기준" Enums(dog, cat, all)
-// @Success 200 {object} sos_post.FindSosPostListView
+// @Success 200 {object} sospost.FindSosPostListView
 // @Router /posts/sos [get]
 func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 	authorID, err := pnd.ParseOptionalIntQuery(c, "author_id")
@@ -85,7 +85,7 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var res *sos_post.FindSosPostListView
+	var res *sospost.FindSosPostListView
 	if authorID != nil {
 		res, err = h.sosPostService.FindSosPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy, filterType)
 		if err != nil {
@@ -107,7 +107,7 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 // @Tags posts
 // @Produce  json
 // @Param id path int true "게시글 ID"
-// @Success 200 {object} sos_post.FindSosPostView
+// @Success 200 {object} sospost.FindSosPostView
 // @Router /posts/sos/{id} [get]
 func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
@@ -129,7 +129,7 @@ func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Security FirebaseAuth
-// @Param request body sos_post.UpdateSosPostRequest true "돌봄급구 수정 요청"
+// @Param request body sospost.UpdateSosPostRequest true "돌봄급구 수정 요청"
 // @Success 200
 // @Router /posts/sos [put]
 func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
@@ -138,7 +138,7 @@ func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var updateSosPostRequest sos_post.UpdateSosPostRequest
+	var updateSosPostRequest sospost.UpdateSosPostRequest
 	if err := pnd.ParseBody(c, &updateSosPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
@@ -19,7 +19,7 @@ func NewConditionService(conn *database.DB) *ConditionService {
 	}
 }
 
-func (service *ConditionService) FindConditions(ctx context.Context) ([]sos_post.ConditionView, *pnd.AppError) {
+func (service *ConditionService) FindConditions(ctx context.Context) ([]sospost.ConditionView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {

@@ -6,14 +6,14 @@ import (
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {
 	t.Helper()
-	media, err := mediaService.CreateMedia(context.Background(), &media.Media{
+	mediaData, err := mediaService.CreateMedia(ctx, &media.Media{
 		MediaType: media.IMAGE_MEDIA_TYPE,
 		URL:       "http://example.com",
 	})
@@ -21,7 +21,7 @@ func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.Medi
 		t.Errorf("got %v want %v", err, nil)
 	}
 
-	return media
+	return mediaData
 }
 
 func RegisterDummyUser(
@@ -85,7 +85,7 @@ func WriteDummySosPosts(
 	imageID []int,
 	petIDs []int,
 	sosPostCnt int,
-) *sos_post.WriteSosPostView {
+) *sospost.WriteSosPostView {
 	t.Helper()
 	sosPostRequest := GenerateDummyWriteSosPostRequest(imageID, petIDs, sosPostCnt)
 	sosPost, err := sosPostService.WriteSosPost(ctx, uid, sosPostRequest)

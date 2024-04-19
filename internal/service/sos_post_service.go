@@ -8,7 +8,7 @@ import (
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 )
 
 type SosPostService struct {
@@ -22,15 +22,15 @@ func NewSosPostService(conn *database.DB) *SosPostService {
 }
 
 func (service *SosPostService) WriteSosPost(
-	ctx context.Context, fbUid string, request *sos_post.WriteSosPostRequest,
-) (*sos_post.WriteSosPostView, *pnd.AppError) {
+	ctx context.Context, fbUID string, request *sospost.WriteSosPostRequest,
+) (*sospost.WriteSosPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUid)
+	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (service *SosPostService) WriteSosPost(
 	), nil
 }
 
-func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size int, sortBy string, filterType string) (*sos_post.FindSosPostListView, *pnd.AppError) {
+func (service *SosPostService) FindSosPosts(ctx context.Context, page, size int, sortBy, filterType string) (*sospost.FindSosPostListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -84,7 +84,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 		return nil, err
 	}
 
-	sosPostViews := sos_post.FromEmptySosPostInfoList(sosPosts)
+	sosPostViews := sospost.FromEmptySosPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
 		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
@@ -105,7 +105,7 @@ func (service *SosPostService) FindSosPosts(ctx context.Context, page int, size 
 	return sosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID int, page int, size int, sortBy string, filterType string) (*sos_post.FindSosPostListView, *pnd.AppError) {
+func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID, page, size int, sortBy, filterType string) (*sospost.FindSosPostListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -116,7 +116,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 	if err != nil {
 		return nil, err
 	}
-	sosPostViews := sos_post.FromEmptySosPostInfoList(sosPosts)
+	sosPostViews := sospost.FromEmptySosPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
 		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
@@ -136,7 +136,7 @@ func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, autho
 	return sosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*sos_post.FindSosPostView, *pnd.AppError) {
+func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*sospost.FindSosPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -167,8 +167,8 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 }
 
 func (service *SosPostService) UpdateSosPost(
-	ctx context.Context, request *sos_post.UpdateSosPostRequest,
-) (*sos_post.UpdateSosPostView, *pnd.AppError) {
+	ctx context.Context, request *sospost.UpdateSosPostRequest,
+) (*sospost.UpdateSosPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -213,7 +213,7 @@ func (service *SosPostService) UpdateSosPost(
 }
 
 func (service *SosPostService) CheckUpdatePermission(
-	ctx context.Context, fbUid string, sosPostID int,
+	ctx context.Context, fbUID string, sosPostID int,
 ) (bool, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -221,7 +221,7 @@ func (service *SosPostService) CheckUpdatePermission(
 		return false, err
 	}
 
-	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUid)
+	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUID)
 	if err != nil {
 		return false, err
 	}

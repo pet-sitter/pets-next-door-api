@@ -1,4 +1,4 @@
-package sos_post
+package sospost
 
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -62,7 +62,7 @@ type WriteSosPostView struct {
 }
 
 func (p *SosPost) ToWriteSosPostView(
-	media media.MediaViewList,
+	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
 	sosDates []SosDateView,
@@ -72,7 +72,7 @@ func (p *SosPost) ToWriteSosPostView(
 		AuthorID:    p.AuthorID,
 		Title:       p.Title,
 		Content:     p.Content,
-		Media:       media,
+		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
 		Reward:      p.Reward,
@@ -106,7 +106,7 @@ type FindSosPostView struct {
 
 func (p *SosPost) ToFindSosPostView(
 	author *user.UserWithoutPrivateInfo,
-	media media.MediaViewList,
+	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
 	sosDates []SosDateView,
@@ -116,7 +116,7 @@ func (p *SosPost) ToFindSosPostView(
 		Author:      author,
 		Title:       p.Title,
 		Content:     p.Content,
-		Media:       media,
+		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
 		Reward:      p.Reward,
@@ -152,7 +152,7 @@ func FromEmptySosPostInfoList(sosPosts *SosPostInfoList) *FindSosPostListView {
 
 func (p *SosPostInfo) ToFindSosPostInfoView(
 	author *user.UserWithoutPrivateInfo,
-	media media.MediaViewList,
+	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
 	sosDates []SosDateView,
@@ -162,7 +162,7 @@ func (p *SosPostInfo) ToFindSosPostInfoView(
 		Author:      author,
 		Title:       p.Title,
 		Content:     p.Content,
-		Media:       media,
+		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
 		Reward:      p.Reward,
@@ -209,7 +209,7 @@ type UpdateSosPostView struct {
 }
 
 func (p *SosPost) ToUpdateSosPostView(
-	media media.MediaViewList,
+	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
 	sosDates []SosDateView,
@@ -219,7 +219,7 @@ func (p *SosPost) ToUpdateSosPostView(
 		AuthorID:    p.AuthorID,
 		Title:       p.Title,
 		Content:     p.Content,
-		Media:       media,
+		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
 		Reward:      p.Reward,

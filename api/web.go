@@ -64,7 +64,7 @@ func ParseOptionalStringQuery(c echo.Context, query string) *string {
 }
 
 // ParsePaginationQueries parses pagination parameters from query string: page, size.
-func ParsePaginationQueries(c echo.Context, defaultPage int, defaultLimit int) (page int, size int, err *AppError) {
+func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page, size int, err *AppError) {
 	pageQuery := c.QueryParam("page")
 	sizeQuery := c.QueryParam("size")
 

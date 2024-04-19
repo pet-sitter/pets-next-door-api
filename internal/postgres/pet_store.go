@@ -9,7 +9,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
+func CreatePet(ctx context.Context, tx *database.Tx, petData *pet.Pet) (*pet.PetWithProfileImage, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		pets
@@ -32,21 +32,21 @@ func CreatePet(ctx context.Context, tx *database.Tx, pet *pet.Pet) (*pet.PetWith
 	`
 
 	if err := tx.QueryRowContext(ctx, sql,
-		pet.OwnerID,
-		pet.Name,
-		pet.PetType,
-		pet.Sex,
-		pet.Neutered,
-		pet.Breed,
-		pet.BirthDate,
-		pet.WeightInKg,
-		pet.Remarks,
-		pet.ProfileImageID,
-	).Scan(&pet.ID, &pet.CreatedAt, &pet.UpdatedAt); err != nil {
+		petData.OwnerID,
+		petData.Name,
+		petData.PetType,
+		petData.Sex,
+		petData.Neutered,
+		petData.Breed,
+		petData.BirthDate,
+		petData.WeightInKg,
+		petData.Remarks,
+		petData.ProfileImageID,
+	).Scan(&petData.ID, &petData.CreatedAt, &petData.UpdatedAt); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return FindPetByID(ctx, tx, pet.ID)
+	return FindPetByID(ctx, tx, petData.ID)
 }
 
 func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProfileImage, *pnd.AppError) {
@@ -76,30 +76,30 @@ func FindPetByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProf
 		pets.deleted_at IS NULL
 	`
 
-	var pet pet.PetWithProfileImage
+	var petData pet.PetWithProfileImage
 	if err := tx.QueryRowContext(ctx, sql,
 		id,
 	).Scan(
-		&pet.ID,
-		&pet.OwnerID,
-		&pet.Name,
-		&pet.PetType,
-		&pet.Sex,
-		&pet.Neutered,
-		&pet.Breed,
-		&pet.BirthDate,
-		&pet.WeightInKg,
-		&pet.Remarks,
-		&pet.ProfileImageURL,
-		&pet.CreatedAt,
-		&pet.UpdatedAt,
+		&petData.ID,
+		&petData.OwnerID,
+		&petData.Name,
+		&petData.PetType,
+		&petData.Sex,
+		&petData.Neutered,
+		&petData.Breed,
+		&petData.BirthDate,
+		&petData.WeightInKg,
+		&petData.Remarks,
+		&petData.ProfileImageURL,
+		&petData.CreatedAt,
+		&petData.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	pet.BirthDate = utils.FormatDate(pet.BirthDate)
+	petData.BirthDate = utils.FormatDate(petData.BirthDate)
 
-	return &pet, nil
+	return &petData, nil
 }
 
 func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.PetWithProfileList, *pnd.AppError) {
@@ -139,26 +139,26 @@ func FindPetsByOwnerID(ctx context.Context, tx *database.Tx, ownerID int) (*pet.
 	defer rows.Close()
 
 	for rows.Next() {
-		var pet pet.PetWithProfileImage
+		var petData pet.PetWithProfileImage
 		if err := rows.Scan(
-			&pet.ID,
-			&pet.OwnerID,
-			&pet.Name,
-			&pet.PetType,
-			&pet.Sex,
-			&pet.Neutered,
-			&pet.Breed,
-			&pet.BirthDate,
-			&pet.WeightInKg,
-			&pet.Remarks,
-			&pet.ProfileImageURL,
-			&pet.CreatedAt,
-			&pet.UpdatedAt,
+			&petData.ID,
+			&petData.OwnerID,
+			&petData.Name,
+			&petData.PetType,
+			&petData.Sex,
+			&petData.Neutered,
+			&petData.Breed,
+			&petData.BirthDate,
+			&petData.WeightInKg,
+			&petData.Remarks,
+			&petData.ProfileImageURL,
+			&petData.CreatedAt,
+			&petData.UpdatedAt,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		pet.BirthDate = utils.FormatDate(pet.BirthDate)
-		pets = append(pets, &pet)
+		petData.BirthDate = utils.FormatDate(petData.BirthDate)
+		pets = append(pets, &petData)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)

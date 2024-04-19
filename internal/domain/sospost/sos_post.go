@@ -1,4 +1,4 @@
-package sos_post
+package sospost
 
 import (
 	"context"
@@ -75,13 +75,13 @@ type SosPostInfoList struct {
 	*pnd.PaginatedView[SosPostInfo]
 }
 
-func NewSosPostList(page int, size int) *SosPostList {
+func NewSosPostList(page, size int) *SosPostList {
 	return &SosPostList{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]SosPost, 0),
 	)}
 }
 
-func NewSosPostInfoList(page int, size int) *SosPostInfoList {
+func NewSosPostInfoList(page, size int) *SosPostInfoList {
 	return &SosPostInfoList{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]SosPostInfo, 0),
 	)}

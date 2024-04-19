@@ -57,7 +57,7 @@ func (service *UserService) RegisterUser(
 }
 
 func (service *UserService) FindUsers(
-	ctx context.Context, page int, size int, nickname *string,
+	ctx context.Context, page, size int, nickname *string,
 ) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -84,7 +84,7 @@ func (service *UserService) findUserByUID(ctx context.Context, uid string) (*use
 		return nil, err
 	}
 
-	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	userData, err := postgres.FindUserByUID(ctx, tx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (service *UserService) findUserByUID(ctx context.Context, uid string) (*use
 		return nil, err
 	}
 
-	return user, nil
+	return userData, nil
 }
 
 // FindMyProfile은 사용자의 프로필 정보를 조회한다.
@@ -107,7 +107,7 @@ func (service *UserService) FindPublicUserByID(
 		return nil, err
 	}
 
-	user, err := postgres.FindUserByID(ctx, tx, id, true)
+	userData, err := postgres.FindUserByID(ctx, tx, id, true)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (service *UserService) FindPublicUserByID(
 		return nil, err
 	}
 
-	return user.ToUserWithoutPrivateInfo(), nil
+	return userData.ToUserWithoutPrivateInfo(), nil
 }
 
 func (service *UserService) FindUserByEmail(
@@ -128,7 +128,7 @@ func (service *UserService) FindUserByEmail(
 		return nil, err
 	}
 
-	user, err := postgres.FindUserByEmail(ctx, tx, email)
+	userData, err := postgres.FindUserByEmail(ctx, tx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (service *UserService) FindUserByEmail(
 		return nil, err
 	}
 
-	return user, nil
+	return userData, nil
 }
 
 func (service *UserService) FindUserByUID(ctx context.Context, uid string) (*user.FindUserView, *pnd.AppError) {
@@ -198,7 +198,7 @@ func (service *UserService) FindUserStatusByEmail(ctx context.Context, email str
 }
 
 func (service *UserService) UpdateUserByUID(
-	ctx context.Context, uid string, nickname string, profileImageID *int,
+	ctx context.Context, uid, nickname string, profileImageID *int,
 ) (*user.UserWithProfileImage, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -241,11 +241,7 @@ func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pn
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 func (service *UserService) AddPetsToOwner(
@@ -257,7 +253,7 @@ func (service *UserService) AddPetsToOwner(
 		return nil, err
 	}
 
-	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	userData, err := postgres.FindUserByUID(ctx, tx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +266,7 @@ func (service *UserService) AddPetsToOwner(
 			}
 		}
 
-		petToCreate := item.ToPet(user.ID)
+		petToCreate := item.ToPet(userData.ID)
 		createdPet, err := postgres.CreatePet(ctx, tx, petToCreate)
 		if err != nil {
 			return nil, err
@@ -351,11 +347,7 @@ func (service *UserService) DeletePet(ctx context.Context, uid string, petID int
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
@@ -365,12 +357,12 @@ func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) 
 		return nil, err
 	}
 
-	user, err := postgres.FindUserByUID(ctx, tx, uid)
+	userData, err := postgres.FindUserByUID(ctx, tx, uid)
 	if err != nil {
 		return nil, err
 	}
 
-	pets, err := postgres.FindPetsByOwnerID(ctx, tx, user.ID)
+	pets, err := postgres.FindPetsByOwnerID(ctx, tx, userData.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +381,7 @@ func (service *UserService) findPetByID(ctx context.Context, petID int) (*pet.Pe
 		return nil, err
 	}
 
-	pet, err := postgres.FindPetByID(ctx, tx, petID)
+	petData, err := postgres.FindPetByID(ctx, tx, petID)
 	if err != nil {
 		return nil, err
 	}
@@ -398,5 +390,5 @@ func (service *UserService) findPetByID(ctx context.Context, petID int) (*pet.Pe
 		return nil, err
 	}
 
-	return pet, nil
+	return petData, nil
 }

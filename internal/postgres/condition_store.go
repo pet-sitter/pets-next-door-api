@@ -4,11 +4,11 @@ import (
 	"context"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func InitConditions(ctx context.Context, tx *database.Tx, conditions []sos_post.SosCondition) (string, *pnd.AppError) {
+func InitConditions(ctx context.Context, tx *database.Tx, conditions []sospost.SosCondition) (string, *pnd.AppError) {
 	const sql = `
 	INSERT INTO sos_conditions
 		(
@@ -38,7 +38,7 @@ func InitConditions(ctx context.Context, tx *database.Tx, conditions []sos_post.
 	return "condition init success", nil
 }
 
-func FindConditions(ctx context.Context, tx *database.Tx) (*sos_post.ConditionList, *pnd.AppError) {
+func FindConditions(ctx context.Context, tx *database.Tx) (*sospost.ConditionList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -47,13 +47,13 @@ func FindConditions(ctx context.Context, tx *database.Tx) (*sos_post.ConditionLi
 		sos_conditions
 	`
 
-	conditions := make(sos_post.ConditionList, 0)
+	conditions := make(sospost.ConditionList, 0)
 	rows, err := tx.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 	for rows.Next() {
-		condition := sos_post.Condition{}
+		condition := sospost.Condition{}
 		if err := rows.Scan(&condition.ID, &condition.Name); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}

@@ -13,13 +13,13 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
-type authHandler struct {
+type AuthHandler struct {
 	authService service.AuthService
 	kakaoClient kakaoinfra.KakaoClient
 }
 
-func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.KakaoClient) *authHandler {
-	return &authHandler{
+func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.KakaoClient) *AuthHandler {
+	return &AuthHandler{
 		authService: authService,
 		kakaoClient: kakaoClient,
 	}
@@ -31,7 +31,7 @@ func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.Kaka
 // @Tags auth
 // @Success 302
 // @Router /auth/login/kakao [get]
-func (h *authHandler) KakaoLogin(c echo.Context) error {
+func (h *AuthHandler) KakaoLogin(c echo.Context) error {
 	return c.Redirect(
 		http.StatusTemporaryRedirect,
 		"https://kauth.kakao.com/oauth/authorize?"+
@@ -48,7 +48,7 @@ func (h *authHandler) KakaoLogin(c echo.Context) error {
 // @Tags auth
 // @Success 200 {object} auth.KakaoCallbackView
 // @Router /auth/callback/kakao [get]
-func (h *authHandler) KakaoCallback(c echo.Context) error {
+func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 	code := pnd.ParseOptionalStringQuery(c, "code")
 	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
 	if err != nil {
@@ -80,7 +80,7 @@ func (h *authHandler) KakaoCallback(c echo.Context) error {
 // @Success 201 {object} auth.GenerateFBCustomTokenResponse
 // @Failure 400 {object} pnd.AppError
 // @Router /auth/custom-tokens/kakao [post]
-func (h *authHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
+func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 	var tokenRequest auth.GenerateFBCustomTokenRequest
 	if err := pnd.ParseBody(c, &tokenRequest); err != nil {
 		return c.JSON(err.StatusCode, err)

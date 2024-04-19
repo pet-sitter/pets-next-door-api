@@ -6,7 +6,7 @@ import (
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
@@ -24,7 +24,7 @@ func main() {
 
 	ctx := context.Background()
 	err2 = database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-		result, err2 = postgres.InitConditions(ctx, tx, sos_post.ConditionName)
+		result, err2 = postgres.InitConditions(ctx, tx, sospost.ConditionName)
 		if err2 != nil {
 			return err2
 		}
