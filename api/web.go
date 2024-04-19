@@ -2,9 +2,10 @@ package pnd
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
-	"strconv"
 )
 
 func ParseBody(c echo.Context, payload interface{}) *AppError {

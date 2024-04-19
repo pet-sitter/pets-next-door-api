@@ -2,12 +2,15 @@ package breeds_importer_service
 
 import (
 	"context"
+
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
 
-const catSheetIndex = 0
-const dogSheetIndex = 1
+const (
+	catSheetIndex = 0
+	dogSheetIndex = 1
+)
 
 type BreedsImporterService struct {
 	client *sheets.Service
@@ -26,7 +29,6 @@ func (c *BreedsImporterService) GetSpreadsheet(spreadsheetId string) (*sheets.Sp
 	resp := c.client.Spreadsheets.Get(spreadsheetId)
 	resp.IncludeGridData(true)
 	spreadsheet, err := resp.Do()
-
 	if err != nil {
 		return nil, err
 	}

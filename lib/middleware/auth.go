@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+
 	"github.com/labstack/echo/v4"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"

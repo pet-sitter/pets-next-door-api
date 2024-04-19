@@ -21,7 +21,6 @@ func main() {
 	log.Printf("Starting to import pet types: %s to database\n", flags.petTypeToImport)
 
 	db, err := database.Open(configs.DatabaseURL)
-
 	if err != nil {
 		log.Fatalf("error opening database: %v\n", err)
 	}
@@ -39,14 +38,14 @@ func main() {
 
 	switch flags.petTypeToImport {
 	case Cat:
-		var catRows = client.GetCatNames(spreadsheet)
+		catRows := client.GetCatNames(spreadsheet)
 		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
 	case Dog:
-		var dogRows = client.GetDogNames(spreadsheet)
+		dogRows := client.GetDogNames(spreadsheet)
 		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)
 	case All:
-		var catRows = client.GetCatNames(spreadsheet)
-		var dogRows = client.GetDogNames(spreadsheet)
+		catRows := client.GetCatNames(spreadsheet)
+		dogRows := client.GetDogNames(spreadsheet)
 
 		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
 		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)

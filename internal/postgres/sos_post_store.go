@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"time"
+
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -62,7 +63,6 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		&sosPost.CarerGender,
 		&sosPost.RewardType,
 		&sosPost.ThumbnailID)
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

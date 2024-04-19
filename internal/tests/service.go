@@ -2,12 +2,13 @@ package tests
 
 import (
 	"context"
+	"testing"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
-	"testing"
 )
 
 func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {

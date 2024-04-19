@@ -61,7 +61,6 @@ func (db *DB) Migrate(migrationPath string) error {
 		"file://"+migrationPath,
 		db.databaseURL,
 	)
-
 	if err != nil {
 		return err
 	}

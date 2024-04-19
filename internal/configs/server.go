@@ -9,11 +9,15 @@ import (
 
 var Port = os.Getenv("PORT")
 
-var DatabaseURL = os.Getenv("DATABASE_URL")
-var MigrationPath = os.Getenv("MIGRATION_PATH")
+var (
+	DatabaseURL   = os.Getenv("DATABASE_URL")
+	MigrationPath = os.Getenv("MIGRATION_PATH")
+)
 
-var KakaoRestAPIKey = os.Getenv("KAKAO_REST_API_KEY")
-var KakaoRedirectURI = os.Getenv("KAKAO_REDIRECT_URI")
+var (
+	KakaoRestAPIKey  = os.Getenv("KAKAO_REST_API_KEY")
+	KakaoRedirectURI = os.Getenv("KAKAO_REDIRECT_URI")
+)
 
 var FirebaseCredentialsPath = os.Getenv("FIREBASE_CREDENTIALS_PATH")
 
@@ -47,14 +51,18 @@ func GetFirebaseCredentialsJSON() FirebaseCredentialsJSONType {
 	}
 }
 
-var B2KeyID = os.Getenv("B2_APPLICATION_KEY_ID")
-var B2Key = os.Getenv("B2_APPLICATION_KEY")
-var B2BucketName = os.Getenv("B2_BUCKET_NAME")
-var B2Endpoint = os.Getenv("B2_ENDPOINT")
-var B2Region = os.Getenv("B2_REGION")
+var (
+	B2KeyID      = os.Getenv("B2_APPLICATION_KEY_ID")
+	B2Key        = os.Getenv("B2_APPLICATION_KEY")
+	B2BucketName = os.Getenv("B2_BUCKET_NAME")
+	B2Endpoint   = os.Getenv("B2_ENDPOINT")
+	B2Region     = os.Getenv("B2_REGION")
+)
 
-var GoogleSheetsAPIKey = os.Getenv("GOOGLE_SHEETS_API_KEY")
-var BreedsGoogleSheetsID = os.Getenv("BREEDS_GOOGLE_SHEETS_ID")
+var (
+	GoogleSheetsAPIKey   = os.Getenv("GOOGLE_SHEETS_API_KEY")
+	BreedsGoogleSheetsID = os.Getenv("BREEDS_GOOGLE_SHEETS_ID")
+)
 
 func init() {
 	if Port == "" {
