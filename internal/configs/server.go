@@ -65,6 +65,7 @@ var (
 	BreedsGoogleSheetsID = os.Getenv("BREEDS_GOOGLE_SHEETS_ID")
 )
 
+//nolint:gochecknoinits
 func init() {
 	if Port == "" {
 		Port = "8080"
