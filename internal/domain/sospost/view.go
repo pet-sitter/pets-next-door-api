@@ -30,12 +30,12 @@ func (cl *ConditionList) ToConditionViewList() []ConditionView {
 	return conditionViews
 }
 
-type WriteSosPostRequest struct {
+type WriteSOSPostRequest struct {
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
 	ImageIDs     []int         `json:"imageIds" validate:"required"`
 	Reward       string        `json:"reward"`
-	Dates        []SosDateView `json:"dates" validate:"required"`
+	Dates        []SOSDateView `json:"dates" validate:"required"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
@@ -43,7 +43,7 @@ type WriteSosPostRequest struct {
 	PetIDs       []int         `json:"petIds"`
 }
 
-type WriteSosPostView struct {
+type WriteSOSPostView struct {
 	ID          int                 `json:"id"`
 	AuthorID    int                 `json:"authorId"`
 	Title       string              `json:"title"`
@@ -52,7 +52,7 @@ type WriteSosPostView struct {
 	Conditions  []ConditionView     `json:"conditions"`
 	Pets        []pet.PetView       `json:"pets"`
 	Reward      string              `json:"reward"`
-	Dates       []SosDateView       `json:"dates"`
+	Dates       []SOSDateView       `json:"dates"`
 	CareType    CareType            `json:"careType"`
 	CarerGender CarerGender         `json:"carerGender"`
 	RewardType  RewardType          `json:"rewardType"`
@@ -61,13 +61,13 @@ type WriteSosPostView struct {
 	UpdatedAt   string              `json:"updatedAt"`
 }
 
-func (p *SosPost) ToWriteSosPostView(
+func (p *SOSPost) ToWriteSOSPostView(
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
-	sosDates []SosDateView,
-) *WriteSosPostView {
-	return &WriteSosPostView{
+	sosDates []SOSDateView,
+) *WriteSOSPostView {
+	return &WriteSOSPostView{
 		ID:          p.ID,
 		AuthorID:    p.AuthorID,
 		Title:       p.Title,
@@ -86,7 +86,7 @@ func (p *SosPost) ToWriteSosPostView(
 	}
 }
 
-type FindSosPostView struct {
+type FindSOSPostView struct {
 	ID          int                          `json:"id"`
 	Author      *user.UserWithoutPrivateInfo `json:"author"`
 	Title       string                       `json:"title"`
@@ -95,7 +95,7 @@ type FindSosPostView struct {
 	Conditions  []ConditionView              `json:"conditions"`
 	Pets        []pet.PetView                `json:"pets"`
 	Reward      string                       `json:"reward"`
-	Dates       []SosDateView                `json:"dates"`
+	Dates       []SOSDateView                `json:"dates"`
 	CareType    CareType                     `json:"careType"`
 	CarerGender CarerGender                  `json:"carerGender"`
 	RewardType  RewardType                   `json:"rewardType"`
@@ -104,14 +104,14 @@ type FindSosPostView struct {
 	UpdatedAt   string                       `json:"updatedAt"`
 }
 
-func (p *SosPost) ToFindSosPostView(
+func (p *SOSPost) ToFindSOSPostView(
 	author *user.UserWithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
-	sosDates []SosDateView,
-) *FindSosPostView {
-	return &FindSosPostView{
+	sosDates []SOSDateView,
+) *FindSOSPostView {
+	return &FindSOSPostView{
 		ID:          p.ID,
 		Author:      author,
 		Title:       p.Title,
@@ -130,34 +130,34 @@ func (p *SosPost) ToFindSosPostView(
 	}
 }
 
-type FindSosPostListView struct {
-	*pnd.PaginatedView[FindSosPostView]
+type FindSOSPostListView struct {
+	*pnd.PaginatedView[FindSOSPostView]
 }
 
-func FromEmptySosPostList(sosPosts *SosPostList) *FindSosPostListView {
-	return &FindSosPostListView{
+func FromEmptySOSPostList(sosPosts *SOSPostList) *FindSOSPostListView {
+	return &FindSOSPostListView{
 		PaginatedView: pnd.NewPaginatedView(
-			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSosPostView, 0),
+			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSOSPostView, 0),
 		),
 	}
 }
 
-func FromEmptySosPostInfoList(sosPosts *SosPostInfoList) *FindSosPostListView {
-	return &FindSosPostListView{
+func FromEmptySOSPostInfoList(sosPosts *SOSPostInfoList) *FindSOSPostListView {
+	return &FindSOSPostListView{
 		PaginatedView: pnd.NewPaginatedView(
-			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSosPostView, 0),
+			sosPosts.Page, sosPosts.Size, sosPosts.IsLastPage, make([]FindSOSPostView, 0),
 		),
 	}
 }
 
-func (p *SosPostInfo) ToFindSosPostInfoView(
+func (p *SOSPostInfo) ToFindSOSPostInfoView(
 	author *user.UserWithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
-	sosDates []SosDateView,
-) *FindSosPostView {
-	return &FindSosPostView{
+	sosDates []SOSDateView,
+) *FindSOSPostView {
+	return &FindSOSPostView{
 		ID:          p.ID,
 		Author:      author,
 		Title:       p.Title,
@@ -176,12 +176,12 @@ func (p *SosPostInfo) ToFindSosPostInfoView(
 	}
 }
 
-type UpdateSosPostRequest struct {
+type UpdateSOSPostRequest struct {
 	ID           int           `json:"id" validate:"required"`
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
 	ImageIDs     []int         `json:"imageIds" validate:"required"`
-	Dates        []SosDateView `json:"dates" validate:"required"`
+	Dates        []SOSDateView `json:"dates" validate:"required"`
 	Reward       string        `json:"reward"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
@@ -190,7 +190,7 @@ type UpdateSosPostRequest struct {
 	PetIDs       []int         `json:"petIds"`
 }
 
-type UpdateSosPostView struct {
+type UpdateSOSPostView struct {
 	ID          int                 `json:"id"`
 	AuthorID    int                 `json:"authorId"`
 	Title       string              `json:"title"`
@@ -199,7 +199,7 @@ type UpdateSosPostView struct {
 	Conditions  []ConditionView     `json:"conditions"`
 	Pets        []pet.PetView       `json:"pets"`
 	Reward      string              `json:"reward"`
-	Dates       []SosDateView       `json:"dates"`
+	Dates       []SOSDateView       `json:"dates"`
 	CareType    CareType            `json:"careType"`
 	CarerGender CarerGender         `json:"carerGender"`
 	RewardType  RewardType          `json:"rewardType"`
@@ -208,13 +208,13 @@ type UpdateSosPostView struct {
 	UpdatedAt   string              `json:"updatedAt"`
 }
 
-func (p *SosPost) ToUpdateSosPostView(
+func (p *SOSPost) ToUpdateSOSPostView(
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
-	sosDates []SosDateView,
-) *UpdateSosPostView {
-	return &UpdateSosPostView{
+	sosDates []SOSDateView,
+) *UpdateSOSPostView {
+	return &UpdateSOSPostView{
 		ID:          p.ID,
 		AuthorID:    p.AuthorID,
 		Title:       p.Title,
@@ -233,22 +233,22 @@ func (p *SosPost) ToUpdateSosPostView(
 	}
 }
 
-type SosDateView struct {
+type SOSDateView struct {
 	DateStartAt string `json:"dateStartAt"`
 	DateEndAt   string `json:"dateEndAt"`
 }
 
-func (d *SosDates) ToSosDateView() SosDateView {
-	return SosDateView{
+func (d *SOSDates) ToSOSDateView() SOSDateView {
+	return SOSDateView{
 		DateStartAt: utils.FormatDate(d.DateStartAt),
 		DateEndAt:   utils.FormatDate(d.DateEndAt),
 	}
 }
 
-func (dl *SosDatesList) ToSosDateViewList() []SosDateView {
-	sosDateViews := make([]SosDateView, len(*dl))
+func (dl *SOSDatesList) ToSOSDateViewList() []SOSDateView {
+	sosDateViews := make([]SOSDateView, len(*dl))
 	for i, d := range *dl {
-		sosDateViews[i] = d.ToSosDateView()
+		sosDateViews[i] = d.ToSOSDateView()
 	}
 	return sosDateViews
 }

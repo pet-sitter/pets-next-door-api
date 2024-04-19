@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func InitConditions(ctx context.Context, tx *database.Tx, conditions []sospost.SosCondition) (string, *pnd.AppError) {
+func InitConditions(ctx context.Context, tx *database.Tx, conditions []sospost.SOSCondition) (string, *pnd.AppError) {
 	const sql = `
 	INSERT INTO sos_conditions
 		(

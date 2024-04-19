@@ -52,7 +52,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	userService := service.NewUserService(db, mediaService)
 	authService := service.NewFirebaseBearerAuthService(authClient, userService)
 	breedService := service.NewBreedService(db)
-	sosPostService := service.NewSosPostService(db)
+	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewConditionService(db)
 
 	// Initialize handlers
@@ -60,7 +60,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	userHandler := handler.NewUserHandler(*userService, authService)
 	mediaHandler := handler.NewMediaHandler(*mediaService)
 	breedHandler := handler.NewBreedHandler(*breedService)
-	sosPostHandler := handler.NewSosPostHandler(*sosPostService, authService)
+	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
 
 	// Register middlewares
@@ -123,10 +123,10 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 
 	postAPIGroup := apiRouteGroup.Group("/posts")
 	{
-		postAPIGroup.POST("/sos", sosPostHandler.WriteSosPost)
-		postAPIGroup.GET("/sos/:id", sosPostHandler.FindSosPostByID)
-		postAPIGroup.GET("/sos", sosPostHandler.FindSosPosts)
-		postAPIGroup.PUT("/sos", sosPostHandler.UpdateSosPost)
+		postAPIGroup.POST("/sos", sosPostHandler.WriteSOSPost)
+		postAPIGroup.GET("/sos/:id", sosPostHandler.FindSOSPostByID)
+		postAPIGroup.GET("/sos", sosPostHandler.FindSOSPosts)
+		postAPIGroup.PUT("/sos", sosPostHandler.UpdateSOSPost)
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
 	}
 

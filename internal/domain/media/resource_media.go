@@ -12,7 +12,7 @@ import (
 type ResourceType string
 
 const (
-	SosResourceType ResourceType = "sos_posts"
+	SOSResourceType ResourceType = "sos_posts"
 )
 
 type ResourceMedia struct {

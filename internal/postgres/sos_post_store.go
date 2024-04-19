@@ -15,7 +15,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSosPostRequest) (*sospost.SosPost, *pnd.AppError) {
+func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		sos_posts
@@ -44,7 +44,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		thumbnail_id
 	`
 
-	sosPost := &sospost.SosPost{}
+	sosPost := &sospost.SOSPost{}
 	err := tx.QueryRowContext(ctx, sql,
 		authorID,
 		request.Title,
@@ -80,23 +80,23 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		RETURNING id, date_start_at, date_end_at, created_at, updated_at
 		`
 
-	sosDates := []sospost.SosDates{}
+	sosDates := []sospost.SOSDates{}
 
 	for _, date := range request.Dates {
-		SosDate := sospost.SosDates{}
+		sosDate := sospost.SOSDates{}
 		if err := tx.QueryRowContext(ctx, sql2,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
-			&SosDate.ID,
-			&SosDate.DateStartAt,
-			&SosDate.DateEndAt,
-			&SosDate.CreatedAt,
-			&SosDate.UpdatedAt,
+			&sosDate.ID,
+			&sosDate.DateStartAt,
+			&sosDate.DateEndAt,
+			&sosDate.CreatedAt,
+			&sosDate.UpdatedAt,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		sosDates = append(sosDates, SosDate)
+		sosDates = append(sosDates, sosDate)
 	}
 
 	for _, sosDate := range sosDates {
@@ -132,7 +132,7 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		VALUES ($1, $2, $3, NOW(), NOW())`,
 			imageID,
 			sosPost.ID,
-			media.SosResourceType,
+			media.SOSResourceType,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
@@ -177,7 +177,9 @@ func WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 	return sosPost, nil
 }
 
-func FindSosPosts(ctx context.Context, tx *database.Tx, page, size int, sortBy, filterType string) (*sospost.SosPostInfoList, *pnd.AppError) {
+func FindSOSPosts(
+	ctx context.Context, tx *database.Tx, page, size int, sortBy, filterType string,
+) (*sospost.SOSPostInfoList, *pnd.AppError) {
 	var sortString string
 	switch sortBy {
 	case "newest":
@@ -242,13 +244,13 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page, size int, sortBy, 
 
 	rows, err := tx.QueryContext(ctx, query, size+1, (page-1)*size)
 	if err != nil {
-		return &sospost.SosPostInfoList{}, pnd.FromPostgresError(err)
+		return &sospost.SOSPostInfoList{}, pnd.FromPostgresError(err)
 	}
 	defer rows.Close()
 
-	sosPostList := sospost.NewSosPostInfoList(page, size)
+	sosPostList := sospost.NewSOSPostInfoList(page, size)
 	for rows.Next() {
-		sosPost := sospost.SosPostInfo{}
+		sosPost := sospost.SOSPostInfo{}
 		var datesData, petsData, mediaData, conditionsData []byte
 		if err := rows.Scan(
 			&sosPost.ID,
@@ -291,7 +293,9 @@ func FindSosPosts(ctx context.Context, tx *database.Tx, page, size int, sortBy, 
 	return sosPostList, nil
 }
 
-func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID, page, size int, sortBy, filterType string) (*sospost.SosPostInfoList, *pnd.AppError) {
+func FindSOSPostsByAuthorID(
+	ctx context.Context, tx *database.Tx, authorID, page, size int, sortBy, filterType string,
+) (*sospost.SOSPostInfoList, *pnd.AppError) {
 	var sortString string
 	switch sortBy {
 	case "newest":
@@ -361,9 +365,9 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID, page
 	}
 	defer rows.Close()
 
-	sosPostList := sospost.NewSosPostInfoList(page, size)
+	sosPostList := sospost.NewSOSPostInfoList(page, size)
 	for rows.Next() {
-		sosPost := sospost.SosPostInfo{}
+		sosPost := sospost.SOSPostInfo{}
 		var datesData, petsData, mediaData, conditionsData []byte
 
 		if err := rows.Scan(
@@ -408,7 +412,7 @@ func FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID, page
 	return sosPostList, nil
 }
 
-func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SosPostInfo, *pnd.AppError) {
+func FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SOSPostInfo, *pnd.AppError) {
 	query := fmt.Sprintf(`
 		SELECT
 			v_sos_posts.id,
@@ -439,7 +443,7 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.Sos
 
 	row := tx.QueryRowContext(ctx, query, id)
 
-	sosPost := sospost.SosPostInfo{}
+	sosPost := sospost.SOSPostInfo{}
 
 	var datesData, petsData, mediaData, conditionsData []byte
 	if err := row.Scan(
@@ -477,8 +481,8 @@ func FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.Sos
 	return &sosPost, nil
 }
 
-func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sospost.UpdateSosPostRequest) (*sospost.SosPost, *pnd.AppError) {
-	sosPost := &sospost.SosPost{}
+func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.UpdateSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
+	sosPost := &sospost.SOSPost{}
 
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE
@@ -517,23 +521,23 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 		RETURNING id, date_start_at, date_end_at, created_at, updated_at
 		`
 
-	sosDates := []sospost.SosDates{}
+	sosDates := []sospost.SOSDates{}
 
 	for _, date := range request.Dates {
-		SosDate := sospost.SosDates{}
+		sosDate := sospost.SOSDates{}
 		if err := tx.QueryRowContext(ctx, sql,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
-			&SosDate.ID,
-			&SosDate.DateStartAt,
-			&SosDate.DateEndAt,
-			&SosDate.CreatedAt,
-			&SosDate.UpdatedAt,
+			&sosDate.ID,
+			&sosDate.DateStartAt,
+			&sosDate.DateEndAt,
+			&sosDate.CreatedAt,
+			&sosDate.UpdatedAt,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		sosDates = append(sosDates, SosDate)
+		sosDates = append(sosDates, sosDate)
 	}
 
 	for _, sosDate := range sosDates {
@@ -570,7 +574,7 @@ func UpdateSosPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 		`,
 			imageID,
 			request.ID,
-			media.SosResourceType,
+			media.SOSResourceType,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
@@ -799,7 +803,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithPro
 	return &pets, nil
 }
 
-func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sospost.SosDatesList, *pnd.AppError) {
+func FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sospost.SOSDatesList, *pnd.AppError) {
 	const sql = `
 		SELECT
 		    sos_dates.id,
@@ -817,7 +821,7 @@ func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 			sos_posts_dates.deleted_at IS NULL
 	`
 
-	var sosDates sospost.SosDatesList
+	var sosDates sospost.SOSDatesList
 	rows, err := tx.QueryContext(ctx, sql, sosPostID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -825,7 +829,7 @@ func FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 	defer rows.Close()
 
 	for rows.Next() {
-		sosDate := sospost.SosDates{}
+		sosDate := sospost.SOSDates{}
 		if err := rows.Scan(
 			&sosDate.ID,
 			&sosDate.DateStartAt,

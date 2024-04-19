@@ -11,19 +11,19 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 )
 
-type SosPostService struct {
+type SOSPostService struct {
 	conn *database.DB
 }
 
-func NewSosPostService(conn *database.DB) *SosPostService {
-	return &SosPostService{
+func NewSOSPostService(conn *database.DB) *SOSPostService {
+	return &SOSPostService{
 		conn: conn,
 	}
 }
 
-func (service *SosPostService) WriteSosPost(
-	ctx context.Context, fbUID string, request *sospost.WriteSosPostRequest,
-) (*sospost.WriteSosPostView, *pnd.AppError) {
+func (service *SOSPostService) WriteSOSPost(
+	ctx context.Context, fbUID string, request *sospost.WriteSOSPostRequest,
+) (*sospost.WriteSOSPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -35,12 +35,12 @@ func (service *SosPostService) WriteSosPost(
 		return nil, err
 	}
 
-	sosPost, err := postgres.WriteSosPost(ctx, tx, userID, request)
+	sosPost, err := postgres.WriteSOSPost(ctx, tx, userID, request)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SosResourceType))
+	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SOSResourceType))
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (service *SosPostService) WriteSosPost(
 		return nil, err
 	}
 
-	dates, err := postgres.FindDatesBySosPostID(ctx, tx, sosPost.ID)
+	dates, err := postgres.FindDatesBySOSPostID(ctx, tx, sosPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,86 +64,90 @@ func (service *SosPostService) WriteSosPost(
 		return nil, err
 	}
 
-	return sosPost.ToWriteSosPostView(
+	return sosPost.ToWriteSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
 		pets.ToPetViewList(),
-		dates.ToSosDateViewList(),
+		dates.ToSOSDateViewList(),
 	), nil
 }
 
-func (service *SosPostService) FindSosPosts(ctx context.Context, page, size int, sortBy, filterType string) (*sospost.FindSosPostListView, *pnd.AppError) {
+func (service *SOSPostService) FindSOSPosts(
+	ctx context.Context, page, size int, sortBy, filterType string,
+) (*sospost.FindSOSPostListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPosts, err := postgres.FindSosPosts(ctx, tx, page, size, sortBy, filterType)
+	sosPosts, err := postgres.FindSOSPosts(ctx, tx, page, size, sortBy, filterType)
 	if err != nil {
 		return nil, err
 	}
 
-	sosPostViews := sospost.FromEmptySosPostInfoList(sosPosts)
+	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
 		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 		if err != nil {
 			return nil, err
 		}
-		SosPostView := sosPost.ToFindSosPostInfoView(
+		sosPostView := sosPost.ToFindSOSPostInfoView(
 			author.ToUserWithoutPrivateInfo(),
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToPetViewList(),
-			sosPost.Dates.ToSosDateViewList(),
+			sosPost.Dates.ToSOSDateViewList(),
 		)
 
-		sosPostViews.Items = append(sosPostViews.Items, *SosPostView)
+		sosPostViews.Items = append(sosPostViews.Items, *sosPostView)
 	}
 
 	return sosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostsByAuthorID(ctx context.Context, authorID, page, size int, sortBy, filterType string) (*sospost.FindSosPostListView, *pnd.AppError) {
+func (service *SOSPostService) FindSOSPostsByAuthorID(
+	ctx context.Context, authorID, page, size int, sortBy, filterType string,
+) (*sospost.FindSOSPostListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPosts, err := postgres.FindSosPostsByAuthorID(ctx, tx, authorID, page, size, sortBy, filterType)
+	sosPosts, err := postgres.FindSOSPostsByAuthorID(ctx, tx, authorID, page, size, sortBy, filterType)
 	if err != nil {
 		return nil, err
 	}
-	sosPostViews := sospost.FromEmptySosPostInfoList(sosPosts)
+	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
 		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
 		if err != nil {
 			return nil, err
 		}
-		SosPostView := sosPost.ToFindSosPostInfoView(
+		sosPostView := sosPost.ToFindSOSPostInfoView(
 			author.ToUserWithoutPrivateInfo(),
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToPetViewList(),
-			sosPost.Dates.ToSosDateViewList(),
+			sosPost.Dates.ToSOSDateViewList(),
 		)
 
-		sosPostViews.Items = append(sosPostViews.Items, *SosPostView)
+		sosPostViews.Items = append(sosPostViews.Items, *sosPostView)
 	}
 	return sosPostViews, nil
 }
 
-func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*sospost.FindSosPostView, *pnd.AppError) {
+func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*sospost.FindSOSPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPost, err := postgres.FindSosPostByID(ctx, tx, id)
+	sosPost, err := postgres.FindSOSPostByID(ctx, tx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -157,45 +161,45 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	return sosPost.ToFindSosPostInfoView(
+	return sosPost.ToFindSOSPostInfoView(
 		author.ToUserWithoutPrivateInfo(),
 		sosPost.Media.ToMediaViewList(),
 		sosPost.Conditions.ToConditionViewList(),
 		sosPost.Pets.ToPetViewList(),
-		sosPost.Dates.ToSosDateViewList(),
+		sosPost.Dates.ToSOSDateViewList(),
 	), nil
 }
 
-func (service *SosPostService) UpdateSosPost(
-	ctx context.Context, request *sospost.UpdateSosPostRequest,
-) (*sospost.UpdateSosPostView, *pnd.AppError) {
+func (service *SOSPostService) UpdateSOSPost(
+	ctx context.Context, request *sospost.UpdateSOSPostRequest,
+) (*sospost.UpdateSOSPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	updateSosPost, err := postgres.UpdateSosPost(ctx, tx, request)
+	updateSOSPost, err := postgres.UpdateSOSPost(ctx, tx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, updateSosPost.ID, string(media.SosResourceType))
+	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, updateSOSPost.ID, string(media.SOSResourceType))
 	if err != nil {
 		return nil, err
 	}
 
-	conditions, err := postgres.FindConditionByID(ctx, tx, updateSosPost.ID)
+	conditions, err := postgres.FindConditionByID(ctx, tx, updateSOSPost.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	pets, err := postgres.FindPetsByID(ctx, tx, updateSosPost.ID)
+	pets, err := postgres.FindPetsByID(ctx, tx, updateSOSPost.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	dates, err := postgres.FindDatesBySosPostID(ctx, tx, request.ID)
+	dates, err := postgres.FindDatesBySOSPostID(ctx, tx, request.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -204,15 +208,15 @@ func (service *SosPostService) UpdateSosPost(
 		return nil, err
 	}
 
-	return updateSosPost.ToUpdateSosPostView(
+	return updateSOSPost.ToUpdateSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
 		pets.ToPetViewList(),
-		dates.ToSosDateViewList(),
+		dates.ToSOSDateViewList(),
 	), nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(
+func (service *SOSPostService) CheckUpdatePermission(
 	ctx context.Context, fbUID string, sosPostID int,
 ) (bool, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
@@ -226,7 +230,7 @@ func (service *SosPostService) CheckUpdatePermission(
 		return false, err
 	}
 
-	sosPost, err := postgres.FindSosPostByID(ctx, tx, sosPostID)
+	sosPost, err := postgres.FindSOSPostByID(ctx, tx, sosPostID)
 	if err != nil {
 		return false, err
 	}
