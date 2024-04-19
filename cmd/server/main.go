@@ -46,7 +46,10 @@ func main() {
 		}
 	}
 
-	r := NewRouter(app)
+	r, err := NewRouter(app)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	log.Printf("Starting server on port %s", configs.Port)
 	log.Fatal(http.ListenAndServe(":"+configs.Port, r))

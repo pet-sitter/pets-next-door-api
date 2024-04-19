@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -22,18 +22,18 @@ import (
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 )
 
-func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
+func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	e := echo.New()
 	ctx := context.Background()
 
 	db, err := database.Open(configs.DatabaseURL)
 	if err != nil {
-		log.Fatalf("error opening database: %v\n", err)
+		return nil, fmt.Errorf("error opening database: %v", err)
 	}
 
 	authClient, err := app.Auth(ctx)
 	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
+		return nil, fmt.Errorf("error initializing app: %v", err)
 	}
 
 	// Initialize services
@@ -45,7 +45,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 		configs.B2BucketName,
 	)
 	if err != nil {
-		log.Fatalf("error initializing s3 client: %v\n", err)
+		return nil, fmt.Errorf("error initializing s3 client: %v", err)
 	}
 
 	mediaService := service.NewMediaService(db, s3Client)
@@ -130,5 +130,5 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
 	}
 
-	return e
+	return e, nil
 }
