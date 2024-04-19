@@ -13,6 +13,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
 
+//nolint:gocognit
 func TestUserService(t *testing.T) {
 	setUp := func(t *testing.T) (*database.DB, func(t *testing.T)) {
 		t.Helper()
