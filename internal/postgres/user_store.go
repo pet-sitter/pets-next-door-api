@@ -28,7 +28,7 @@ func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUser
 	`
 
 	userData := &user.User{}
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
 		request.Email,
 		request.Nickname,
 		request.Fullname,
@@ -313,7 +313,7 @@ func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid, nickname string,
 	`
 
 	var userData user.User
-	err := tx.QueryRowContext(ctx, sql,
+	err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
 		nickname,
 		profileImageID,
 		uid,
