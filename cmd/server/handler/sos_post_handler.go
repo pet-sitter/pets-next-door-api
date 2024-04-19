@@ -11,40 +11,40 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
-type SosPostHandler struct {
-	sosPostService service.SosPostService
+type SOSPostHandler struct {
+	sosPostService service.SOSPostService
 	authService    service.AuthService
 }
 
-func NewSosPostHandler(sosPostService service.SosPostService, authService service.AuthService) *SosPostHandler {
-	return &SosPostHandler{
+func NewSOSPostHandler(sosPostService service.SOSPostService, authService service.AuthService) *SOSPostHandler {
+	return &SOSPostHandler{
 		sosPostService: sosPostService,
 		authService:    authService,
 	}
 }
 
-// WriteSosPost godoc
+// WriteSOSPost godoc
 // @Summary 돌봄급구 게시글을 업로드합니다.
 // @Description
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param request body sospost.WriteSosPostRequest true "돌봄급구 게시글 업로드 요청"
+// @Param request body sospost.WriteSOSPostRequest true "돌봄급구 게시글 업로드 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} sospost.WriteSosPostView
+// @Success 201 {object} sospost.WriteSOSPostView
 // @Router /posts/sos [post]
-func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
+func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var writeSosPostRequest sospost.WriteSosPostRequest
-	if err = pnd.ParseBody(c, &writeSosPostRequest); err != nil {
+	var writeSOSPostRequest sospost.WriteSOSPostRequest
+	if err = pnd.ParseBody(c, &writeSOSPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.sosPostService.WriteSosPost(c.Request().Context(), foundUser.FirebaseUID, &writeSosPostRequest)
+	res, err := h.sosPostService.WriteSOSPost(c.Request().Context(), foundUser.FirebaseUID, &writeSOSPostRequest)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -52,7 +52,7 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 	return c.JSON(http.StatusCreated, res)
 }
 
-// FindSosPosts godoc
+// FindSOSPosts godoc
 // @Summary 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
@@ -63,9 +63,9 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 // @Param size query int false "페이지 사이즈" default(20)
 // @Param sort_by query string false "정렬 기준" Enums(newest, deadline)
 // @Param filter_type query string false "필터링 기준" Enums(dog, cat, all)
-// @Success 200 {object} sospost.FindSosPostListView
+// @Success 200 {object} sospost.FindSOSPostListView
 // @Router /posts/sos [get]
-func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
+func (h *SOSPostHandler) FindSOSPosts(c echo.Context) error {
 	authorID, err := pnd.ParseOptionalIntQuery(c, "author_id")
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
@@ -85,14 +85,14 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var res *sospost.FindSosPostListView
+	var res *sospost.FindSOSPostListView
 	if authorID != nil {
-		res, err = h.sosPostService.FindSosPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy, filterType)
+		res, err = h.sosPostService.FindSOSPostsByAuthorID(c.Request().Context(), *authorID, page, size, sortBy, filterType)
 		if err != nil {
 			return c.JSON(err.StatusCode, err)
 		}
 	} else {
-		res, err = h.sosPostService.FindSosPosts(c.Request().Context(), page, size, sortBy, filterType)
+		res, err = h.sosPostService.FindSOSPosts(c.Request().Context(), page, size, sortBy, filterType)
 		if err != nil {
 			return c.JSON(err.StatusCode, err)
 		}
@@ -101,20 +101,20 @@ func (h *SosPostHandler) FindSosPosts(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// FindSosPostByID godoc
+// FindSOSPostByID godoc
 // @Summary 게시글 ID로 돌봄급구 게시글을 조회합니다.
 // @Description
 // @Tags posts
 // @Produce  json
 // @Param id path int true "게시글 ID"
-// @Success 200 {object} sospost.FindSosPostView
+// @Success 200 {object} sospost.FindSOSPostView
 // @Router /posts/sos/{id} [get]
-func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
+func (h *SOSPostHandler) FindSOSPostByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
-	res, err := h.sosPostService.FindSosPostByID(c.Request().Context(), *id)
+	res, err := h.sosPostService.FindSOSPostByID(c.Request().Context(), *id)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -122,31 +122,31 @@ func (h *SosPostHandler) FindSosPostByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// UpdateSosPost godoc
+// UpdateSOSPost godoc
 // @Summary 돌봄급구 게시글을 수정합니다.
 // @Description
 // @Tags posts
 // @Accept  json
 // @Produce  json
 // @Security FirebaseAuth
-// @Param request body sospost.UpdateSosPostRequest true "돌봄급구 수정 요청"
+// @Param request body sospost.UpdateSOSPostRequest true "돌봄급구 수정 요청"
 // @Success 200
 // @Router /posts/sos [put]
-func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
+func (h *SOSPostHandler) UpdateSOSPost(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var updateSosPostRequest sospost.UpdateSosPostRequest
-	if err = pnd.ParseBody(c, &updateSosPostRequest); err != nil {
+	var updateSOSPostRequest sospost.UpdateSOSPostRequest
+	if err = pnd.ParseBody(c, &updateSOSPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
 	permission, err := h.sosPostService.CheckUpdatePermission(
 		c.Request().Context(),
 		foundUser.FirebaseUID,
-		updateSosPostRequest.ID,
+		updateSOSPostRequest.ID,
 	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
@@ -156,7 +156,7 @@ func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	res, err := h.sosPostService.UpdateSosPost(c.Request().Context(), &updateSosPostRequest)
+	res, err := h.sosPostService.UpdateSOSPost(c.Request().Context(), &updateSOSPostRequest)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

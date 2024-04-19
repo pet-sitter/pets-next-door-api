@@ -33,7 +33,7 @@ const (
 	RewardTypeNegotiable RewardType = "negotiable"
 )
 
-type SosPost struct {
+type SOSPost struct {
 	ID          int         `field:"id"`
 	AuthorID    int         `field:"author_id"`
 	Title       string      `field:"title"`
@@ -48,11 +48,11 @@ type SosPost struct {
 	DeletedAt   time.Time   `field:"deleted_at"`
 }
 
-type SosPostList struct {
-	*pnd.PaginatedView[SosPost]
+type SOSPostList struct {
+	*pnd.PaginatedView[SOSPost]
 }
 
-type SosPostInfo struct {
+type SOSPostInfo struct {
 	ID          int                    `field:"id" json:"id"`
 	AuthorID    int                    `field:"author" json:"author"`
 	Title       string                 `field:"title" json:"title"`
@@ -61,7 +61,7 @@ type SosPostInfo struct {
 	Conditions  ConditionList          `field:"conditions" json:"conditions"`
 	Pets        pet.PetWithProfileList `field:"pets" json:"pets"`
 	Reward      string                 `field:"reward" json:"reward"`
-	Dates       SosDatesList           `field:"dates" json:"dates"`
+	Dates       SOSDatesList           `field:"dates" json:"dates"`
 	CareType    CareType               `field:"careType" json:"careType"`
 	CarerGender CarerGender            `field:"carerGender" json:"carerGender"`
 	RewardType  RewardType             `field:"rewardType" json:"rewardType"`
@@ -71,23 +71,23 @@ type SosPostInfo struct {
 	DeletedAt   time.Time              `field:"deletedAt" json:"deletedAt"`
 }
 
-type SosPostInfoList struct {
-	*pnd.PaginatedView[SosPostInfo]
+type SOSPostInfoList struct {
+	*pnd.PaginatedView[SOSPostInfo]
 }
 
-func NewSosPostList(page, size int) *SosPostList {
-	return &SosPostList{PaginatedView: pnd.NewPaginatedView(
-		page, size, false, make([]SosPost, 0),
+func NewSOSPostList(page, size int) *SOSPostList {
+	return &SOSPostList{PaginatedView: pnd.NewPaginatedView(
+		page, size, false, make([]SOSPost, 0),
 	)}
 }
 
-func NewSosPostInfoList(page, size int) *SosPostInfoList {
-	return &SosPostInfoList{PaginatedView: pnd.NewPaginatedView(
-		page, size, false, make([]SosPostInfo, 0),
+func NewSOSPostInfoList(page, size int) *SOSPostInfoList {
+	return &SOSPostInfoList{PaginatedView: pnd.NewPaginatedView(
+		page, size, false, make([]SOSPostInfo, 0),
 	)}
 }
 
-type SosDates struct {
+type SOSDates struct {
 	ID          int       `field:"id" json:"id"`
 	DateStartAt string    `field:"date_start_at" json:"date_start_at"`
 	DateEndAt   string    `field:"date_end_at" json:"date_end_at"`
@@ -96,36 +96,36 @@ type SosDates struct {
 	DeletedAt   time.Time `field:"deleted_at" json:"deleted_at"`
 }
 
-type SosDatesList []*SosDates
+type SOSDatesList []*SOSDates
 
-type SosPostStore interface {
-	WriteSosPost(
+type SOSPostStore interface {
+	WriteSOSPost(
 		ctx context.Context,
 		tx *database.Tx,
 		authorID int,
 		utcDateStart string,
 		utcDateEnd string,
-		request *WriteSosPostRequest,
-	) (*SosPost, *pnd.AppError)
-	FindSosPosts(
+		request *WriteSOSPostRequest,
+	) (*SOSPost, *pnd.AppError)
+	FindSOSPosts(
 		ctx context.Context,
 		tx *database.Tx,
 		page int,
 		size int,
 		sortBy string,
-	) (*SosPostInfoList, *pnd.AppError)
-	FindSosPostsByAuthorID(
+	) (*SOSPostInfoList, *pnd.AppError)
+	FindSOSPostsByAuthorID(
 		ctx context.Context,
 		tx *database.Tx,
 		authorID int,
 		page int,
 		size int,
 		sortBy string,
-	) (*SosPostInfoList, *pnd.AppError)
-	FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*SosPost, *pnd.AppError)
-	UpdateSosPost(ctx context.Context, tx *database.Tx, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
+	) (*SOSPostInfoList, *pnd.AppError)
+	FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*SOSPost, *pnd.AppError)
+	UpdateSOSPost(ctx context.Context, tx *database.Tx, request *UpdateSOSPostRequest) (*SOSPost, *pnd.AppError)
 	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*ConditionList, *pnd.AppError)
 	FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError)
-	WriteDates(ctx context.Context, tx *database.Tx, dates []string, sosPostID int) (*SosDatesList, *pnd.AppError)
-	FindDatesBySosPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*SosDatesList, *pnd.AppError)
+	WriteDates(ctx context.Context, tx *database.Tx, dates []string, sosPostID int) (*SOSDatesList, *pnd.AppError)
+	FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*SOSDatesList, *pnd.AppError)
 }

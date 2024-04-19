@@ -70,13 +70,13 @@ func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
 	}
 }
 
-func GenerateDummyWriteSosPostRequest(imageID, petIDs []int, sosPostCnt int) *sospost.WriteSosPostRequest {
-	return &sospost.WriteSosPostRequest{
+func GenerateDummyWriteSOSPostRequest(imageID, petIDs []int, sosPostCnt int) *sospost.WriteSOSPostRequest {
+	return &sospost.WriteSOSPostRequest{
 		Title:    fmt.Sprintf("Title%d", sosPostCnt),
 		Content:  fmt.Sprintf("Content%d", sosPostCnt),
 		ImageIDs: imageID,
 		Reward:   "Reward",
-		Dates: []sospost.SosDateView{
+		Dates: []sospost.SOSDateView{
 			{DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-04-2%d", sosPostCnt)},
 			{DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-05-2%d", sosPostCnt)},
 		},

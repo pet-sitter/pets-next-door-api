@@ -77,18 +77,18 @@ func AddDummyPets(
 	return pets
 }
 
-func WriteDummySosPosts(
+func WriteDummySOSPosts(
 	t *testing.T,
 	ctx context.Context,
-	sosPostService *service.SosPostService,
+	sosPostService *service.SOSPostService,
 	uid string,
 	imageID []int,
 	petIDs []int,
 	sosPostCnt int,
-) *sospost.WriteSosPostView {
+) *sospost.WriteSOSPostView {
 	t.Helper()
-	sosPostRequest := GenerateDummyWriteSosPostRequest(imageID, petIDs, sosPostCnt)
-	sosPost, err := sosPostService.WriteSosPost(ctx, uid, sosPostRequest)
+	sosPostRequest := GenerateDummyWriteSOSPostRequest(imageID, petIDs, sosPostCnt)
+	sosPost, err := sosPostService.WriteSOSPost(ctx, uid, sosPostRequest)
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)
 	}
