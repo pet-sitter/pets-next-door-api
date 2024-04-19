@@ -2,7 +2,9 @@ package database
 
 import (
 	"database/sql"
+
 	"github.com/golang-migrate/migrate/v4"
+
 	// To use Postgres driver
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	// To use file source

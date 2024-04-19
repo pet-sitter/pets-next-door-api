@@ -299,7 +299,7 @@ func (service *UserService) UpdatePet(
 	}
 
 	if updatePetRequest.ProfileImageID != nil {
-		if _, err := service.mediaService.FindMediaByID(ctx, *updatePetRequest.ProfileImageID); err != nil {
+		if _, err = service.mediaService.FindMediaByID(ctx, *updatePetRequest.ProfileImageID); err != nil {
 			return nil, err
 		}
 	}
@@ -314,7 +314,7 @@ func (service *UserService) UpdatePet(
 	if err != nil {
 		return nil, err
 	}
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 

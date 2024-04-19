@@ -40,7 +40,7 @@ func (h *SosPostHandler) WriteSosPost(c echo.Context) error {
 	}
 
 	var writeSosPostRequest sospost.WriteSosPostRequest
-	if err := pnd.ParseBody(c, &writeSosPostRequest); err != nil {
+	if err = pnd.ParseBody(c, &writeSosPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
@@ -139,7 +139,7 @@ func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
 	}
 
 	var updateSosPostRequest sospost.UpdateSosPostRequest
-	if err := pnd.ParseBody(c, &updateSosPostRequest); err != nil {
+	if err = pnd.ParseBody(c, &updateSosPostRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 

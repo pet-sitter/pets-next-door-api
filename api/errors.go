@@ -19,8 +19,8 @@ const (
 	ErrCodeMultipartForm     AppErrorCode = "ERR_MULTIPART_FORM"
 
 	// Common errors - Auth
-	ErrCodeInvalidFBToken     AppErrorCode = "ERR_INVALID_FB_TOKEN"
-	ErrCodeInvalidBearerToken AppErrorCode = "ERR_INVALID_BEARER_TOKEN"
+	ErrCodeInvalidFBToken     AppErrorCode = "ERR_INVALID_FB_TOKEN"     //nolint:gosec
+	ErrCodeInvalidBearerToken AppErrorCode = "ERR_INVALID_BEARER_TOKEN" //nolint:gosec
 	ErrCodeUserNotRegistered  AppErrorCode = "ERR_USER_NOT_REGISTERED"
 	ErrCodeForbidden          AppErrorCode = "ERR_FORBIDDEN"
 
