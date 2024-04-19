@@ -17,7 +17,7 @@ import (
 )
 
 func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
-	const sql = `
+	const query = `
 	INSERT INTO
 		sos_posts
 		(
@@ -46,7 +46,7 @@ func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 	`
 
 	sosPost := &sospost.SOSPost{}
-	err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
+	err := tx.QueryRowContext(ctx, query, //nolint:execinquery
 		authorID,
 		request.Title,
 		request.Content,
@@ -479,7 +479,7 @@ func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	const sql = `
+	const query = `
 		INSERT INTO
 		sos_dates
 		(
@@ -496,7 +496,7 @@ func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 
 	for _, date := range request.Dates {
 		sosDate := sospost.SOSDates{}
-		if err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
+		if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -664,7 +664,7 @@ func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 }
 
 func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.ConditionList, *pnd.AppError) {
-	const sql = `
+	const query = `
 	SELECT
 		sos_conditions.id,
 		sos_conditions.name,
@@ -682,7 +682,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 	`
 
 	conditions := sospost.ConditionList{}
-	rows, err := tx.QueryContext(ctx, sql, id)
+	rows, err := tx.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -708,7 +708,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 }
 
 func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProfileList, *pnd.AppError) {
-	const sql = `
+	const query = `
 	SELECT
 		pets.id,
 		pets.owner_id,
@@ -740,7 +740,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithPro
 	`
 
 	pets := pet.PetWithProfileList{}
-	rows, err := tx.QueryContext(ctx, sql, id)
+	rows, err := tx.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -775,7 +775,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithPro
 }
 
 func FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sospost.SOSDatesList, *pnd.AppError) {
-	const sql = `
+	const query = `
 		SELECT
 		    sos_dates.id,
 			sos_dates.date_start_at,
@@ -793,7 +793,7 @@ func FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 	`
 
 	var sosDates sospost.SOSDatesList
-	rows, err := tx.QueryContext(ctx, sql, sosPostID)
+	rows, err := tx.QueryContext(ctx, query, sosPostID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
