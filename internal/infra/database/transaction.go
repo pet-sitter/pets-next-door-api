@@ -6,6 +6,8 @@ import (
 	"errors"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 type DBTx interface {
@@ -37,12 +39,18 @@ func (sct *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
+			if err2 := tx.Rollback(); err2 != nil {
+				log.Error().Err(err2).Msg("error rolling back transaction")
+				panic(p)
+			}
 		} else if err = f(); err != nil {
-			tx.Rollback()
+			if err2 := tx.Rollback(); err2 != nil {
+				log.Error().Err(err2).Msg("error rolling back transaction")
+			}
 		} else if err := tx.Commit(); err != nil {
-			tx.Rollback()
+			if err2 := tx.Rollback(); err2 != nil {
+				log.Error().Err(err2).Msg("error rolling back transaction")
+			}
 		}
 	}()
 
