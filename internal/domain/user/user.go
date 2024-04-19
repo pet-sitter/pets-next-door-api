@@ -101,7 +101,13 @@ type UserStatus struct {
 
 type UserStore interface {
 	CreateUser(ctx context.Context, tx *database.Tx, request *RegisterUserRequest) (*User, *pnd.AppError)
-	FindUsers(ctx context.Context, tx *database.Tx, page, size int, nickname *string) (*UserWithoutPrivateInfoList, *pnd.AppError)
+	FindUsers(
+		ctx context.Context,
+		tx *database.Tx,
+		page int,
+		size int,
+		nickname *string,
+	) (*UserWithoutPrivateInfoList, *pnd.AppError)
 	FindUserByID(ctx context.Context, tx *database.Tx, id int, includeDeleted bool) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*UserWithProfileImage, *pnd.AppError)
 	FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*UserWithProfileImage, *pnd.AppError)
