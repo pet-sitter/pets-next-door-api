@@ -319,6 +319,9 @@ func (service *UserService) UpdatePet(
 	}
 
 	updatedPet, err := service.findPetByID(ctx, petID)
+	if err != nil {
+		return nil, err
+	}
 	return updatedPet.ToPetView(), nil
 }
 
