@@ -79,7 +79,7 @@ func (h *MediaHandler) UploadImage(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	res, err2 := h.mediaService.UploadMedia(c.Request().Context(), file, media.IMAGE_MEDIA_TYPE, fileHeader.Filename)
+	res, err2 := h.mediaService.UploadMedia(c.Request().Context(), file, media.MediaTypeImage, fileHeader.Filename)
 	if err2 != nil {
 		return c.JSON(err2.StatusCode, err2)
 	}

@@ -270,7 +270,7 @@ func TestUserService(t *testing.T) {
 			// Given
 			mediaService := service.NewMediaService(db, nil)
 			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.IMAGE_MEDIA_TYPE,
+				MediaType: media.MediaTypeImage,
 				URL:       "http://example.com",
 			})
 

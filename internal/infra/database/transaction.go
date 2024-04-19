@@ -22,8 +22,8 @@ type Transactioner interface {
 	BeginTx() (*DB, *pnd.AppError)
 }
 
-func (sdt *DB) BeginTx(ctx context.Context) (*Tx, *pnd.AppError) {
-	tx, err := sdt.DB.BeginTx(ctx, nil)
+func (db *DB) BeginTx(ctx context.Context) (*Tx, *pnd.AppError) {
+	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

@@ -14,7 +14,7 @@ import (
 func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {
 	t.Helper()
 	mediaData, err := mediaService.CreateMedia(ctx, &media.Media{
-		MediaType: media.IMAGE_MEDIA_TYPE,
+		MediaType: media.MediaTypeImage,
 		URL:       "http://example.com",
 	})
 	if err != nil {

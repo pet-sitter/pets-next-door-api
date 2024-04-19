@@ -11,7 +11,7 @@ import (
 type MediaType string
 
 const (
-	IMAGE_MEDIA_TYPE MediaType = "image"
+	MediaTypeImage MediaType = "image"
 )
 
 type Media struct {
