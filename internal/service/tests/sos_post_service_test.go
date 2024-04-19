@@ -18,6 +18,7 @@ import (
 
 func TestSosPostService(t *testing.T) {
 	setUp := func(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T)) {
+		t.Helper()
 		db, _ := database.Open(tests.TestDatabaseURL)
 		db.Flush()
 
@@ -29,6 +30,7 @@ func TestSosPostService(t *testing.T) {
 		}
 
 		return db, func(t *testing.T) {
+			t.Helper()
 			db.Close()
 		}
 	}
@@ -426,6 +428,8 @@ func TestSosPostService(t *testing.T) {
 }
 
 func assertFindSosPostEquals(t *testing.T, got sos_post.FindSosPostView, want sos_post.WriteSosPostView) {
+	t.Helper()
+
 	if got.Title != want.Title {
 		t.Errorf("got %v want %v", got.Title, want.Title)
 	}
@@ -450,6 +454,8 @@ func assertFindSosPostEquals(t *testing.T, got sos_post.FindSosPostView, want so
 }
 
 func assertConditionEquals(t *testing.T, got []sos_post.ConditionView, want []int) {
+	t.Helper()
+
 	for i := range want {
 		if i+1 != got[i].ID {
 			t.Errorf("got %v want %v", got[i].ID, i+1)
@@ -458,12 +464,16 @@ func assertConditionEquals(t *testing.T, got []sos_post.ConditionView, want []in
 }
 
 func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
+	t.Helper()
+
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v want %v", got, want)
 	}
 }
 
 func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaViewList) {
+	t.Helper()
+
 	for i, media := range want {
 		if got[i].ID != media.ID {
 			t.Errorf("got %v want %v", got[i].ID, media.ID)
@@ -478,12 +488,16 @@ func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaVi
 }
 
 func assertAuthorEquals(t *testing.T, got *user.UserWithoutPrivateInfo, want *user.UserWithoutPrivateInfo) {
+	t.Helper()
+
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v want %v", got, want)
 	}
 }
 
 func assertDatesEquals(t *testing.T, got []sos_post.SosDateView, want []sos_post.SosDateView) {
+	t.Helper()
+
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v want %v", got, want)
 	}

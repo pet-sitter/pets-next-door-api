@@ -15,15 +15,21 @@ import (
 
 func TestUserService(t *testing.T) {
 	setUp := func(t *testing.T) (*database.DB, func(t *testing.T)) {
+		t.Helper()
+
 		db, _ := database.Open(tests.TestDatabaseURL)
 		db.Flush()
 
 		return db, func(t *testing.T) {
+			t.Helper()
+
 			db.Close()
 		}
 	}
 
 	assertPetEquals := func(t *testing.T, expected pet.AddPetRequest, found pet.PetView) {
+		t.Helper()
+
 		if expected.Name != found.Name {
 			t.Errorf("got %v want %v", expected.Name, found.Name)
 		}
@@ -54,6 +60,8 @@ func TestUserService(t *testing.T) {
 	}
 
 	assertUpdatedPetEquals := func(t *testing.T, expected pet.UpdatePetRequest, found pet.PetView) {
+	t.Helper()
+
 		if expected.Name != found.Name {
 			t.Errorf("got %v want %v", expected.Name, found.Name)
 		}
