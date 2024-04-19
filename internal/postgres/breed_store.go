@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func FindBreeds(ctx context.Context, tx *database.Tx, page int, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
+func FindBreeds(ctx context.Context, tx *database.Tx, page, size int, petType *string) (*pet.BreedList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,

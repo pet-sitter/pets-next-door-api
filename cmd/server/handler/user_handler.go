@@ -188,12 +188,12 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 // @Success 204
 // @Router /users/me [delete]
 func (h *UserHandler) DeleteMyAccount(c echo.Context) error {
-	user, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	loggedInUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	if err := h.userService.DeleteUserByUID(c.Request().Context(), user.FirebaseUID); err != nil {
+	if err := h.userService.DeleteUserByUID(c.Request().Context(), loggedInUser.FirebaseUID); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 

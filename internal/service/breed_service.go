@@ -20,7 +20,7 @@ func NewBreedService(conn *database.DB) *BreedService {
 }
 
 func (s *BreedService) FindBreeds(
-	ctx context.Context, page int, size int, petType *string,
+	ctx context.Context, page, size int, petType *string,
 ) (*pet.BreedListView, *pnd.AppError) {
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()

@@ -22,7 +22,7 @@ func NewConditionHandler(conditionService service.ConditionService) *ConditionHa
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} []sos_post.ConditionView
+// @Success 200 {object} []sospost.ConditionView
 // @Router /posts/sos/conditions [get]
 func (h *ConditionHandler) FindConditions(c echo.Context) error {
 	res, err := h.conditionService.FindConditions(c.Request().Context())

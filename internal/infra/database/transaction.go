@@ -9,10 +9,10 @@ import (
 )
 
 type DBTx interface {
-	ExecContext(context context.Context, query string, args ...any) (sql.Result, error)
-	QueryContext(context context.Context, query string, args ...any) (*sql.Rows, error)
-	QueryRowContext(context context.Context, query string, args ...any) *sql.Row
-	PrepareContext(context context.Context, query string) (*sql.Stmt, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 }
 
 type Transactioner interface {
@@ -83,9 +83,5 @@ func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }

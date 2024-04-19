@@ -1,4 +1,4 @@
-package breeds_importer_service
+package breedsimporterservice
 
 import (
 	"context"

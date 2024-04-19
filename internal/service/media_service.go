@@ -88,7 +88,7 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media,
 		return nil, err
 	}
 
-	media, err := postgres.FindMediaByID(ctx, tx, id)
+	mediaData, err := postgres.FindMediaByID(ctx, tx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -97,5 +97,5 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media,
 		return nil, err
 	}
 
-	return media, nil
+	return mediaData, nil
 }

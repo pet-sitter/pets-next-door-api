@@ -12,7 +12,7 @@ type PaginatedView[T interface{}] struct {
 	Items      []T  `json:"items"`
 }
 
-func NewPaginatedView[T interface{}](page int, size int, isLastPage bool, items []T) *PaginatedView[T] {
+func NewPaginatedView[T interface{}](page, size int, isLastPage bool, items []T) *PaginatedView[T] {
 	return &PaginatedView[T]{
 		Page:       page,
 		Size:       size,

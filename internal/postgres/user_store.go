@@ -27,7 +27,7 @@ func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUser
 	RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at
 	`
 
-	user := &user.User{}
+	userData := &user.User{}
 	if err := tx.QueryRowContext(ctx, sql,
 		request.Email,
 		request.Nickname,
@@ -37,23 +37,23 @@ func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUser
 		request.FirebaseProviderType,
 		request.FirebaseUID,
 	).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Nickname,
-		&user.Fullname,
-		&user.ProfileImageID,
-		&user.FirebaseProviderType,
-		&user.FirebaseUID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&userData.ID,
+		&userData.Email,
+		&userData.Nickname,
+		&userData.Fullname,
+		&userData.ProfileImageID,
+		&userData.FirebaseProviderType,
+		&userData.FirebaseUID,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return user, nil
+	return userData, nil
 }
 
-func FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+func FindUsers(ctx context.Context, tx *database.Tx, page, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -82,14 +82,14 @@ func FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nicknam
 	defer rows.Close()
 
 	for rows.Next() {
-		user := &user.UserWithoutPrivateInfo{}
+		userData := &user.UserWithoutPrivateInfo{}
 
-		err := rows.Scan(&user.ID, &user.Nickname, &user.ProfileImageURL)
+		err := rows.Scan(&userData.ID, &userData.Nickname, &userData.ProfileImageURL)
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 
-		userList.Items = append(userList.Items, *user)
+		userList.Items = append(userList.Items, *userData)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -125,23 +125,23 @@ func FindUserByID(
 		(users.deleted_at IS NULL OR $2)
 	`
 
-	var user user.UserWithProfileImage
+	var userData user.UserWithProfileImage
 	if err := tx.QueryRowContext(ctx, sql, id, includeDeleted).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Nickname,
-		&user.Fullname,
-		&user.ProfileImageURL,
-		&user.FirebaseProviderType,
-		&user.FirebaseUID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-		&user.DeletedAt,
+		&userData.ID,
+		&userData.Email,
+		&userData.Nickname,
+		&userData.Fullname,
+		&userData.ProfileImageURL,
+		&userData.FirebaseProviderType,
+		&userData.FirebaseUID,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
+		&userData.DeletedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return &user, nil
+	return &userData, nil
 }
 
 func FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*user.UserWithProfileImage, *pnd.AppError) {
@@ -167,22 +167,22 @@ func FindUserByEmail(ctx context.Context, tx *database.Tx, email string) (*user.
 		users.deleted_at IS NULL
 	`
 
-	var user user.UserWithProfileImage
+	var userData user.UserWithProfileImage
 	if err := tx.QueryRowContext(ctx, sql, email).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Nickname,
-		&user.Fullname,
-		&user.ProfileImageURL,
-		&user.FirebaseProviderType,
-		&user.FirebaseUID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&userData.ID,
+		&userData.Email,
+		&userData.Nickname,
+		&userData.Fullname,
+		&userData.ProfileImageURL,
+		&userData.FirebaseProviderType,
+		&userData.FirebaseUID,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return &user, nil
+	return &userData, nil
 }
 
 func FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*user.UserWithProfileImage, *pnd.AppError) {
@@ -208,25 +208,25 @@ func FindUserByUID(ctx context.Context, tx *database.Tx, uid string) (*user.User
 		users.deleted_at IS NULL
 	`
 
-	var user user.UserWithProfileImage
+	var userData user.UserWithProfileImage
 	if err := tx.QueryRowContext(ctx, sql, uid).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Nickname,
-		&user.Fullname,
-		&user.ProfileImageURL,
-		&user.FirebaseProviderType,
-		&user.FirebaseUID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&userData.ID,
+		&userData.Email,
+		&userData.Nickname,
+		&userData.Fullname,
+		&userData.ProfileImageURL,
+		&userData.FirebaseProviderType,
+		&userData.FirebaseUID,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return &user, nil
+	return &userData, nil
 }
 
-func FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUid string) (int, *pnd.AppError) {
+func FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUID string) (int, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id
@@ -238,7 +238,7 @@ func FindUserIDByFbUID(ctx context.Context, tx *database.Tx, fbUid string) (int,
 	`
 
 	var userID int
-	if err := tx.QueryRowContext(ctx, sql, fbUid).Scan(&userID); err != nil {
+	if err := tx.QueryRowContext(ctx, sql, fbUID).Scan(&userID); err != nil {
 		return 0, pnd.FromPostgresError(err)
 	}
 
@@ -289,7 +289,7 @@ func FindUserStatusByEmail(ctx context.Context, tx *database.Tx, email string) (
 	return &userStatus, nil
 }
 
-func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid string, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
+func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
 	const sql = `
 	UPDATE
 		users
@@ -312,27 +312,27 @@ func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid string, nickname 
 		updated_at
 	`
 
-	var user user.User
+	var userData user.User
 	err := tx.QueryRowContext(ctx, sql,
 		nickname,
 		profileImageID,
 		uid,
 	).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Nickname,
-		&user.Fullname,
-		&user.ProfileImageID,
-		&user.FirebaseProviderType,
-		&user.FirebaseUID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&userData.ID,
+		&userData.Email,
+		&userData.Nickname,
+		&userData.Fullname,
+		&userData.ProfileImageID,
+		&userData.FirebaseProviderType,
+		&userData.FirebaseUID,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
 	)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return &user, nil
+	return &userData, nil
 }
 
 func DeleteUserByUID(ctx context.Context, tx *database.Tx, uid string) *pnd.AppError {

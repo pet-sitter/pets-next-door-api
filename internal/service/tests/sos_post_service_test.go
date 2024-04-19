@@ -8,7 +8,7 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
@@ -23,7 +23,7 @@ func TestSosPostService(t *testing.T) {
 		db.Flush()
 
 		if err := database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-			postgres.InitConditions(ctx, tx, sos_post.ConditionName)
+			postgres.InitConditions(ctx, tx, sospost.ConditionName)
 			return nil
 		}); err != nil {
 			t.Errorf("InitConditions failed: %v", err)
@@ -123,7 +123,7 @@ func TestSosPostService(t *testing.T) {
 			petIDs := []int{addPets.ID}
 			conditionIDs := []int{1, 2}
 
-			var sosPosts []sos_post.WriteSosPostView
+			var sosPosts []sospost.WriteSosPostView
 			for i := 1; i < 4; i++ {
 				sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, imageIDs, petIDs, i)
 				sosPosts = append(sosPosts, *sosPost)
@@ -172,7 +172,7 @@ func TestSosPostService(t *testing.T) {
 			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
-			var sosPosts []sos_post.WriteSosPostView
+			var sosPosts []sospost.WriteSosPostView
 			for i := 1; i < 4; i++ {
 				sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[i-1].ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
@@ -221,7 +221,7 @@ func TestSosPostService(t *testing.T) {
 			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
-			var sosPosts []sos_post.WriteSosPostView
+			var sosPosts []sospost.WriteSosPostView
 			// 강아지인 경우
 			for i := 1; i < 3; i++ {
 				sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[i-1].ID}, i)
@@ -278,7 +278,7 @@ func TestSosPostService(t *testing.T) {
 			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
-			sosPosts := make([]sos_post.WriteSosPostView, 0)
+			sosPosts := make([]sospost.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
 				sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPet.ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
@@ -328,7 +328,7 @@ func TestSosPostService(t *testing.T) {
 			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
-			sosPosts := make([]sos_post.WriteSosPostView, 0)
+			sosPosts := make([]sospost.WriteSosPostView, 0)
 			for i := 1; i < 4; i++ {
 				sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPet.ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
@@ -371,19 +371,19 @@ func TestSosPostService(t *testing.T) {
 			sosPostService := service.NewSosPostService(db)
 			sosPost := tests.WriteDummySosPosts(t, ctx, sosPostService, uid, []int{sosPostImage.ID}, []int{addPet.ID}, 1)
 
-			updateSosPostData := &sos_post.UpdateSosPostRequest{
+			updateSosPostData := &sospost.UpdateSosPostRequest{
 				ID:       sosPost.ID,
 				Title:    "Title2",
 				Content:  "Content2",
 				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
 				Reward:   "Reward2",
-				Dates: []sos_post.SosDateView{
+				Dates: []sospost.SosDateView{
 					{"2024-04-10", "2024-04-20"},
 					{"2024-05-10", "2024-05-20"},
 				},
-				CareType:     sos_post.CareTypeFoster,
-				CarerGender:  sos_post.CarerGenderMale,
-				RewardType:   sos_post.RewardTypeFee,
+				CareType:     sospost.CareTypeFoster,
+				CarerGender:  sospost.CarerGenderMale,
+				RewardType:   sospost.RewardTypeFee,
 				ConditionIDs: []int{1, 2},
 				PetIDs:       []int{addPet.ID},
 			}
@@ -427,7 +427,7 @@ func TestSosPostService(t *testing.T) {
 	})
 }
 
-func assertFindSosPostEquals(t *testing.T, got sos_post.FindSosPostView, want sos_post.WriteSosPostView) {
+func assertFindSosPostEquals(t *testing.T, got sospost.FindSosPostView, want sospost.WriteSosPostView) {
 	t.Helper()
 
 	if got.Title != want.Title {
@@ -453,7 +453,7 @@ func assertFindSosPostEquals(t *testing.T, got sos_post.FindSosPostView, want so
 	}
 }
 
-func assertConditionEquals(t *testing.T, got []sos_post.ConditionView, want []int) {
+func assertConditionEquals(t *testing.T, got []sospost.ConditionView, want []int) {
 	t.Helper()
 
 	for i := range want {
@@ -463,7 +463,7 @@ func assertConditionEquals(t *testing.T, got []sos_post.ConditionView, want []in
 	}
 }
 
-func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
+func assertPetEquals(t *testing.T, got, want pet.PetView) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {
@@ -471,23 +471,23 @@ func assertPetEquals(t *testing.T, got pet.PetView, want pet.PetView) {
 	}
 }
 
-func assertMediaEquals(t *testing.T, got media.MediaViewList, want media.MediaViewList) {
+func assertMediaEquals(t *testing.T, got, want media.MediaViewList) {
 	t.Helper()
 
-	for i, media := range want {
-		if got[i].ID != media.ID {
-			t.Errorf("got %v want %v", got[i].ID, media.ID)
+	for i, mediaData := range want {
+		if got[i].ID != mediaData.ID {
+			t.Errorf("got %v want %v", got[i].ID, mediaData.ID)
 		}
-		if got[i].MediaType != media.MediaType {
-			t.Errorf("got %v want %v", got[i].MediaType, media.MediaType)
+		if got[i].MediaType != mediaData.MediaType {
+			t.Errorf("got %v want %v", got[i].MediaType, mediaData.MediaType)
 		}
-		if got[i].URL != media.URL {
-			t.Errorf("got %v want %v", got[i].URL, media.URL)
+		if got[i].URL != mediaData.URL {
+			t.Errorf("got %v want %v", got[i].URL, mediaData.URL)
 		}
 	}
 }
 
-func assertAuthorEquals(t *testing.T, got *user.UserWithoutPrivateInfo, want *user.UserWithoutPrivateInfo) {
+func assertAuthorEquals(t *testing.T, got, want *user.UserWithoutPrivateInfo) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {
@@ -495,7 +495,7 @@ func assertAuthorEquals(t *testing.T, got *user.UserWithoutPrivateInfo, want *us
 	}
 }
 
-func assertDatesEquals(t *testing.T, got []sos_post.SosDateView, want []sos_post.SosDateView) {
+func assertDatesEquals(t *testing.T, got, want []sospost.SosDateView) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {

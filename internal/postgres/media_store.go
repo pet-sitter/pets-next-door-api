@@ -8,7 +8,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func CreateMedia(ctx context.Context, tx *database.Tx, media *media.Media) (*media.Media, *pnd.AppError) {
+func CreateMedia(ctx context.Context, tx *database.Tx, mediaData *media.Media) (*media.Media, *pnd.AppError) {
 	const sql = `
 	INSERT INTO
 		media
@@ -23,13 +23,13 @@ func CreateMedia(ctx context.Context, tx *database.Tx, media *media.Media) (*med
 	`
 
 	if err := tx.QueryRowContext(ctx, sql,
-		media.MediaType,
-		media.URL,
-	).Scan(&media.ID, &media.CreatedAt, &media.UpdatedAt); err != nil {
+		mediaData.MediaType,
+		mediaData.URL,
+	).Scan(&mediaData.ID, &mediaData.CreatedAt, &mediaData.UpdatedAt); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return media, nil
+	return mediaData, nil
 }
 
 func FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*media.Media, *pnd.AppError) {
@@ -47,18 +47,18 @@ func FindMediaByID(ctx context.Context, tx *database.Tx, id int) (*media.Media, 
 		deleted_at IS NULL
 	`
 
-	media := &media.Media{}
+	mediaData := &media.Media{}
 	if err := tx.QueryRowContext(ctx, sql,
 		id,
 	).Scan(
-		&media.ID,
-		&media.MediaType,
-		&media.URL,
-		&media.CreatedAt,
-		&media.UpdatedAt,
+		&mediaData.ID,
+		&mediaData.MediaType,
+		&mediaData.URL,
+		&mediaData.CreatedAt,
+		&mediaData.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return media, nil
+	return mediaData, nil
 }

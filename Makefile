@@ -32,6 +32,8 @@ lint\:install:
 	brew install golangci-lint
 lint:
 	golangci-lint run
+lint\:fix:
+	golangci-lint run --fix
 
 ## Version ##
 version:

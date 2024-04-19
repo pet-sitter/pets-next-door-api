@@ -33,10 +33,17 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	var app *firebaseinfra.FirebaseApp
+	var err error
 	if configs.GetFirebaseCredentialsJSON() != (configs.FirebaseCredentialsJSONType{}) {
-		app = firebaseinfra.NewFirebaseAppFromCredentialsJSON(configs.GetFirebaseCredentialsJSON())
+		app, err = firebaseinfra.NewFirebaseAppFromCredentialsJSON(configs.GetFirebaseCredentialsJSON())
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
-		app = firebaseinfra.NewFirebaseAppFromCredentialsPath(configs.FirebaseCredentialsPath)
+		app, err = firebaseinfra.NewFirebaseAppFromCredentialsPath(configs.FirebaseCredentialsPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	r := NewRouter(app)

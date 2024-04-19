@@ -15,9 +15,9 @@ import (
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
-	pndMiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
+	pndmiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
 	"github.com/rs/zerolog"
-	echoSwagger "github.com/swaggo/echo-swagger"
+	echoswagger "github.com/swaggo/echo-swagger"
 
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 )
@@ -37,13 +37,16 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	}
 
 	// Initialize services
-	s3Client := s3infra.NewS3Client(
+	s3Client, err := s3infra.NewS3Client(
 		configs.B2KeyID,
 		configs.B2Key,
 		configs.B2Endpoint,
 		configs.B2Region,
 		configs.B2BucketName,
 	)
+	if err != nil {
+		log.Fatalf("error initializing s3 client: %v\n", err)
+	}
 
 	mediaService := service.NewMediaService(db, s3Client)
 	userService := service.NewUserService(db, mediaService)
@@ -65,7 +68,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
 		LogStatus: true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 			logger.Info().
 				Str("URI", v.URI).
 				Int("status", v.Status).
@@ -74,57 +77,57 @@ func NewRouter(app *firebaseinfra.FirebaseApp) *echo.Echo {
 			return nil
 		},
 	}))
-	e.Use(pndMiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
+	e.Use(pndmiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
 
 	// Register routes
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/swagger/*", echoswagger.WrapHandler)
 
 	apiRouteGroup := e.Group("/api")
 
-	authApiGroup := apiRouteGroup.Group("/auth")
+	authAPIGroup := apiRouteGroup.Group("/auth")
 	{
-		authApiGroup.GET("/login/kakao", authHandler.KakaoLogin)
-		authApiGroup.GET("/callback/kakao", authHandler.KakaoCallback)
-		authApiGroup.POST("/custom-tokens/kakao", authHandler.GenerateFBCustomTokenFromKakao)
+		authAPIGroup.GET("/login/kakao", authHandler.KakaoLogin)
+		authAPIGroup.GET("/callback/kakao", authHandler.KakaoCallback)
+		authAPIGroup.POST("/custom-tokens/kakao", authHandler.GenerateFBCustomTokenFromKakao)
 	}
 
-	mediaApiGroup := apiRouteGroup.Group("/media")
+	mediaAPIGroup := apiRouteGroup.Group("/media")
 	{
-		mediaApiGroup.GET("/:id", mediaHandler.FindMediaByID)
-		mediaApiGroup.POST("/images", mediaHandler.UploadImage)
+		mediaAPIGroup.GET("/:id", mediaHandler.FindMediaByID)
+		mediaAPIGroup.POST("/images", mediaHandler.UploadImage)
 	}
 
-	userApiGroup := apiRouteGroup.Group("/users")
+	userAPIGroup := apiRouteGroup.Group("/users")
 	{
-		userApiGroup.POST("", userHandler.RegisterUser)
-		userApiGroup.POST("/check/nickname", userHandler.CheckUserNickname)
-		userApiGroup.POST("/status", userHandler.FindUserStatusByEmail)
-		userApiGroup.GET("", userHandler.FindUsers)
-		userApiGroup.GET("/me", userHandler.FindMyProfile)
-		userApiGroup.PUT("/me", userHandler.UpdateMyProfile)
-		userApiGroup.DELETE("/me", userHandler.DeleteMyAccount)
-		userApiGroup.GET("/me/pets", userHandler.FindMyPets)
-		userApiGroup.PUT("/me/pets", userHandler.AddMyPets)
-		userApiGroup.PUT("/me/pets/:petID", userHandler.UpdateMyPet)
-		userApiGroup.DELETE("/me/pets/:petID", userHandler.DeleteMyPet)
+		userAPIGroup.POST("", userHandler.RegisterUser)
+		userAPIGroup.POST("/check/nickname", userHandler.CheckUserNickname)
+		userAPIGroup.POST("/status", userHandler.FindUserStatusByEmail)
+		userAPIGroup.GET("", userHandler.FindUsers)
+		userAPIGroup.GET("/me", userHandler.FindMyProfile)
+		userAPIGroup.PUT("/me", userHandler.UpdateMyProfile)
+		userAPIGroup.DELETE("/me", userHandler.DeleteMyAccount)
+		userAPIGroup.GET("/me/pets", userHandler.FindMyPets)
+		userAPIGroup.PUT("/me/pets", userHandler.AddMyPets)
+		userAPIGroup.PUT("/me/pets/:petID", userHandler.UpdateMyPet)
+		userAPIGroup.DELETE("/me/pets/:petID", userHandler.DeleteMyPet)
 	}
 
-	breedApiGroup := apiRouteGroup.Group("/breeds")
+	breedAPIGroup := apiRouteGroup.Group("/breeds")
 	{
-		breedApiGroup.GET("", breedHandler.FindBreeds)
+		breedAPIGroup.GET("", breedHandler.FindBreeds)
 	}
 
-	postApiGroup := apiRouteGroup.Group("/posts")
+	postAPIGroup := apiRouteGroup.Group("/posts")
 	{
-		postApiGroup.POST("/sos", sosPostHandler.WriteSosPost)
-		postApiGroup.GET("/sos/:id", sosPostHandler.FindSosPostByID)
-		postApiGroup.GET("/sos", sosPostHandler.FindSosPosts)
-		postApiGroup.PUT("/sos", sosPostHandler.UpdateSosPost)
-		postApiGroup.GET("/sos/conditions", conditionHandler.FindConditions)
+		postAPIGroup.POST("/sos", sosPostHandler.WriteSosPost)
+		postAPIGroup.GET("/sos/:id", sosPostHandler.FindSosPostByID)
+		postAPIGroup.GET("/sos", sosPostHandler.FindSosPosts)
+		postAPIGroup.PUT("/sos", sosPostHandler.UpdateSosPost)
+		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
 	}
 
 	return e

@@ -1,4 +1,4 @@
-package sos_post
+package sospost
 
 import (
 	"context"

@@ -2,10 +2,10 @@ package database
 
 import (
 	"database/sql"
-	"log"
-
 	"github.com/golang-migrate/migrate/v4"
+	// To use Postgres driver
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	// To use file source
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
@@ -31,7 +31,7 @@ func (db *DB) Close() error {
 }
 
 func (db *DB) Flush() error {
-	var tableNames []string = []string{
+	tableNames := []string{
 		"users",
 		"breeds",
 		"resource_media",
@@ -49,7 +49,7 @@ func (db *DB) Flush() error {
 	for _, tableName := range tableNames {
 		_, err := db.DB.Exec("DELETE FROM " + tableName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 

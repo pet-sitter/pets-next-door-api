@@ -12,12 +12,12 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
-type mediaHandler struct {
+type MediaHandler struct {
 	mediaService service.MediaService
 }
 
-func NewMediaHandler(mediaService service.MediaService) *mediaHandler {
-	return &mediaHandler{
+func NewMediaHandler(mediaService service.MediaService) *MediaHandler {
+	return &MediaHandler{
 		mediaService: mediaService,
 	}
 }
@@ -30,7 +30,7 @@ func NewMediaHandler(mediaService service.MediaService) *mediaHandler {
 // @Param id path int true "미디어 ID"
 // @Success 200 {object} media.MediaView
 // @Router /media/{id} [get]
-func (h *mediaHandler) FindMediaByID(c echo.Context) error {
+func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
@@ -53,7 +53,7 @@ func (h *mediaHandler) FindMediaByID(c echo.Context) error {
 // @Param file formData file true "이미지 파일"
 // @Success 201 {object} media.MediaView
 // @Router /media/images [post]
-func (h *mediaHandler) UploadImage(c echo.Context) error {
+func (h *MediaHandler) UploadImage(c echo.Context) error {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		pndErr := pnd.ErrMultipartFormError(fmt.Errorf("file must be provided"))

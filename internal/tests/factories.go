@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
 
@@ -70,19 +70,19 @@ func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
 	}
 }
 
-func GenerateDummyWriteSosPostRequest(imageID []int, petIDs []int, sosPostCnt int) *sos_post.WriteSosPostRequest {
-	return &sos_post.WriteSosPostRequest{
+func GenerateDummyWriteSosPostRequest(imageID, petIDs []int, sosPostCnt int) *sospost.WriteSosPostRequest {
+	return &sospost.WriteSosPostRequest{
 		Title:    fmt.Sprintf("Title%d", sosPostCnt),
 		Content:  fmt.Sprintf("Content%d", sosPostCnt),
 		ImageIDs: imageID,
 		Reward:   "Reward",
-		Dates: []sos_post.SosDateView{
+		Dates: []sospost.SosDateView{
 			{fmt.Sprintf("2024-04-1%d", sosPostCnt), fmt.Sprintf("2024-04-2%d", sosPostCnt)},
 			{fmt.Sprintf("2024-05-1%d", sosPostCnt), fmt.Sprintf("2024-05-2%d", sosPostCnt)},
 		},
-		CareType:     sos_post.CareTypeFoster,
-		CarerGender:  sos_post.CarerGenderMale,
-		RewardType:   sos_post.RewardTypeFee,
+		CareType:     sospost.CareTypeFoster,
+		CarerGender:  sospost.CarerGenderMale,
+		RewardType:   sospost.RewardTypeFee,
 		ConditionIDs: []int{1, 2},
 		PetIDs:       petIDs,
 	}
