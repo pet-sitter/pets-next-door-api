@@ -31,7 +31,7 @@ func CreatePet(ctx context.Context, tx *database.Tx, petData *pet.Pet) (*pet.Pet
 	RETURNING id, created_at, updated_at
 	`
 
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
 		petData.OwnerID,
 		petData.Name,
 		petData.PetType,

@@ -22,7 +22,7 @@ func CreateMedia(ctx context.Context, tx *database.Tx, mediaData *media.Media) (
 	RETURNING id, created_at, updated_at
 	`
 
-	if err := tx.QueryRowContext(ctx, sql,
+	if err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
 		mediaData.MediaType,
 		mediaData.URL,
 	).Scan(&mediaData.ID, &mediaData.CreatedAt, &mediaData.UpdatedAt); err != nil {
