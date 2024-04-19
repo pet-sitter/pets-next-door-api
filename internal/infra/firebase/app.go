@@ -29,7 +29,9 @@ func NewFirebaseAppFromCredentialsPath(firebaseCredentialsPath string) (*Firebas
 	return &FirebaseApp{app}, nil
 }
 
-func NewFirebaseAppFromCredentialsJSON(firebaseCredentialsJSON configs.FirebaseCredentialsJSONType) (*FirebaseApp, error) {
+func NewFirebaseAppFromCredentialsJSON(
+	firebaseCredentialsJSON configs.FirebaseCredentialsJSONType,
+) (*FirebaseApp, error) {
 	firebaseCredentialsJSONBytes, err := json.Marshal(firebaseCredentialsJSON)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling firebase credentials json: %w", err)

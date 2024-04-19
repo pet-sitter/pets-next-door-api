@@ -53,7 +53,9 @@ func CreateUser(ctx context.Context, tx *database.Tx, request *user.RegisterUser
 	return userData, nil
 }
 
-func FindUsers(ctx context.Context, tx *database.Tx, page, size int, nickname *string) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
+func FindUsers(
+	ctx context.Context, tx *database.Tx, page, size int, nickname *string,
+) (*user.UserWithoutPrivateInfoList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,
@@ -289,7 +291,9 @@ func FindUserStatusByEmail(ctx context.Context, tx *database.Tx, email string) (
 	return &userStatus, nil
 }
 
-func UpdateUserByUID(ctx context.Context, tx *database.Tx, uid, nickname string, profileImageID *int) (*user.User, *pnd.AppError) {
+func UpdateUserByUID(
+	ctx context.Context, tx *database.Tx, uid, nickname string, profileImageID *int,
+) (*user.User, *pnd.AppError) {
 	const sql = `
 	UPDATE
 		users

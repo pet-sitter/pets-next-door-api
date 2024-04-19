@@ -44,7 +44,9 @@ RETURNING
 	thumbnail_id
 `
 
-func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
+func WriteSOSPost(
+	ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest,
+) (*sospost.SOSPost, *pnd.AppError) {
 	sosPost := &sospost.SOSPost{}
 	err := tx.QueryRowContext(ctx, writeSOSPostQuery, //nolint:execinquery
 		authorID,
