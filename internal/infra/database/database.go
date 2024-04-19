@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
 
@@ -67,7 +68,7 @@ func (db *DB) Migrate(migrationPath string) error {
 		return err
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}
 

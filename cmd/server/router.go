@@ -28,12 +28,12 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 
 	db, err := database.Open(configs.DatabaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("error opening database: %v", err)
+		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
 	authClient, err := app.Auth(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing app: %v", err)
+		return nil, fmt.Errorf("error initializing app: %w", err)
 	}
 
 	// Initialize services
@@ -45,7 +45,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		configs.B2BucketName,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing s3 client: %v", err)
+		return nil, fmt.Errorf("error initializing s3 client: %w", err)
 	}
 
 	mediaService := service.NewMediaService(db, s3Client)
