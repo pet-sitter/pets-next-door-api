@@ -50,7 +50,7 @@ func (db *DB) Flush() error {
 	}
 
 	for _, tableName := range tableNames {
-		_, err := db.DB.Exec("DELETE FROM " + tableName)
+		_, err := db.DB.Exec("DELETE FROM " + tableName) //nolint:gosec
 		if err != nil {
 			return err
 		}

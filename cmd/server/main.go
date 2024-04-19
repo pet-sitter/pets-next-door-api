@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -51,6 +52,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	server := &http.Server{
+		Addr:              ":" + configs.Port,
+		Handler:           r,
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
 	log.Printf("Starting server on port %s", configs.Port)
-	log.Fatal(http.ListenAndServe(":"+configs.Port, r))
+	log.Fatal(server.ListenAndServe())
 }
