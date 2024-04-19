@@ -60,7 +60,7 @@ func TestUserService(t *testing.T) {
 	}
 
 	assertUpdatedPetEquals := func(t *testing.T, expected pet.UpdatePetRequest, found pet.PetView) {
-	t.Helper()
+		t.Helper()
 
 		if expected.Name != found.Name {
 			t.Errorf("got %v want %v", expected.Name, found.Name)
@@ -417,7 +417,8 @@ func TestUserService(t *testing.T) {
 
 			petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
 			petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
-			createdPets, _ := userService.AddPetsToOwner(ctx, userRequest.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			createdPets, _ := userService.AddPetsToOwner(
+				ctx, userRequest.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
 			createdPet := createdPets[0]
 
 			// When
@@ -457,7 +458,11 @@ func TestUserService(t *testing.T) {
 
 			petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
 			petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
-			createdPets, _ := userService.AddPetsToOwner(ctx, userRequest.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			createdPets, _ := userService.AddPetsToOwner(
+				ctx,
+				userRequest.FirebaseUID,
+				pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}},
+			)
 			createdPet := createdPets[0]
 
 			// When

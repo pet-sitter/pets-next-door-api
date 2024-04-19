@@ -167,7 +167,12 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userModel, err := h.userService.UpdateUserByUID(c.Request().Context(), uid, updateUserRequest.Nickname, updateUserRequest.ProfileImageID)
+	userModel, err := h.userService.UpdateUserByUID(
+		c.Request().Context(),
+		uid,
+		updateUserRequest.Nickname,
+		updateUserRequest.ProfileImageID,
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

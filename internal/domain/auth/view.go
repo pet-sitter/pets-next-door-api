@@ -39,7 +39,9 @@ type GenerateFBCustomTokenResponse struct {
 	PhotoURL             string                    `json:"photoURL"`
 }
 
-func NewGenerateFBCustomTokenResponse(authToken string, kakaoUserProfile *kakaoinfra.KakaoUserProfile) GenerateFBCustomTokenResponse {
+func NewGenerateFBCustomTokenResponse(
+	authToken string, kakaoUserProfile *kakaoinfra.KakaoUserProfile,
+) GenerateFBCustomTokenResponse {
 	return GenerateFBCustomTokenResponse{
 		AuthToken:            authToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,

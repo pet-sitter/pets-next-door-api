@@ -73,7 +73,9 @@ func (h *mediaHandler) UploadImage(c echo.Context) error {
 	defer file.Close()
 
 	if !isValidMimeType(fileHeader.Header.Get("Content-Type")) {
-		pndErr := pnd.ErrMultipartFormError(fmt.Errorf("invalid MIME type; supported MIME types are: [" + supportedMimeTypeString() + "]"))
+		pndErr := pnd.ErrMultipartFormError(
+			fmt.Errorf("invalid MIME type; supported MIME types are: [" + supportedMimeTypeString() + "]"),
+		)
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 

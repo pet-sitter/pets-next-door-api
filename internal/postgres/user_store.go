@@ -99,7 +99,9 @@ func FindUsers(ctx context.Context, tx *database.Tx, page int, size int, nicknam
 	return userList, nil
 }
 
-func FindUserByID(ctx context.Context, tx *database.Tx, id int, includeDeleted bool) (*user.UserWithProfileImage, *pnd.AppError) {
+func FindUserByID(
+	ctx context.Context, tx *database.Tx, id int, includeDeleted bool,
+) (*user.UserWithProfileImage, *pnd.AppError) {
 	const sql = `
 	SELECT
 		users.id,

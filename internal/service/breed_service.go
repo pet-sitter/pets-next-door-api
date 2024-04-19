@@ -19,7 +19,9 @@ func NewBreedService(conn *database.DB) *BreedService {
 	}
 }
 
-func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petType *string) (*pet.BreedListView, *pnd.AppError) {
+func (s *BreedService) FindBreeds(
+	ctx context.Context, page int, size int, petType *string,
+) (*pet.BreedListView, *pnd.AppError) {
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -38,7 +40,9 @@ func (s *BreedService) FindBreeds(ctx context.Context, page int, size int, petTy
 	return breeds.ToBreedListView(), nil
 }
 
-func (s *BreedService) FindBreedByPetTypeAndName(ctx context.Context, petType pet.PetType, name string) (*pet.BreedView, *pnd.AppError) {
+func (s *BreedService) FindBreedByPetTypeAndName(
+	ctx context.Context, petType pet.PetType, name string,
+) (*pet.BreedView, *pnd.AppError) {
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
