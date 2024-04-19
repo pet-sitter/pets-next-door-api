@@ -1,6 +1,7 @@
 package kakaoinfra
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 type KakaoClient interface {
-	FetchAccessToken(code string) (*KakaoTokenResponse, error)
-	FetchUserProfile(code string) (*KakaoUserProfile, error)
+	FetchAccessToken(ctx context.Context, code string) (*KakaoTokenResponse, error)
+	FetchUserProfile(ctx context.Context, code string) (*KakaoUserProfile, error)
 }
 
 type KakaoDefaultClient struct{}
@@ -21,14 +22,15 @@ func NewKakaoDefaultClient() *KakaoDefaultClient {
 	return &KakaoDefaultClient{}
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*KakaoTokenResponse, error) {
+func (kakaoClient *KakaoDefaultClient) FetchAccessToken(ctx context.Context, code string) (*KakaoTokenResponse, error) {
 	kakaoTokenRequest := NewKakaoTokenRequest(
 		configs.KakaoRestAPIKey,
 		configs.KakaoRedirectURI,
 		code,
 	)
 
-	req, _ := http.NewRequest(
+	req, _ := http.NewRequestWithContext(
+		ctx,
 		"POST",
 		"https://kauth.kakao.com/oauth/token",
 		strings.NewReader(kakaoTokenRequest.ToURLValues().Encode()),
@@ -61,9 +63,10 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(code string) (*KakaoToke
 	return kakaoTokenResponse, nil
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchUserProfile(code string) (*KakaoUserProfile, error) {
+func (kakaoClient *KakaoDefaultClient) FetchUserProfile(ctx context.Context, code string) (*KakaoUserProfile, error) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "https://kapi.kakao.com/v2/user/me", nil)
+	req, _ := http.NewRequestWithContext(ctx,
+		"GET", "https://kapi.kakao.com/v2/user/me", nil)
 	req.Header.Add("Authorization", "Bearer "+code)
 	res, err := client.Do(req)
 	if err != nil {
