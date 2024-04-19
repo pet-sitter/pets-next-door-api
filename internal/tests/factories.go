@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sos_post"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"

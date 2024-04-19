@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 )

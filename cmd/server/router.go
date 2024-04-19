@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
@@ -14,9 +18,6 @@ import (
 	pndMiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
 	"github.com/rs/zerolog"
 	echoSwagger "github.com/swaggo/echo-swagger"
-	"log"
-	"net/http"
-	"os"
 
 	firebaseinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/firebase"
 )

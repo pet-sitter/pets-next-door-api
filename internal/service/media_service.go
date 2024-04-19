@@ -53,7 +53,6 @@ func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, medi
 		MediaType: mediaType,
 		URL:       req.HTTPRequest.URL.String(),
 	})
-
 	if err != nil {
 		return nil, err
 	}

@@ -2,16 +2,19 @@ package sos_post
 
 import (
 	"context"
+	"time"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"time"
 )
 
-type CareType string
-type CarerGender string
-type RewardType string
+type (
+	CareType    string
+	CarerGender string
+	RewardType  string
+)
 
 const (
 	CareTypeFoster   CareType = "foster"

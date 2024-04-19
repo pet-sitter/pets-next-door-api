@@ -2,6 +2,9 @@ package service_test
 
 import (
 	"context"
+	"reflect"
+	"testing"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -11,8 +14,6 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
-	"reflect"
-	"testing"
 )
 
 func TestSosPostService(t *testing.T) {
