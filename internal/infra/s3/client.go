@@ -16,9 +16,9 @@ type S3Client struct {
 	bucketName string
 }
 
-func NewS3Client(keyId, key, endpoint, region, bucketName string) (*S3Client, error) {
+func NewS3Client(keyID, key, endpoint, region, bucketName string) (*S3Client, error) {
 	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(keyId, key, ""),
+		Credentials:      credentials.NewStaticCredentials(keyID, key, ""),
 		Endpoint:         aws.String(endpoint),
 		Region:           aws.String(region),
 		S3ForcePathStyle: aws.Bool(true),
