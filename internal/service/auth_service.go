@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"firebase.google.com/go/auth"
@@ -53,7 +53,7 @@ func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
 
 	foundUser, err := service.userService.FindUserByUID(ctx, authToken.UID)
 	if err != nil {
-		return nil, pnd.ErrUserNotRegistered(fmt.Errorf("가입되지 않은 사용자입니다"))
+		return nil, pnd.ErrUserNotRegistered(errors.New("가입되지 않은 사용자입니다"))
 	}
 
 	return foundUser, nil
@@ -73,5 +73,5 @@ func (service *FirebaseBearerAuthService) stripBearerToken(authHeader string) (s
 		return authHeader[7:], nil
 	}
 
-	return "", pnd.ErrInvalidBearerToken(fmt.Errorf("올바른 Bearer 토큰이 아닙니다"))
+	return "", pnd.ErrInvalidBearerToken(errors.New("올바른 Bearer 토큰이 아닙니다"))
 }

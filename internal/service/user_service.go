@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -295,7 +296,7 @@ func (service *UserService) UpdatePet(
 	}
 
 	if petToUpdate.OwnerID != owner.ID {
-		return nil, pnd.ErrForbidden(fmt.Errorf("해당 반려동물을 수정할 권한이 없습니다"))
+		return nil, pnd.ErrForbidden(errors.New("해당 반려동물을 수정할 권한이 없습니다"))
 	}
 
 	if updatePetRequest.ProfileImageID != nil {
@@ -337,7 +338,7 @@ func (service *UserService) DeletePet(ctx context.Context, uid string, petID int
 	}
 
 	if petToDelete.OwnerID != owner.ID {
-		return pnd.ErrForbidden(fmt.Errorf("해당 반려동물을 삭제할 권한이 없습니다"))
+		return pnd.ErrForbidden(errors.New("해당 반려동물을 삭제할 권한이 없습니다"))
 	}
 
 	tx, err := service.conn.BeginTx(ctx)

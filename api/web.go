@@ -1,6 +1,7 @@
 package pnd
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -75,7 +76,7 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 		var atoiError error
 		page, atoiError = strconv.Atoi(pageQuery)
 		if atoiError != nil || page <= 0 {
-			return 0, 0, ErrInvalidPagination(fmt.Errorf("expected integer value bigger than 0 for query: page"))
+			return 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: page"))
 		}
 	}
 
@@ -83,7 +84,7 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 		var atoiError error
 		size, atoiError = strconv.Atoi(sizeQuery)
 		if atoiError != nil || size <= 0 {
-			return 0, 0, ErrInvalidPagination(fmt.Errorf("expected integer value bigger than 0 for query: size"))
+			return 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: size"))
 		}
 	}
 

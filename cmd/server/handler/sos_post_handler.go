@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -152,7 +152,7 @@ func (h *SOSPostHandler) UpdateSOSPost(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 	if !permission {
-		pndErr := pnd.ErrForbidden(fmt.Errorf("해당 게시글에 대한 수정 권한이 없습니다"))
+		pndErr := pnd.ErrForbidden(errors.New("해당 게시글에 대한 수정 권한이 없습니다"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
