@@ -143,7 +143,11 @@ func (h *SosPostHandler) UpdateSosPost(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	permission, err := h.sosPostService.CheckUpdatePermission(c.Request().Context(), foundUser.FirebaseUID, updateSosPostRequest.ID)
+	permission, err := h.sosPostService.CheckUpdatePermission(
+		c.Request().Context(),
+		foundUser.FirebaseUID,
+		updateSosPostRequest.ID,
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

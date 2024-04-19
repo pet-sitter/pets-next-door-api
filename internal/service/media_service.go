@@ -35,7 +35,9 @@ type UploadFileView struct {
 	FileEndpoint string
 }
 
-func (s *MediaService) UploadMedia(ctx context.Context, file io.ReadSeeker, mediaType media.MediaType, fileName string) (*media.Media, *pnd.AppError) {
+func (s *MediaService) UploadMedia(
+	ctx context.Context, file io.ReadSeeker, mediaType media.MediaType, fileName string,
+) (*media.Media, *pnd.AppError) {
 	randomFileName := generateRandomFileName(fileName)
 	fullPath := "media/" + randomFileName
 

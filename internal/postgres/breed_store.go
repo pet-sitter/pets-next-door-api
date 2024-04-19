@@ -48,7 +48,9 @@ func FindBreeds(ctx context.Context, tx *database.Tx, page int, size int, petTyp
 	return breedList, nil
 }
 
-func FindBreedByPetTypeAndName(ctx context.Context, tx *database.Tx, petType pet.PetType, name string) (*pet.Breed, *pnd.AppError) {
+func FindBreedByPetTypeAndName(
+	ctx context.Context, tx *database.Tx, petType pet.PetType, name string,
+) (*pet.Breed, *pnd.AppError) {
 	const sql = `
 	SELECT
 		id,
@@ -65,8 +67,16 @@ func FindBreedByPetTypeAndName(ctx context.Context, tx *database.Tx, petType pet
 	`
 
 	breed := &pet.Breed{}
-	err := tx.QueryRowContext(ctx, sql, petType, name).Scan(&breed.ID, &breed.Name, &breed.PetType, &breed.CreatedAt, &breed.UpdatedAt)
-	if err != nil {
+	if err := tx.QueryRowContext(ctx, sql,
+		petType,
+		name,
+	).Scan(
+		&breed.ID,
+		&breed.Name,
+		&breed.PetType,
+		&breed.CreatedAt,
+		&breed.UpdatedAt,
+	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
@@ -90,8 +100,16 @@ func CreateBreed(ctx context.Context, tx *database.Tx, breed *pet.Breed) (*pet.B
 		id, pet_type, name, created_at, updated_at
 	`
 
-	err := tx.QueryRowContext(ctx, sql, breed.Name, breed.PetType).Scan(&breed.ID, &breed.PetType, &breed.Name, &breed.CreatedAt, &breed.UpdatedAt)
-	if err != nil {
+	if err := tx.QueryRowContext(ctx, sql,
+		breed.Name,
+		breed.PetType,
+	).Scan(
+		&breed.ID,
+		&breed.PetType,
+		&breed.Name,
+		&breed.CreatedAt,
+		&breed.UpdatedAt,
+	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 

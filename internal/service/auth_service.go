@@ -27,7 +27,9 @@ func NewFirebaseBearerAuthService(authClient *auth.Client, userService *UserServ
 	}
 }
 
-func (service *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHeader string) (*auth.Token, *pnd.AppError) {
+func (service *FirebaseBearerAuthService) verifyAuth(
+	ctx context.Context, authHeader string,
+) (*auth.Token, *pnd.AppError) {
 	idToken, err := service.stripBearerToken(authHeader)
 	if err != nil {
 		return nil, err
@@ -41,7 +43,9 @@ func (service *FirebaseBearerAuthService) verifyAuth(ctx context.Context, authHe
 	return authToken, nil
 }
 
-func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserView, *pnd.AppError) {
+func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
+	ctx context.Context, authHeader string,
+) (*user.FindUserView, *pnd.AppError) {
 	authToken, err := service.verifyAuth(ctx, authHeader)
 	if err != nil {
 		return nil, err

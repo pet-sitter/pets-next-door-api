@@ -88,7 +88,9 @@ func parseFlags() Flags {
 	return Flags{petTypeToImport: petTypeToImport}
 }
 
-func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, row breeds_importer_service.Row) (*pet.Breed, *pnd.AppError) {
+func importBreed(
+	ctx context.Context, conn *database.DB, petType pet.PetType, row breeds_importer_service.Row,
+) (*pet.Breed, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	var breed *pet.Breed
@@ -99,7 +101,12 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 		}
 
 		if existing != nil {
-			log.Printf("Breed with id: %d, pet_type: %s, name: %s already exists in database", existing.ID, existing.PetType, existing.Name)
+			log.Printf(
+				"Breed with id: %d, pet_type: %s, name: %s already exists in database",
+				existing.ID,
+				existing.PetType,
+				existing.Name,
+			)
 			breed = existing
 			return nil
 		}
@@ -109,7 +116,12 @@ func importBreed(ctx context.Context, conn *database.DB, petType pet.PetType, ro
 			return err
 		}
 
-		log.Printf("Succeeded to import breed with id: %d, pet_type: %s, name: %s to database", breed.ID, breed.PetType, breed.Name)
+		log.Printf(
+			"Succeeded to import breed with id: %d, pet_type: %s, name: %s to database",
+			breed.ID,
+			breed.PetType,
+			breed.Name,
+		)
 		return nil
 	})
 	if err != nil {

@@ -28,7 +28,13 @@ func CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, m
 		resourceID,
 		mediaID,
 		resourceType,
-	).Scan(&resourceMedia.ID, &resourceMedia.ResourceID, &resourceMedia.MediaID, &resourceMedia.CreatedAt, &resourceMedia.UpdatedAt)
+	).Scan(
+		&resourceMedia.ID,
+		&resourceMedia.ResourceID,
+		&resourceMedia.MediaID,
+		&resourceMedia.CreatedAt,
+		&resourceMedia.UpdatedAt,
+	)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -36,7 +42,9 @@ func CreateResourceMedia(ctx context.Context, tx *database.Tx, resourceID int, m
 	return resourceMedia, nil
 }
 
-func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourceID int, resourceType string) (*media.MediaList, *pnd.AppError) {
+func FindResourceMediaByResourceID(
+	ctx context.Context, tx *database.Tx, resourceID int, resourceType string,
+) (*media.MediaList, *pnd.AppError) {
 	const sql = `
 	SELECT
 		m.id,
@@ -68,7 +76,13 @@ func FindResourceMediaByResourceID(ctx context.Context, tx *database.Tx, resourc
 
 	for rows.Next() {
 		mediaItem := media.Media{}
-		if err := rows.Scan(&mediaItem.ID, &mediaItem.MediaType, &mediaItem.URL, &mediaItem.CreatedAt, &mediaItem.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&mediaItem.ID,
+			&mediaItem.MediaType,
+			&mediaItem.URL,
+			&mediaItem.CreatedAt,
+			&mediaItem.UpdatedAt,
+		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
 		mediaList = append(mediaList, &mediaItem)

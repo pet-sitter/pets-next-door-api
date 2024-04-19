@@ -99,9 +99,29 @@ type SosDates struct {
 type SosDatesList []*SosDates
 
 type SosPostStore interface {
-	WriteSosPost(ctx context.Context, tx *database.Tx, authorID int, utcDateStart string, utcDateEnd string, request *WriteSosPostRequest) (*SosPost, *pnd.AppError)
-	FindSosPosts(ctx context.Context, tx *database.Tx, page int, size int, sortBy string) (*SosPostInfoList, *pnd.AppError)
-	FindSosPostsByAuthorID(ctx context.Context, tx *database.Tx, authorID int, page int, size int, sortBy string) (*SosPostInfoList, *pnd.AppError)
+	WriteSosPost(
+		ctx context.Context,
+		tx *database.Tx,
+		authorID int,
+		utcDateStart string,
+		utcDateEnd string,
+		request *WriteSosPostRequest,
+	) (*SosPost, *pnd.AppError)
+	FindSosPosts(
+		ctx context.Context,
+		tx *database.Tx,
+		page int,
+		size int,
+		sortBy string,
+	) (*SosPostInfoList, *pnd.AppError)
+	FindSosPostsByAuthorID(
+		ctx context.Context,
+		tx *database.Tx,
+		authorID int,
+		page int,
+		size int,
+		sortBy string,
+	) (*SosPostInfoList, *pnd.AppError)
 	FindSosPostByID(ctx context.Context, tx *database.Tx, id int) (*SosPost, *pnd.AppError)
 	UpdateSosPost(ctx context.Context, tx *database.Tx, request *UpdateSosPostRequest) (*SosPost, *pnd.AppError)
 	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*ConditionList, *pnd.AppError)

@@ -21,7 +21,9 @@ func NewSosPostService(conn *database.DB) *SosPostService {
 	}
 }
 
-func (service *SosPostService) WriteSosPost(ctx context.Context, fbUid string, request *sos_post.WriteSosPostRequest) (*sos_post.WriteSosPostView, *pnd.AppError) {
+func (service *SosPostService) WriteSosPost(
+	ctx context.Context, fbUid string, request *sos_post.WriteSosPostRequest,
+) (*sos_post.WriteSosPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -164,7 +166,9 @@ func (service *SosPostService) FindSosPostByID(ctx context.Context, id int) (*so
 	), nil
 }
 
-func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_post.UpdateSosPostRequest) (*sos_post.UpdateSosPostView, *pnd.AppError) {
+func (service *SosPostService) UpdateSosPost(
+	ctx context.Context, request *sos_post.UpdateSosPostRequest,
+) (*sos_post.UpdateSosPostView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -208,7 +212,9 @@ func (service *SosPostService) UpdateSosPost(ctx context.Context, request *sos_p
 	), nil
 }
 
-func (service *SosPostService) CheckUpdatePermission(ctx context.Context, fbUid string, sosPostID int) (bool, *pnd.AppError) {
+func (service *SosPostService) CheckUpdatePermission(
+	ctx context.Context, fbUid string, sosPostID int,
+) (bool, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
