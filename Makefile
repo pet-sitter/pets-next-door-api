@@ -27,7 +27,7 @@ lint\:install:
 	# https://golangci-lint.run/welcome/install/#local-installation
 	brew install golangci-lint
 lint:
-	golangci-lint run --enable-all
+	golangci-lint run
 
 ## Version ##
 version:
