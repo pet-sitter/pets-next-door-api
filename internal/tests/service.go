@@ -12,6 +12,7 @@ import (
 )
 
 func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {
+	t.Helper()
 	media, err := mediaService.CreateMedia(context.Background(), &media.Media{
 		MediaType: media.IMAGE_MEDIA_TYPE,
 		URL:       "http://example.com",
@@ -29,6 +30,7 @@ func RegisterDummyUser(
 	userService *service.UserService,
 	mediaService *service.MediaService,
 ) *user.RegisterUserView {
+	t.Helper()
 	profileImage := AddDummyMedia(t, ctx, mediaService)
 	userRequest := GenerateDummyRegisterUserRequest(&profileImage.ID)
 	registeredUser, err := userService.RegisterUser(ctx, userRequest)
@@ -46,6 +48,7 @@ func AddDummyPet(
 	ownerUID string,
 	profileImageID *int,
 ) *pet.PetView {
+	t.Helper()
 	pets, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
 		Pets: []pet.AddPetRequest{*GenerateDummyAddPetRequest(profileImageID)},
 	})
@@ -63,6 +66,7 @@ func AddDummyPets(
 	ownerUID string,
 	profileImageID *int,
 ) []pet.PetView {
+	t.Helper()
 	pets, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
 		Pets: GenerateDummyAddPetsRequest(profileImageID),
 	})
@@ -82,6 +86,7 @@ func WriteDummySosPosts(
 	petIDs []int,
 	sosPostCnt int,
 ) *sos_post.WriteSosPostView {
+	t.Helper()
 	sosPostRequest := GenerateDummyWriteSosPostRequest(imageID, petIDs, sosPostCnt)
 	sosPost, err := sosPostService.WriteSosPost(ctx, uid, sosPostRequest)
 	if err != nil {
