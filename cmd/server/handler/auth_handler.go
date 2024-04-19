@@ -51,13 +51,13 @@ func (h *AuthHandler) KakaoLogin(c echo.Context) error {
 // @Router /auth/callback/kakao [get]
 func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 	code := pnd.ParseOptionalStringQuery(c, "code")
-	tokenView, err := h.kakaoClient.FetchAccessToken(*code)
+	tokenView, err := h.kakaoClient.FetchAccessToken(c.Request().Context(), *code)
 	if err != nil {
 		pndErr := pnd.ErrUnknown(err)
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	userProfile, err := h.kakaoClient.FetchUserProfile(tokenView.AccessToken)
+	userProfile, err := h.kakaoClient.FetchUserProfile(c.Request().Context(), tokenView.AccessToken)
 	if err != nil {
 		pndErr := pnd.ErrUnknown(err)
 		return c.JSON(pndErr.StatusCode, pndErr)
@@ -87,7 +87,7 @@ func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userProfile, err2 := h.kakaoClient.FetchUserProfile(tokenRequest.OAuthToken)
+	userProfile, err2 := h.kakaoClient.FetchUserProfile(c.Request().Context(), tokenRequest.OAuthToken)
 	if err2 != nil {
 		pndErr := pnd.ErrBadRequest(errors.New("유효하지 않은 Kakao 인증 정보입니다"))
 		return c.JSON(pndErr.StatusCode, pndErr)
