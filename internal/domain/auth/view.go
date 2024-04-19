@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
@@ -19,7 +19,7 @@ func NewKakaoCallbackView(authToken string, kakaoUserProfile *kakaoinfra.KakaoUs
 	return KakaoCallbackView{
 		AuthToken:            authToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          fmt.Sprintf("%d", kakaoUserProfile.ID),
+		FirebaseUID:          strconv.FormatInt(kakaoUserProfile.ID, 10),
 		Email:                kakaoUserProfile.KakaoAccount.Email,
 		PhotoURL:             kakaoUserProfile.Properties.ProfileImage,
 	}
@@ -45,7 +45,7 @@ func NewGenerateFBCustomTokenResponse(
 	return GenerateFBCustomTokenResponse{
 		AuthToken:            authToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          fmt.Sprintf("%d", kakaoUserProfile.ID),
+		FirebaseUID:          strconv.FormatInt(kakaoUserProfile.ID, 10),
 		Email:                kakaoUserProfile.KakaoAccount.Email,
 		PhotoURL:             kakaoUserProfile.Properties.ProfileImage,
 	}

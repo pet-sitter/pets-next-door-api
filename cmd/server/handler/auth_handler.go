@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -62,7 +63,7 @@ func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err2 := h.authService.CustomToken(c.Request().Context(), fmt.Sprintf("%d", userProfile.ID))
+	customToken, err2 := h.authService.CustomToken(c.Request().Context(), strconv.FormatInt(userProfile.ID, 10))
 	if err2 != nil {
 		return c.JSON(err2.StatusCode, err2)
 	}
@@ -88,11 +89,11 @@ func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 
 	userProfile, err2 := h.kakaoClient.FetchUserProfile(tokenRequest.OAuthToken)
 	if err2 != nil {
-		pndErr := pnd.ErrBadRequest(fmt.Errorf("유효하지 않은 Kakao 인증 정보입니다"))
+		pndErr := pnd.ErrBadRequest(errors.New("유효하지 않은 Kakao 인증 정보입니다"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err := h.authService.CustomToken(c.Request().Context(), fmt.Sprintf("%d", userProfile.ID))
+	customToken, err := h.authService.CustomToken(c.Request().Context(), strconv.FormatInt(userProfile.ID, 10))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

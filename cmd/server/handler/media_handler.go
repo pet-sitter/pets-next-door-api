@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -56,25 +56,25 @@ func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 func (h *MediaHandler) UploadImage(c echo.Context) error {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		pndErr := pnd.ErrMultipartFormError(fmt.Errorf("file must be provided"))
+		pndErr := pnd.ErrMultipartFormError(errors.New("file must be provided"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
 	if fileHeader.Size > 10<<20 {
-		pndErr := pnd.ErrMultipartFormError(fmt.Errorf("file size must be less than 10MB"))
+		pndErr := pnd.ErrMultipartFormError(errors.New("file size must be less than 10MB"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		pndErr := pnd.ErrMultipartFormError(fmt.Errorf("failed to open file"))
+		pndErr := pnd.ErrMultipartFormError(errors.New("failed to open file"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 	defer file.Close()
 
 	if !isValidMimeType(fileHeader.Header.Get("Content-Type")) {
 		pndErr := pnd.ErrMultipartFormError(
-			fmt.Errorf("invalid MIME type; supported MIME types are: [" + supportedMimeTypeString() + "]"),
+			errors.New("invalid MIME type; supported MIME types are: [" + supportedMimeTypeString() + "]"),
 		)
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}

@@ -2,7 +2,7 @@ package kakaoinfra
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -71,7 +71,7 @@ func (kakaoClient *KakaoDefaultClient) FetchUserProfile(code string) (*KakaoUser
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch user profile from Kakao server")
+		return nil, errors.New("failed to fetch user profile from Kakao server")
 	}
 
 	body, err := io.ReadAll(res.Body)
