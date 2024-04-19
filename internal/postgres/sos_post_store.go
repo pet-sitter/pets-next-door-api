@@ -413,33 +413,31 @@ func FindSOSPostsByAuthorID(
 }
 
 func FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SOSPostInfo, *pnd.AppError) {
-	query := fmt.Sprintf(`
-		SELECT
-			v_sos_posts.id,
-			v_sos_posts.title,
-			v_sos_posts.content,
-			v_sos_posts.reward,
-			v_sos_posts.reward_type,
-			v_sos_posts.care_type,
-			v_sos_posts.carer_gender,
-			v_sos_posts.thumbnail_id,
-			v_sos_posts.author_id,
-			v_sos_posts.created_at,
-			v_sos_posts.updated_at,
-			v_sos_posts.dates,
-			v_pets_for_sos_posts.pets_info,
-			v_media_for_sos_posts.media_info,
-			v_conditions.conditions_info
-		FROM
-			v_sos_posts
-				LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
-				LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
-				LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
-		WHERE
-			v_sos_posts.id = $1;
-
-	`,
-	)
+	query := `
+			SELECT
+				v_sos_posts.id,
+				v_sos_posts.title,
+				v_sos_posts.content,
+				v_sos_posts.reward,
+				v_sos_posts.reward_type,
+				v_sos_posts.care_type,
+				v_sos_posts.carer_gender,
+				v_sos_posts.thumbnail_id,
+				v_sos_posts.author_id,
+				v_sos_posts.created_at,
+				v_sos_posts.updated_at,
+				v_sos_posts.dates,
+				v_pets_for_sos_posts.pets_info,
+				v_media_for_sos_posts.media_info,
+				v_conditions.conditions_info
+			FROM
+				v_sos_posts
+					LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+					LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
+					LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+			WHERE
+				v_sos_posts.id = $1;
+		`
 
 	row := tx.QueryRowContext(ctx, query, id)
 
