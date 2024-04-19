@@ -16,25 +16,10 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
-	const query = `
-	INSERT INTO
-		sos_posts
-		(
-			author_id,
-			title,
-			content,
-			reward,
-			care_type,
-		 	carer_gender,
-		 	reward_type,
-		 	thumbnail_id,
-			created_at,
-			updated_at
-		)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-	RETURNING
-		id,
+const writeSOSPostQuery = `
+INSERT INTO
+	sos_posts
+	(
 		author_id,
 		title,
 		content,
@@ -42,11 +27,26 @@ func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *s
 		care_type,
 		carer_gender,
 		reward_type,
-		thumbnail_id
-	`
+		thumbnail_id,
+		created_at,
+		updated_at
+	)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+RETURNING
+	id,
+	author_id,
+	title,
+	content,
+	reward,
+	care_type,
+	carer_gender,
+	reward_type,
+	thumbnail_id
+`
 
+func WriteSOSPost(ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
 	sosPost := &sospost.SOSPost{}
-	err := tx.QueryRowContext(ctx, query, //nolint:execinquery
+	err := tx.QueryRowContext(ctx, writeSOSPostQuery, //nolint:execinquery
 		authorID,
 		request.Title,
 		request.Content,
@@ -452,166 +452,28 @@ func FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SOS
 	return &sosPost, nil
 }
 
-func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.UpdateSOSPostRequest) (*sospost.SOSPost, *pnd.AppError) {
+func UpdateSOSPost(
+	ctx context.Context, tx *database.Tx, request *sospost.UpdateSOSPostRequest,
+) (*sospost.SOSPost, *pnd.AppError) {
 	sosPost := &sospost.SOSPost{}
 
-	if _, err := tx.ExecContext(ctx, `
-		UPDATE
-			sos_posts_dates
-		SET
-			deleted_at = NOW()
-		WHERE
-			sos_post_id = $1
-	`, request.ID,
-	); err != nil {
-		return nil, pnd.FromPostgresError(err)
+	if err := updateSOSPostsDates(ctx, tx, request.ID, request.Dates); err != nil {
+		return nil, err
 	}
 
-	if _, err := tx.ExecContext(ctx, `
-		UPDATE
-			resource_media
-		SET
-			deleted_at = NOW()
-		WHERE
-			resource_id = $1
-	`, request.ID,
-	); err != nil {
-		return nil, pnd.FromPostgresError(err)
+	if err := updateSOSPostsMedia(ctx, tx, request.ID, request.ImageIDs); err != nil {
+		return nil, err
+	}
+
+	if err := updateSOSPostsConditions(ctx, tx, request.ID, request.ConditionIDs); err != nil {
+		return nil, err
+	}
+
+	if err := updateSOSPostsPets(ctx, tx, request.ID, request.PetIDs); err != nil {
+		return nil, err
 	}
 
 	const query = `
-		INSERT INTO
-		sos_dates
-		(
-			date_start_at,
-			date_end_at,
-			created_at,
-			updated_at
-		)
-		VALUES ($1, $2, NOW(), NOW())
-		RETURNING id, date_start_at, date_end_at, created_at, updated_at
-		`
-
-	sosDates := []sospost.SOSDates{}
-
-	for _, date := range request.Dates {
-		sosDate := sospost.SOSDates{}
-		if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
-			date.DateStartAt,
-			date.DateEndAt,
-		).Scan(
-			&sosDate.ID,
-			&sosDate.DateStartAt,
-			&sosDate.DateEndAt,
-			&sosDate.CreatedAt,
-			&sosDate.UpdatedAt,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		sosDates = append(sosDates, sosDate)
-	}
-
-	for _, sosDate := range sosDates {
-		if _, err := tx.ExecContext(ctx, `
-		INSERT INTO
-			sos_posts_dates
-			(
-				 sos_post_id,
-				 sos_dates_id,
-				 created_at, 
-				 updated_at
-			)
-		VALUES ($1, $2, NOW(), NOW())
-		`,
-			request.ID,
-			sosDate.ID,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-	}
-
-	for _, imageID := range request.ImageIDs {
-		if _, err := tx.ExecContext(ctx, `
-		INSERT INTO
-			resource_media
-			(
-				media_id,
-				resource_id,
-				resource_type,
-				created_at,
-				updated_at
-			)
-		VALUES ($1, $2, $3, NOW(), NOW())
-		`,
-			imageID,
-			request.ID,
-			media.SOSResourceType,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-	}
-
-	if _, err := tx.ExecContext(ctx, `
-		UPDATE
-			sos_posts_conditions
-		SET
-			deleted_at = NOW()
-		WHERE
-			sos_post_id = $1
-    `, request.ID); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	for _, conditionID := range request.ConditionIDs {
-		if _, err := tx.ExecContext(ctx, `
-		INSERT INTO
-			sos_posts_conditions
-			(
-				sos_post_id,
-				sos_condition_id,
-				created_at,
-				updated_at
-			)
-		VALUES ($1, $2, NOW(), NOW())
-		`,
-			request.ID,
-			conditionID,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-	}
-
-	if _, err := tx.ExecContext(ctx, `
-		UPDATE
-			sos_posts_pets
-		SET
-			deleted_at = NOW()
-		WHERE
-			sos_post_id = $1
-    `, request.ID); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	for _, petID := range request.PetIDs {
-		if _, err := tx.ExecContext(ctx, `
-		INSERT INTO
-			sos_posts_pets
-			(
-				sos_post_id,
-				pet_id,
-				created_at,
-				updated_at
-			)
-		VALUES ($1, $2, NOW(), NOW())
-		`,
-			request.ID,
-			petID,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-	}
-
-	const sql2 = `
 	UPDATE
 		sos_posts
 	SET
@@ -637,7 +499,7 @@ func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 		thumbnail_id
 	`
 
-	if err := tx.QueryRowContext(ctx, sql2, //nolint:execinquery
+	if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
 		request.Title,
 		request.Content,
 		request.Reward,
@@ -661,6 +523,177 @@ func UpdateSOSPost(ctx context.Context, tx *database.Tx, request *sospost.Update
 	}
 
 	return sosPost, nil
+}
+
+func updateSOSPostsDates(ctx context.Context, tx *database.Tx, postID int, dates []sospost.SOSDateView) *pnd.AppError {
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE
+			sos_posts_dates
+		SET
+			deleted_at = NOW()
+		WHERE
+			sos_post_id = $1
+	`, postID); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+	const query = `
+		INSERT INTO
+			sos_dates
+			(
+				date_start_at,
+				date_end_at,
+				created_at,
+				updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, date_start_at, date_end_at, created_at, updated_at
+	`
+
+	sosDates := []sospost.SOSDates{}
+	for _, date := range dates {
+		sosDate := sospost.SOSDates{}
+		if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
+			date.DateStartAt,
+			date.DateEndAt,
+		).Scan(
+			&sosDate.ID,
+			&sosDate.DateStartAt,
+			&sosDate.DateEndAt,
+			&sosDate.CreatedAt,
+			&sosDate.UpdatedAt,
+		); err != nil {
+			return pnd.FromPostgresError(err)
+		}
+		sosDates = append(sosDates, sosDate)
+	}
+
+	for _, sosDate := range sosDates {
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+			sos_posts_dates
+			(
+				 sos_post_id,
+				 sos_dates_id,
+				 created_at, 
+				 updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		`,
+			postID,
+			sosDate.ID,
+		); err != nil {
+			return pnd.FromPostgresError(err)
+		}
+	}
+
+	return nil
+}
+
+func updateSOSPostsMedia(ctx context.Context, tx *database.Tx, postID int, mediaIDs []int) *pnd.AppError {
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE
+			resource_media
+		SET
+			deleted_at = NOW()
+		WHERE
+			resource_id = $1
+	`, postID,
+	); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	for _, mediaID := range mediaIDs {
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+			resource_media
+			(
+				media_id,
+				resource_id,
+				resource_type,
+				created_at,
+				updated_at
+			)
+		VALUES ($1, $2, $3, NOW(), NOW())
+		`,
+			mediaID,
+			postID,
+			media.SOSResourceType,
+		); err != nil {
+			return pnd.FromPostgresError(err)
+		}
+	}
+
+	return nil
+}
+
+func updateSOSPostsConditions(ctx context.Context, tx *database.Tx, postID int, conditionIDs []int) *pnd.AppError {
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE
+			sos_posts_conditions
+		SET
+			deleted_at = NOW()
+		WHERE
+			sos_post_id = $1
+	`, postID,
+	); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	for _, conditionID := range conditionIDs {
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+			sos_posts_conditions
+			(
+				sos_post_id,
+				sos_condition_id,
+				created_at,
+				updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		`,
+			postID,
+			conditionID,
+		); err != nil {
+			return pnd.FromPostgresError(err)
+		}
+	}
+
+	return nil
+}
+
+func updateSOSPostsPets(ctx context.Context, tx *database.Tx, postID int, petIDs []int) *pnd.AppError {
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE
+			sos_posts_pets
+		SET
+			deleted_at = NOW()
+		WHERE
+			sos_post_id = $1
+	`, postID,
+	); err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	for _, petID := range petIDs {
+		if _, err := tx.ExecContext(ctx, `
+		INSERT INTO
+			sos_posts_pets
+			(
+				sos_post_id,
+				pet_id,
+				created_at,
+				updated_at
+			)
+		VALUES ($1, $2, NOW(), NOW())
+		`,
+			postID,
+			petID,
+		); err != nil {
+			return pnd.FromPostgresError(err)
+		}
+	}
+
+	return nil
 }
 
 func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.ConditionList, *pnd.AppError) {
