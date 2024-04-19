@@ -163,7 +163,7 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
-	if err := pnd.ParseBody(c, &updateUserRequest); err != nil {
+	if err = pnd.ParseBody(c, &updateUserRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
@@ -278,7 +278,7 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 	}
 
 	var updatePetRequest pet.UpdatePetRequest
-	if err := pnd.ParseBody(c, &updatePetRequest); err != nil {
+	if err = pnd.ParseBody(c, &updatePetRequest); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 

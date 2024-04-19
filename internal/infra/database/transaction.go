@@ -39,7 +39,7 @@ func (sct *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 		if p := recover(); p != nil {
 			tx.Rollback()
 			panic(p)
-		} else if err := f(); err != nil {
+		} else if err = f(); err != nil {
 			tx.Rollback()
 		} else if err := tx.Commit(); err != nil {
 			tx.Rollback()
@@ -76,7 +76,7 @@ func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError
 	}
 
 	if err := f(tx); err != nil {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			return err
 		}
 
