@@ -12,7 +12,7 @@ type KakaoCallbackView struct {
 	FirebaseProviderType user.FirebaseProviderType `json:"fbProviderType"`
 	FirebaseUID          string                    `json:"fbUid"`
 	Email                string                    `json:"email"`
-	PhotoURL             string                    `json:"photoURL"`
+	PhotoURL             string                    `json:"photoUrl"`
 }
 
 func NewKakaoCallbackView(authToken string, kakaoUserProfile *kakaoinfra.KakaoUserProfile) KakaoCallbackView {
@@ -36,7 +36,7 @@ type GenerateFBCustomTokenResponse struct {
 	FirebaseProviderType user.FirebaseProviderType `json:"fbProviderType"`
 	FirebaseUID          string                    `json:"fbUid"`
 	Email                string                    `json:"email"`
-	PhotoURL             string                    `json:"photoURL"`
+	PhotoURL             string                    `json:"photoUrl"`
 }
 
 func NewGenerateFBCustomTokenResponse(

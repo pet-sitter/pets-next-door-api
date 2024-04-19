@@ -89,11 +89,11 @@ func NewSOSPostInfoList(page, size int) *SOSPostInfoList {
 
 type SOSDates struct {
 	ID          int       `field:"id" json:"id"`
-	DateStartAt string    `field:"date_start_at" json:"date_start_at"`
-	DateEndAt   string    `field:"date_end_at" json:"date_end_at"`
-	CreatedAt   time.Time `field:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `field:"updated_at" json:"updated_at"`
-	DeletedAt   time.Time `field:"deleted_at" json:"deleted_at"`
+	DateStartAt string    `field:"date_start_at" json:"dateStartAt"`
+	DateEndAt   string    `field:"date_end_at" json:"dateEndAt"`
+	CreatedAt   time.Time `field:"created_at" json:"createdAt"`
+	UpdatedAt   time.Time `field:"updated_at" json:"updatedAt"`
+	DeletedAt   time.Time `field:"deleted_at" json:"deletedAt"`
 }
 
 type SOSDatesList []*SOSDates
