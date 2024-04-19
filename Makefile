@@ -19,8 +19,12 @@ deps:
 	go mod tidy
 
 ## Code ##
+format\:install:
+	# gofumpt
+	# https://github.com/mvdan/gofumpt
+	go install mvdan.cc/gofumpt@latest
 format:
-	go fmt ./...
+	gofumpt -l -w .
 
 lint\:install:
 	# golangci-lint
