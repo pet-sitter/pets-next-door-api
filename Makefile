@@ -93,3 +93,11 @@ migrate\:down:
 	migrate -path db/migrations -database="${DATABASE_URL}" down
 migrate\:create:
 	migrate create -ext sql -dir db/migrations -seq $(name)
+
+## Queries (with sqlc) ##
+sqlc\:install:
+	# sqlc
+	# https://docs.sqlc.dev/en/latest/
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+sqlc\:generate:
+	sqlc generate
