@@ -1,8 +1,10 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	"github.com/golang-migrate/migrate/v4"
 
@@ -27,6 +29,10 @@ func Open(databaseURL string) (*DB, error) {
 		return nil, err
 	}
 	return &DB{DB: db, databaseURL: databaseURL}, nil
+}
+
+func New(db DB) *databasegen.Queries {
+	return databasegen.New(db.DB)
 }
 
 func (db *DB) Close() error {
@@ -73,4 +79,20 @@ func (db *DB) Migrate(migrationPath string) error {
 	}
 
 	return nil
+}
+
+func (db *DB) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return db.DB.ExecContext(ctx, query, args...)
+}
+
+func (db *DB) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return db.DB.QueryContext(ctx, query, args...)
+}
+
+func (db *DB) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+	return db.DB.QueryRowContext(ctx, query, args...)
+}
+
+func (db *DB) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return db.DB.PrepareContext(ctx, query)
 }
