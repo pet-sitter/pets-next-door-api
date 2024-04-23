@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	"github.com/golang-migrate/migrate/v4"

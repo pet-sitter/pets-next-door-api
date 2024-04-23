@@ -26,7 +26,7 @@ func CreateResourceMedia(
 	`
 
 	resourceMedia := &media.ResourceMedia{}
-	err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
+	err := tx.QueryRowContext(ctx, sql,
 		resourceID,
 		mediaID,
 		resourceType,

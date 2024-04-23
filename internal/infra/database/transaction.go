@@ -26,22 +26,20 @@ func (db *DB) BeginTx(ctx context.Context) (*Tx, *pnd.AppError) {
 	return &Tx{tx}, nil
 }
 
-func (sct *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
+func (tx *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 	var err *pnd.AppError
-	tx := sct.Tx
-
 	defer func() {
 		if p := recover(); p != nil {
-			if err2 := tx.Rollback(); err2 != nil {
+			if err2 := tx.Tx.Rollback(); err2 != nil {
 				log.Error().Err(err2).Msg("error rolling back transaction")
 				panic(p)
 			}
 		} else if err = f(); err != nil {
-			if err2 := tx.Rollback(); err2 != nil {
+			if err2 := tx.Tx.Rollback(); err2 != nil {
 				log.Error().Err(err2).Msg("error rolling back transaction")
 			}
-		} else if err := tx.Commit(); err != nil {
-			if err2 := tx.Rollback(); err2 != nil {
+		} else if err := tx.Tx.Commit(); err != nil {
+			if err2 := tx.Tx.Rollback(); err2 != nil {
 				log.Error().Err(err2).Msg("error rolling back transaction")
 			}
 		}
@@ -51,8 +49,8 @@ func (sct *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 	return err
 }
 
-func (sct *Tx) Rollback() *pnd.AppError {
-	if err := sct.Tx.Rollback(); err != nil {
+func (tx *Tx) Rollback() *pnd.AppError {
+	if err := tx.Tx.Rollback(); err != nil {
 		if errors.Is(err, sql.ErrTxDone) {
 			return nil
 		}
@@ -62,8 +60,8 @@ func (sct *Tx) Rollback() *pnd.AppError {
 	return nil
 }
 
-func (sct *Tx) Commit() *pnd.AppError {
-	if err := sct.Tx.Commit(); err != nil {
+func (tx *Tx) Commit() *pnd.AppError {
+	if err := tx.Tx.Commit(); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 
