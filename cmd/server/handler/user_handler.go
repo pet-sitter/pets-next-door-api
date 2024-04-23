@@ -30,7 +30,7 @@ func NewUserHandler(userService service.UserService, authService service.AuthSer
 // @Accept  json
 // @Produce  json
 // @Param request body user.RegisterUserRequest true "사용자 회원가입 요청"
-// @Success 201 {object} user.RegisterUserView
+// @Success 201 {object} user.InternalView
 // @Router /users [post]
 func (h *UserHandler) RegisterUser(c echo.Context) error {
 	var registerUserRequest user.RegisterUserRequest
@@ -76,7 +76,7 @@ func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param request body user.UserStatusRequest true "사용자 가입 상태 조회 요청"
-// @Success 200 {object} user.UserStatusView
+// @Success 200 {object} user.StatusView
 // @Router /users/status [post]
 func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 	var providerRequest user.UserStatusRequest
@@ -84,14 +84,14 @@ func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userStatus, err := h.userService.FindUserStatusByEmail(c.Request().Context(), providerRequest.Email)
-	if err != nil || userStatus == nil {
-		return c.JSON(http.StatusOK, user.UserStatusView{
-			Status: user.UserStatusNotRegistered,
+	userData, err := h.userService.FindUser(c.Request().Context(), user.FindUserParams{Email: &providerRequest.Email})
+	if err != nil {
+		return c.JSON(http.StatusOK, user.StatusView{
+			Status: user.StatusNotRegistered,
 		})
 	}
 
-	return c.JSON(http.StatusOK, userStatus.ToUserStatusView())
+	return c.JSON(http.StatusOK, user.NewStatusView(userData.FirebaseProviderType))
 }
 
 // FindUsers godoc
@@ -103,7 +103,7 @@ func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 // @Param page query int false "페이지 번호" default(1)
 // @Param size query int false "페이지 사이즈" default(10)
 // @Param nickname query string false "닉네임 (완전 일치)"
-// @Success 200 {object} user.UserWithoutPrivateInfoList
+// @Success 200 {object} user.ListWithoutPrivateInfo
 // @Router /users [get]
 func (h *UserHandler) FindUsers(c echo.Context) error {
 	_, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -117,9 +117,10 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	var res *user.UserWithoutPrivateInfoList
+	var res *user.ListWithoutPrivateInfo
 
-	res, err = h.userService.FindUsers(c.Request().Context(), page, size, nickname)
+	res, err = h.userService.FindUsers(c.Request().Context(),
+		user.FindUsersParams{Page: page, Size: size, Nickname: nickname})
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -152,7 +153,7 @@ func (h *UserHandler) FindMyProfile(c echo.Context) error {
 // @Produce  json
 // @Security FirebaseAuth
 // @Param request body user.UpdateUserRequest true "사용자 프로필 수정 요청"
-// @Success 200 {object} user.UpdateUserView
+// @Success 200 {object} user.MyProfileView
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -167,7 +168,7 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userModel, err := h.userService.UpdateUserByUID(
+	view, err := h.userService.UpdateUserByUID(
 		c.Request().Context(),
 		uid,
 		updateUserRequest.Nickname,
@@ -177,7 +178,7 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	return c.JSON(http.StatusOK, userModel.ToUpdateUserView())
+	return c.JSON(http.StatusOK, view)
 }
 
 // DeleteMyAccount godoc

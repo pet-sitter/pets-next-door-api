@@ -11,7 +11,7 @@ import (
 )
 
 type AuthService interface {
-	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.FindUserView, *pnd.AppError)
+	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.InternalView, *pnd.AppError)
 	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
 }
 
@@ -45,18 +45,18 @@ func (service *FirebaseBearerAuthService) verifyAuth(
 
 func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
 	ctx context.Context, authHeader string,
-) (*user.FindUserView, *pnd.AppError) {
+) (*user.InternalView, *pnd.AppError) {
 	authToken, err := service.verifyAuth(ctx, authHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	foundUser, err := service.userService.FindUserByUID(ctx, authToken.UID)
+	foundUser, err := service.userService.FindUser(ctx, user.FindUserParams{FbUID: &authToken.UID})
 	if err != nil {
 		return nil, pnd.ErrUserNotRegistered(errors.New("가입되지 않은 사용자입니다"))
 	}
 
-	return foundUser, nil
+	return foundUser.ToInternalView(), nil
 }
 
 func (service *FirebaseBearerAuthService) CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError) {
