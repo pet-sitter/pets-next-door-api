@@ -29,7 +29,7 @@ func RegisterDummyUser(
 	ctx context.Context,
 	userService *service.UserService,
 	mediaService *service.MediaService,
-) *user.RegisterUserView {
+) *user.InternalView {
 	t.Helper()
 	profileImage := AddDummyMedia(t, ctx, mediaService)
 	userRequest := GenerateDummyRegisterUserRequest(&profileImage.ID)

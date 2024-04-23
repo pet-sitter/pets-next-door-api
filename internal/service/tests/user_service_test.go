@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -130,7 +129,7 @@ func TestUserService(t *testing.T) {
 			}
 
 			// When
-			found, _ := userService.FindUsers(ctx, 1, 20, &targetNickname)
+			found, _ := userService.FindUsers(ctx, user.FindUsersParams{Page: 1, Size: 20, Nickname: &targetNickname})
 
 			// Then
 			if len(found.Items) != 1 {
@@ -154,7 +153,7 @@ func TestUserService(t *testing.T) {
 			created, _ := userService.RegisterUser(ctx, userRequest)
 
 			// When
-			found, _ := userService.FindUserByEmail(ctx, created.Email)
+			found, _ := userService.FindUser(ctx, user.FindUserParams{Email: &created.Email})
 
 			// Then
 			if found.Email != userRequest.Email {
@@ -171,7 +170,8 @@ func TestUserService(t *testing.T) {
 			userService := service.NewUserService(db, nil)
 
 			// When
-			_, err := userService.FindUserByEmail(ctx, "non-existent@example.com")
+			email := "non-existent@example.com"
+			_, err := userService.FindUser(ctx, user.FindUserParams{Email: &email})
 
 			// Then
 			if err == nil {
@@ -195,7 +195,7 @@ func TestUserService(t *testing.T) {
 			created, _ := userService.RegisterUser(ctx, userRequest)
 
 			// When
-			found, _ := userService.FindUserByUID(ctx, created.FirebaseUID)
+			found, _ := userService.FindUser(ctx, user.FindUserParams{FbUID: &created.FirebaseUID})
 
 			// Then
 			if found.FirebaseUID != userRequest.FirebaseUID {
@@ -212,7 +212,8 @@ func TestUserService(t *testing.T) {
 			userService := service.NewUserService(db, nil)
 
 			// When
-			_, err := userService.FindUserByUID(ctx, "non-existent")
+			fbUID := "non-existent"
+			_, err := userService.FindUser(ctx, user.FindUserParams{FbUID: &fbUID})
 
 			// Then
 			if err == nil {
@@ -262,33 +263,6 @@ func TestUserService(t *testing.T) {
 		})
 	})
 
-	t.Run("FindUserStatusByEmail", func(t *testing.T) {
-		t.Run("사용자의 상태를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
-			defer tearDown(t)
-			ctx := context.Background()
-
-			// Given
-			mediaService := service.NewMediaService(db, nil)
-			profileImage, _ := mediaService.CreateMedia(ctx, &media.Media{
-				MediaType: media.MediaTypeImage,
-				URL:       "http://example.com",
-			})
-
-			userService := service.NewUserService(db, mediaService)
-			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
-			created, _ := userService.RegisterUser(ctx, userRequest)
-
-			// When
-			status, _ := userService.FindUserStatusByEmail(ctx, created.Email)
-
-			// Then
-			if status.FirebaseProviderType != userRequest.FirebaseProviderType {
-				t.Errorf("got %v want %v", status.FirebaseProviderType, userRequest.FirebaseProviderType)
-			}
-		})
-	})
-
 	t.Run("UpdateUserByUID", func(t *testing.T) {
 		t.Run("사용자를 업데이트한다", func(t *testing.T) {
 			db, tearDown := setUp(t)
@@ -307,7 +281,7 @@ func TestUserService(t *testing.T) {
 			userService.UpdateUserByUID(ctx, userRequest.FirebaseUID, updatedNickname, &updatedProfileImage.ID)
 
 			// Then
-			found, _ := userService.FindUserByUID(ctx, userRequest.FirebaseUID)
+			found, _ := userService.FindUser(ctx, user.FindUserParams{FbUID: &userRequest.FirebaseUID})
 			if found.Nickname != updatedNickname {
 				t.Errorf("got %v want %v", found.Nickname, updatedNickname)
 			}

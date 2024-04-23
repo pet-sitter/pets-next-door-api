@@ -111,7 +111,7 @@ func TestSOSPostService(t *testing.T) {
 			userService := service.NewUserService(db, mediaService)
 			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 			owner, _ := userService.RegisterUser(ctx, userRequest)
-			author := &user.UserWithoutPrivateInfo{
+			author := &user.WithoutPrivateInfo{
 				ID:              owner.ID,
 				ProfileImageURL: owner.ProfileImageURL,
 				Nickname:        owner.Nickname,
@@ -161,7 +161,7 @@ func TestSOSPostService(t *testing.T) {
 			userService := service.NewUserService(db, mediaService)
 			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 			owner, _ := userService.RegisterUser(ctx, userRequest)
-			author := &user.UserWithoutPrivateInfo{
+			author := &user.WithoutPrivateInfo{
 				ID:              owner.ID,
 				ProfileImageURL: owner.ProfileImageURL,
 				Nickname:        owner.Nickname,
@@ -210,7 +210,7 @@ func TestSOSPostService(t *testing.T) {
 			userService := service.NewUserService(db, mediaService)
 			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 			owner, _ := userService.RegisterUser(ctx, userRequest)
-			author := &user.UserWithoutPrivateInfo{
+			author := &user.WithoutPrivateInfo{
 				ID:              owner.ID,
 				ProfileImageURL: owner.ProfileImageURL,
 				Nickname:        owner.Nickname,
@@ -267,7 +267,7 @@ func TestSOSPostService(t *testing.T) {
 			userService := service.NewUserService(db, mediaService)
 			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 			owner, _ := userService.RegisterUser(ctx, userRequest)
-			author := &user.UserWithoutPrivateInfo{
+			author := &user.WithoutPrivateInfo{
 				ID:              owner.ID,
 				ProfileImageURL: owner.ProfileImageURL,
 				Nickname:        owner.Nickname,
@@ -317,7 +317,7 @@ func TestSOSPostService(t *testing.T) {
 			userService := service.NewUserService(db, mediaService)
 			userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
 			owner, _ := userService.RegisterUser(ctx, userRequest)
-			author := &user.UserWithoutPrivateInfo{
+			author := &user.WithoutPrivateInfo{
 				ID:              owner.ID,
 				ProfileImageURL: owner.ProfileImageURL,
 				Nickname:        owner.Nickname,
@@ -488,7 +488,7 @@ func assertMediaEquals(t *testing.T, got, want media.MediaViewList) {
 	}
 }
 
-func assertAuthorEquals(t *testing.T, got, want *user.UserWithoutPrivateInfo) {
+func assertAuthorEquals(t *testing.T, got, want *user.WithoutPrivateInfo) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {
