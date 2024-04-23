@@ -10,13 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type DBTx interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-}
-
 type Transactioner interface {
 	Rollback() *pnd.AppError
 	Commit() *pnd.AppError
@@ -92,4 +85,20 @@ func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError
 	}
 
 	return tx.Commit()
+}
+
+func (tx *Tx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return tx.Tx.ExecContext(ctx, query, args...)
+}
+
+func (tx *Tx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return tx.Tx.QueryContext(ctx, query, args...)
+}
+
+func (tx *Tx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	return tx.Tx.QueryRowContext(ctx, query, args...)
+}
+
+func (tx *Tx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return tx.Tx.PrepareContext(ctx, query)
 }
