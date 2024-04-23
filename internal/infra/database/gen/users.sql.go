@@ -73,15 +73,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	return i, err
 }
 
-const deleteUserByUID = `-- name: DeleteUserByUID :exec
+const deleteUserByFbUID = `-- name: DeleteUserByFbUID :exec
 UPDATE
     users
 SET deleted_at = NOW()
 WHERE fb_uid = $1
 `
 
-func (q *Queries) DeleteUserByUID(ctx context.Context, fbUid sql.NullString) error {
-	_, err := q.db.ExecContext(ctx, deleteUserByUID, fbUid)
+func (q *Queries) DeleteUserByFbUID(ctx context.Context, fbUid sql.NullString) error {
+	_, err := q.db.ExecContext(ctx, deleteUserByFbUID, fbUid)
 	return err
 }
 
@@ -104,7 +104,7 @@ func (q *Queries) ExistsUserByNickname(ctx context.Context, nickname string) (bo
 	return column_1, err
 }
 
-const findUserByEmail = `-- name: FindUserByEmail :one
+const findUser = `-- name: FindUser :one
 SELECT users.id,
        users.email,
        users.nickname,
@@ -113,17 +113,29 @@ SELECT users.id,
        users.fb_provider_type,
        users.fb_uid,
        users.created_at,
-       users.updated_at
+       users.updated_at,
+       users.deleted_at
 FROM users
          LEFT OUTER JOIN
      media
      ON
          users.profile_image_id = media.id
-WHERE users.email = $1
-  AND users.deleted_at IS NULL
+WHERE (users.id = $1 OR $1 IS NULL)
+  AND (users.nickname = $2 OR $2 IS NULL)
+  AND (users.email = $3 OR $3 IS NULL)
+  AND (users.fb_uid = $4 OR $4 IS NULL)
+  AND (users.deleted_at IS NULL OR $5::boolean = TRUE)
 `
 
-type FindUserByEmailRow struct {
+type FindUserParams struct {
+	ID             sql.NullInt32
+	Nickname       sql.NullString
+	Email          sql.NullString
+	FbUid          sql.NullString
+	IncludeDeleted bool
+}
+
+type FindUserRow struct {
 	ID              int32
 	Email           string
 	Nickname        string
@@ -133,11 +145,18 @@ type FindUserByEmailRow struct {
 	FbUid           sql.NullString
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	DeletedAt       sql.NullTime
 }
 
-func (q *Queries) FindUserByEmail(ctx context.Context, email string) (FindUserByEmailRow, error) {
-	row := q.db.QueryRowContext(ctx, findUserByEmail, email)
-	var i FindUserByEmailRow
+func (q *Queries) FindUser(ctx context.Context, arg FindUserParams) (FindUserRow, error) {
+	row := q.db.QueryRowContext(ctx, findUser,
+		arg.ID,
+		arg.Nickname,
+		arg.Email,
+		arg.FbUid,
+		arg.IncludeDeleted,
+	)
+	var i FindUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
@@ -148,84 +167,9 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (FindUserBy
 		&i.FbUid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
-}
-
-const findUserByUID = `-- name: FindUserByUID :one
-SELECT users.id,
-       users.email,
-       users.nickname,
-       users.fullname,
-       media.url AS profile_image_url,
-       users.fb_provider_type,
-       users.fb_uid,
-       users.created_at,
-       users.updated_at
-FROM users
-         LEFT JOIN
-     media
-     ON
-         users.profile_image_id = media.id
-WHERE users.fb_uid = $1
-  AND users.deleted_at IS NULL
-`
-
-type FindUserByUIDRow struct {
-	ID              int32
-	Email           string
-	Nickname        string
-	Fullname        string
-	ProfileImageUrl sql.NullString
-	FbProviderType  sql.NullString
-	FbUid           sql.NullString
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-}
-
-func (q *Queries) FindUserByUID(ctx context.Context, fbUid sql.NullString) (FindUserByUIDRow, error) {
-	row := q.db.QueryRowContext(ctx, findUserByUID, fbUid)
-	var i FindUserByUIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.Nickname,
-		&i.Fullname,
-		&i.ProfileImageUrl,
-		&i.FbProviderType,
-		&i.FbUid,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const findUserIDByFbUID = `-- name: FindUserIDByFbUID :one
-SELECT id
-FROM users
-WHERE fb_uid = $1
-  AND deleted_at IS NULL
-`
-
-func (q *Queries) FindUserIDByFbUID(ctx context.Context, fbUid sql.NullString) (int32, error) {
-	row := q.db.QueryRowContext(ctx, findUserIDByFbUID, fbUid)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
-}
-
-const findUserStatusByEmail = `-- name: FindUserStatusByEmail :one
-SELECT fb_provider_type
-FROM users
-WHERE email = $1
-  AND deleted_at IS NULL
-`
-
-func (q *Queries) FindUserStatusByEmail(ctx context.Context, email string) (sql.NullString, error) {
-	row := q.db.QueryRowContext(ctx, findUserStatusByEmail, email)
-	var fb_provider_type sql.NullString
-	err := row.Scan(&fb_provider_type)
-	return fb_provider_type, err
 }
 
 const findUsers = `-- name: FindUsers :many
@@ -237,16 +181,23 @@ FROM users
      media
      ON
          users.profile_image_id = media.id
-WHERE (users.nickname = $1 OR $1 IS NULL)
-  AND users.deleted_at IS NULL
+WHERE (users.id = $3 OR $3 IS NULL)
+  AND (users.nickname = $4 OR $4 IS NULL)
+  AND (users.email = $5 OR $5 IS NULL)
+  AND (users.fb_uid = $6 OR $6 IS NULL)
+  AND (users.deleted_at IS NULL OR $7::boolean = TRUE)
 ORDER BY users.created_at DESC
-LIMIT $2 OFFSET $3
+LIMIT $1 OFFSET $2
 `
 
 type FindUsersParams struct {
-	Nickname string
-	Limit    int32
-	Offset   int32
+	Limit          int32
+	Offset         int32
+	ID             sql.NullInt32
+	Nickname       sql.NullString
+	Email          sql.NullString
+	FbUid          sql.NullString
+	IncludeDeleted bool
 }
 
 type FindUsersRow struct {
@@ -256,7 +207,15 @@ type FindUsersRow struct {
 }
 
 func (q *Queries) FindUsers(ctx context.Context, arg FindUsersParams) ([]FindUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, findUsers, arg.Nickname, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, findUsers,
+		arg.Limit,
+		arg.Offset,
+		arg.ID,
+		arg.Nickname,
+		arg.Email,
+		arg.FbUid,
+		arg.IncludeDeleted,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -278,63 +237,7 @@ func (q *Queries) FindUsers(ctx context.Context, arg FindUsersParams) ([]FindUse
 	return items, nil
 }
 
-const findUsersByID = `-- name: FindUsersByID :one
-SELECT users.id,
-       users.email,
-       users.nickname,
-       users.fullname,
-       media.url AS profile_image_url,
-       users.fb_provider_type,
-       users.fb_uid,
-       users.created_at,
-       users.updated_at,
-       users.deleted_at
-FROM users
-         LEFT OUTER JOIN
-     media
-     ON
-         users.profile_image_id = media.id
-WHERE users.id = $1
-  AND (users.deleted_at IS NULL OR $2)
-`
-
-type FindUsersByIDParams struct {
-	ID      int32
-	Column2 interface{}
-}
-
-type FindUsersByIDRow struct {
-	ID              int32
-	Email           string
-	Nickname        string
-	Fullname        string
-	ProfileImageUrl sql.NullString
-	FbProviderType  sql.NullString
-	FbUid           sql.NullString
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       sql.NullTime
-}
-
-func (q *Queries) FindUsersByID(ctx context.Context, arg FindUsersByIDParams) (FindUsersByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, findUsersByID, arg.ID, arg.Column2)
-	var i FindUsersByIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.Nickname,
-		&i.Fullname,
-		&i.ProfileImageUrl,
-		&i.FbProviderType,
-		&i.FbUid,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return i, err
-}
-
-const updateUserByUID = `-- name: UpdateUserByUID :one
+const updateUserByFbUID = `-- name: UpdateUserByFbUID :one
 UPDATE
     users
 SET nickname         = $1,
@@ -354,13 +257,13 @@ RETURNING
     updated_at
 `
 
-type UpdateUserByUIDParams struct {
+type UpdateUserByFbUIDParams struct {
 	Nickname       string
 	ProfileImageID sql.NullInt64
 	FbUid          sql.NullString
 }
 
-type UpdateUserByUIDRow struct {
+type UpdateUserByFbUIDRow struct {
 	ID             int32
 	Email          string
 	Nickname       string
@@ -372,9 +275,9 @@ type UpdateUserByUIDRow struct {
 	UpdatedAt      time.Time
 }
 
-func (q *Queries) UpdateUserByUID(ctx context.Context, arg UpdateUserByUIDParams) (UpdateUserByUIDRow, error) {
-	row := q.db.QueryRowContext(ctx, updateUserByUID, arg.Nickname, arg.ProfileImageID, arg.FbUid)
-	var i UpdateUserByUIDRow
+func (q *Queries) UpdateUserByFbUID(ctx context.Context, arg UpdateUserByFbUIDParams) (UpdateUserByFbUIDRow, error) {
+	row := q.db.QueryRowContext(ctx, updateUserByFbUID, arg.Nickname, arg.ProfileImageID, arg.FbUid)
+	var i UpdateUserByFbUIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,

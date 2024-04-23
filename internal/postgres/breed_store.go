@@ -100,7 +100,7 @@ func CreateBreed(ctx context.Context, tx *database.Tx, breed *pet.Breed) (*pet.B
 		id, pet_type, name, created_at, updated_at
 	`
 
-	if err := tx.QueryRowContext(ctx, sql, //nolint:execinquery
+	if err := tx.QueryRowContext(ctx, sql,
 		breed.Name,
 		breed.PetType,
 	).Scan(

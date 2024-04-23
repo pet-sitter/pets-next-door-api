@@ -48,7 +48,7 @@ func WriteSOSPost(
 	ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest,
 ) (*sospost.SOSPost, *pnd.AppError) {
 	sosPost := &sospost.SOSPost{}
-	err := tx.QueryRowContext(ctx, writeSOSPostQuery, //nolint:execinquery
+	err := tx.QueryRowContext(ctx, writeSOSPostQuery,
 		authorID,
 		request.Title,
 		request.Content,
@@ -87,7 +87,7 @@ func WriteSOSPost(
 
 	for _, date := range request.Dates {
 		sosDate := sospost.SOSDates{}
-		if err := tx.QueryRowContext(ctx, sql2, //nolint:execinquery
+		if err := tx.QueryRowContext(ctx, sql2,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(
@@ -501,7 +501,7 @@ func UpdateSOSPost(
 		thumbnail_id
 	`
 
-	if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
+	if err := tx.QueryRowContext(ctx, query,
 		request.Title,
 		request.Content,
 		request.Reward,
@@ -554,7 +554,7 @@ func updateSOSPostsDates(ctx context.Context, tx *database.Tx, postID int, dates
 	sosDates := []sospost.SOSDates{}
 	for _, date := range dates {
 		sosDate := sospost.SOSDates{}
-		if err := tx.QueryRowContext(ctx, query, //nolint:execinquery
+		if err := tx.QueryRowContext(ctx, query,
 			date.DateStartAt,
 			date.DateEndAt,
 		).Scan(

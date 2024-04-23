@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 
@@ -30,12 +34,14 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, err
 	}
 
-	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUID)
-	if err != nil {
-		return nil, err
+	userData, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+		FbUid: utils.StrToNullStr(fbUID),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
-	sosPost, err := postgres.WriteSOSPost(ctx, tx, userID, request)
+	sosPost, err := postgres.WriteSOSPost(ctx, tx, int(userData.ID), request)
 	if err != nil {
 		return nil, err
 	}
@@ -89,12 +95,20 @@ func (service *SOSPostService) FindSOSPosts(
 	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
-		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
+		author, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+			ID:             utils.IntToNullInt32(sosPost.AuthorID),
+			IncludeDeleted: true,
+		})
 		if err != nil {
-			return nil, err
+			return nil, pnd.FromPostgresError(err)
 		}
+
 		sosPostView := sosPost.ToFindSOSPostInfoView(
-			author.ToUserWithoutPrivateInfo(),
+			&user.UserWithoutPrivateInfo{
+				ID:              int(author.ID),
+				Nickname:        author.Nickname,
+				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
+			},
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToPetViewList(),
@@ -123,12 +137,20 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
 
 	for _, sosPost := range sosPosts.Items {
-		author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
+		author, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+			ID:             utils.IntToNullInt32(sosPost.AuthorID),
+			IncludeDeleted: true,
+		})
 		if err != nil {
-			return nil, err
+			return nil, pnd.FromPostgresError(err)
 		}
+
 		sosPostView := sosPost.ToFindSOSPostInfoView(
-			author.ToUserWithoutPrivateInfo(),
+			&user.UserWithoutPrivateInfo{
+				ID:              int(author.ID),
+				Nickname:        author.Nickname,
+				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
+			},
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToPetViewList(),
@@ -152,9 +174,12 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	author, err := postgres.FindUserByID(ctx, tx, sosPost.AuthorID, true)
-	if err != nil {
-		return nil, err
+	author, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+		ID:             utils.IntToNullInt32(sosPost.AuthorID),
+		IncludeDeleted: true,
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -162,7 +187,11 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 	}
 
 	return sosPost.ToFindSOSPostInfoView(
-		author.ToUserWithoutPrivateInfo(),
+		&user.UserWithoutPrivateInfo{
+			ID:              int(author.ID),
+			Nickname:        author.Nickname,
+			ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
+		},
 		sosPost.Media.ToMediaViewList(),
 		sosPost.Conditions.ToConditionViewList(),
 		sosPost.Pets.ToPetViewList(),
@@ -225,9 +254,11 @@ func (service *SOSPostService) CheckUpdatePermission(
 		return false, err
 	}
 
-	userID, err := postgres.FindUserIDByFbUID(ctx, tx, fbUID)
-	if err != nil {
-		return false, err
+	userData, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+		FbUid: utils.StrToNullStr(fbUID),
+	})
+	if err2 != nil {
+		return false, pnd.FromPostgresError(err2)
 	}
 
 	sosPost, err := postgres.FindSOSPostByID(ctx, tx, sosPostID)
@@ -239,5 +270,5 @@ func (service *SOSPostService) CheckUpdatePermission(
 		return false, err
 	}
 
-	return userID == sosPost.AuthorID, nil
+	return int(userData.ID) == sosPost.AuthorID, nil
 }
