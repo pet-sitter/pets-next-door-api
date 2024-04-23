@@ -21,12 +21,15 @@ FROM users
      media
      ON
          users.profile_image_id = media.id
-WHERE (users.nickname = $1 OR $1 IS NULL)
-  AND users.deleted_at IS NULL
+WHERE (users.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
+  AND (users.nickname = sqlc.narg('nickname') OR sqlc.narg('nickname') IS NULL)
+  AND (users.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
+  AND (users.fb_uid = sqlc.narg('fb_uid') OR sqlc.narg('fb_uid') IS NULL)
+  AND (users.deleted_at IS NULL OR sqlc.arg('include_deleted')::boolean = TRUE)
 ORDER BY users.created_at DESC
-LIMIT $2 OFFSET $3;
+LIMIT $1 OFFSET $2;
 
--- name: FindUsersByID :one
+-- name: FindUser :one
 SELECT users.id,
        users.email,
        users.nickname,
@@ -42,50 +45,11 @@ FROM users
      media
      ON
          users.profile_image_id = media.id
-WHERE users.id = $1
-  AND (users.deleted_at IS NULL OR $2);
-
--- name: FindUserByEmail :one
-SELECT users.id,
-       users.email,
-       users.nickname,
-       users.fullname,
-       media.url AS profile_image_url,
-       users.fb_provider_type,
-       users.fb_uid,
-       users.created_at,
-       users.updated_at
-FROM users
-         LEFT OUTER JOIN
-     media
-     ON
-         users.profile_image_id = media.id
-WHERE users.email = $1
-  AND users.deleted_at IS NULL;
-
--- name: FindUserByUID :one
-SELECT users.id,
-       users.email,
-       users.nickname,
-       users.fullname,
-       media.url AS profile_image_url,
-       users.fb_provider_type,
-       users.fb_uid,
-       users.created_at,
-       users.updated_at
-FROM users
-         LEFT JOIN
-     media
-     ON
-         users.profile_image_id = media.id
-WHERE users.fb_uid = $1
-  AND users.deleted_at IS NULL;
-
--- name: FindUserIDByFbUID :one
-SELECT id
-FROM users
-WHERE fb_uid = $1
-  AND deleted_at IS NULL;
+WHERE (users.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
+  AND (users.nickname = sqlc.narg('nickname') OR sqlc.narg('nickname') IS NULL)
+  AND (users.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
+  AND (users.fb_uid = sqlc.narg('fb_uid') OR sqlc.narg('fb_uid') IS NULL)
+  AND (users.deleted_at IS NULL OR sqlc.arg('include_deleted')::boolean = TRUE);
 
 -- name: ExistsUserByNickname :one
 SELECT CASE
@@ -98,13 +62,7 @@ SELECT CASE
            ELSE FALSE
            END;
 
--- name: FindUserStatusByEmail :one
-SELECT fb_provider_type
-FROM users
-WHERE email = $1
-  AND deleted_at IS NULL;
-
--- name: UpdateUserByUID :one
+-- name: UpdateUserByFbUID :one
 UPDATE
     users
 SET nickname         = $1,
@@ -123,7 +81,7 @@ RETURNING
     created_at,
     updated_at;
 
--- name: DeleteUserByUID :exec
+-- name: DeleteUserByFbUID :exec
 UPDATE
     users
 SET deleted_at = NOW()

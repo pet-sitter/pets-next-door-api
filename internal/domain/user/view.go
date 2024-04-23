@@ -1,5 +1,7 @@
 package user
 
+import databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+
 type RegisterUserRequest struct {
 	Email                string               `json:"email" validate:"required,email"`
 	Nickname             string               `json:"nickname" validate:"required"`
@@ -19,15 +21,15 @@ type RegisterUserView struct {
 	FirebaseUID          string               `json:"fbUid"`
 }
 
-func (u *User) ToRegisterUserView(profileImageURL *string) *RegisterUserView {
+func ToRegisterUserView(u *databasegen.CreateUserRow, profileImageURL *string) *RegisterUserView {
 	return &RegisterUserView{
-		ID:                   u.ID,
+		ID:                   int(u.ID),
 		Email:                u.Email,
 		Nickname:             u.Nickname,
 		Fullname:             u.Fullname,
 		ProfileImageURL:      profileImageURL,
-		FirebaseProviderType: u.FirebaseProviderType,
-		FirebaseUID:          u.FirebaseUID,
+		FirebaseProviderType: FirebaseProviderType(u.FbProviderType.String),
+		FirebaseUID:          u.FbUid.String,
 	}
 }
 
