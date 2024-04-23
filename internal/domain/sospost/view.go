@@ -87,25 +87,25 @@ func (p *SOSPost) ToWriteSOSPostView(
 }
 
 type FindSOSPostView struct {
-	ID          int                          `json:"id"`
-	Author      *user.UserWithoutPrivateInfo `json:"author"`
-	Title       string                       `json:"title"`
-	Content     string                       `json:"content"`
-	Media       media.MediaViewList          `json:"media"`
-	Conditions  []ConditionView              `json:"conditions"`
-	Pets        []pet.PetView                `json:"pets"`
-	Reward      string                       `json:"reward"`
-	Dates       []SOSDateView                `json:"dates"`
-	CareType    CareType                     `json:"careType"`
-	CarerGender CarerGender                  `json:"carerGender"`
-	RewardType  RewardType                   `json:"rewardType"`
-	ThumbnailID int                          `json:"thumbnailId"`
-	CreatedAt   string                       `json:"createdAt"`
-	UpdatedAt   string                       `json:"updatedAt"`
+	ID          int                      `json:"id"`
+	Author      *user.WithoutPrivateInfo `json:"author"`
+	Title       string                   `json:"title"`
+	Content     string                   `json:"content"`
+	Media       media.MediaViewList      `json:"media"`
+	Conditions  []ConditionView          `json:"conditions"`
+	Pets        []pet.PetView            `json:"pets"`
+	Reward      string                   `json:"reward"`
+	Dates       []SOSDateView            `json:"dates"`
+	CareType    CareType                 `json:"careType"`
+	CarerGender CarerGender              `json:"carerGender"`
+	RewardType  RewardType               `json:"rewardType"`
+	ThumbnailID int                      `json:"thumbnailId"`
+	CreatedAt   string                   `json:"createdAt"`
+	UpdatedAt   string                   `json:"updatedAt"`
 }
 
 func (p *SOSPost) ToFindSOSPostView(
-	author *user.UserWithoutPrivateInfo,
+	author *user.WithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
@@ -151,7 +151,7 @@ func FromEmptySOSPostInfoList(sosPosts *SOSPostInfoList) *FindSOSPostListView {
 }
 
 func (p *SOSPostInfo) ToFindSOSPostInfoView(
-	author *user.UserWithoutPrivateInfo,
+	author *user.WithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
 	pets []pet.PetView,
