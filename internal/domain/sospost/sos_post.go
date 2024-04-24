@@ -59,7 +59,7 @@ type SOSPostInfo struct {
 	Content     string                 `field:"content" json:"content"`
 	Media       media.MediaList        `field:"media" json:"media"`
 	Conditions  ConditionList          `field:"conditions" json:"conditions"`
-	Pets        pet.PetWithProfileList `field:"pets" json:"pets"`
+	Pets        pet.ViewListForSOSPost `field:"pets" json:"pets"`
 	Reward      string                 `field:"reward" json:"reward"`
 	Dates       SOSDatesList           `field:"dates" json:"dates"`
 	CareType    CareType               `field:"careType" json:"careType"`

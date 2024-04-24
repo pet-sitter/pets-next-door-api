@@ -73,7 +73,7 @@ func (service *SOSPostService) WriteSOSPost(
 	return sosPost.ToWriteSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
-		pets.ToPetViewList(),
+		pets.ToDetailViewList(),
 		dates.ToSOSDateViewList(),
 	), nil
 }
@@ -111,7 +111,7 @@ func (service *SOSPostService) FindSOSPosts(
 			},
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
-			sosPost.Pets.ToPetViewList(),
+			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
 		)
 
@@ -153,7 +153,7 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 			},
 			sosPost.Media.ToMediaViewList(),
 			sosPost.Conditions.ToConditionViewList(),
-			sosPost.Pets.ToPetViewList(),
+			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
 		)
 
@@ -194,7 +194,7 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 		},
 		sosPost.Media.ToMediaViewList(),
 		sosPost.Conditions.ToConditionViewList(),
-		sosPost.Pets.ToPetViewList(),
+		sosPost.Pets.ToDetailViewList(),
 		sosPost.Dates.ToSOSDateViewList(),
 	), nil
 }
@@ -240,7 +240,7 @@ func (service *SOSPostService) UpdateSOSPost(
 	return updateSOSPost.ToUpdateSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
-		pets.ToPetViewList(),
+		pets.ToDetailViewList(),
 		dates.ToSOSDateViewList(),
 	), nil
 }

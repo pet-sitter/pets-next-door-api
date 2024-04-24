@@ -742,7 +742,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 	return &conditions, nil
 }
 
-func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithProfileList, *pnd.AppError) {
+func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.ViewListForSOSPost, *pnd.AppError) {
 	const query = `
 	SELECT
 		pets.id,
@@ -774,7 +774,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithPro
 
 	`
 
-	pets := pet.PetWithProfileList{}
+	pets := pet.ViewListForSOSPost{}
 	rows, err := tx.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -782,7 +782,7 @@ func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetWithPro
 	defer rows.Close()
 
 	for rows.Next() {
-		petData := pet.PetWithProfileImage{}
+		petData := pet.ViewForSOSPost{}
 		if err := rows.Scan(
 			&petData.ID,
 			&petData.OwnerID,
