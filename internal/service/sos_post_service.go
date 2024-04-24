@@ -105,7 +105,7 @@ func (service *SOSPostService) FindSOSPosts(
 
 		sosPostView := sosPost.ToFindSOSPostInfoView(
 			&user.WithoutPrivateInfo{
-				ID:              int(author.ID),
+				ID:              int64(author.ID),
 				Nickname:        author.Nickname,
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
@@ -147,7 +147,7 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 
 		sosPostView := sosPost.ToFindSOSPostInfoView(
 			&user.WithoutPrivateInfo{
-				ID:              int(author.ID),
+				ID:              int64(author.ID),
 				Nickname:        author.Nickname,
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
@@ -188,7 +188,7 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 
 	return sosPost.ToFindSOSPostInfoView(
 		&user.WithoutPrivateInfo{
-			ID:              int(author.ID),
+			ID:              int64(author.ID),
 			Nickname:        author.Nickname,
 			ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 		},
