@@ -49,7 +49,8 @@ WHERE (users.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
   AND (users.nickname = sqlc.narg('nickname') OR sqlc.narg('nickname') IS NULL)
   AND (users.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
   AND (users.fb_uid = sqlc.narg('fb_uid') OR sqlc.narg('fb_uid') IS NULL)
-  AND (users.deleted_at IS NULL OR sqlc.arg('include_deleted')::boolean = TRUE);
+  AND (users.deleted_at IS NULL OR sqlc.arg('include_deleted')::boolean = TRUE)
+LIMIT 1;
 
 -- name: ExistsUserByNickname :one
 SELECT CASE
