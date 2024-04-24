@@ -237,7 +237,7 @@ func (h *UserHandler) AddMyPets(c echo.Context) error {
 // @Tags users,pets
 // @Produce json
 // @Security FirebaseAuth
-// @Success 200 {object} pet.FindMyPetsView
+// @Success 200 {object} pet.ListView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -245,9 +245,11 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	uid := foundUser.FirebaseUID
-
-	res, err := h.userService.FindPetsByOwnerUID(c.Request().Context(), uid)
+	res, err := h.userService.FindPets(c.Request().Context(), pet.FindPetsParams{
+		Page:    1,
+		Size:    100,
+		OwnerID: &foundUser.ID,
+	})
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -264,7 +266,7 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 // @Security FirebaseAuth
 // @Param petID path int true "반려동물 ID"
 // @Param request body pet.UpdatePetRequest true "반려동물 수정 요청"
-// @Success 200 {object} pet.PetView
+// @Success 200 {object} pet.DetailView
 // @Router /users/me/pets/{petID} [put]
 func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -283,7 +285,7 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.userService.UpdatePet(c.Request().Context(), uid, *petID, updatePetRequest)
+	res, err := h.userService.UpdatePet(c.Request().Context(), uid, int64(*petID), updatePetRequest)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -311,7 +313,7 @@ func (h *UserHandler) DeleteMyPet(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	if err := h.userService.DeletePet(c.Request().Context(), uid, *petID); err != nil {
+	if err := h.userService.DeletePet(c.Request().Context(), uid, int64(*petID)); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 

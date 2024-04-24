@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/tests/assert"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
+	"github.com/shopspring/decimal"
 )
 
 //nolint:gocognit
@@ -304,20 +308,23 @@ func TestUserService(t *testing.T) {
 
 			owner := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 			profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-			pets := pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*tests.GenerateDummyAddPetRequest(&profileImage.ID)}}
-
-			// When
-			userService.AddPetsToOwner(ctx, owner.FirebaseUID, pets)
-
-			// Then
-			found, _ := userService.FindPetsByOwnerUID(ctx, owner.FirebaseUID)
-			if len(found.Pets) != 1 {
-				t.Errorf("got %v want %v", len(found.Pets), 1)
+			petsToAdd := pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
+					*tests.GenerateDummyAddPetRequest(&profileImage.ID),
+				},
 			}
 
-			for _, expected := range pets.Pets {
-				for _, found := range found.Pets {
-					assertPetRequestAndViewEquals(t, expected, found)
+			// When
+			created, _ := userService.AddPetsToOwner(ctx, owner.FirebaseUID, petsToAdd)
+
+			// Then
+			if len(created.Pets) != 1 {
+				t.Errorf("got %v want %v", len(created.Pets), 1)
+			}
+
+			for _, expected := range petsToAdd.Pets {
+				for _, found := range created.Pets {
+					assert.PetRequestAndViewEquals(t, expected, found)
 				}
 			}
 		})
@@ -332,35 +339,36 @@ func TestUserService(t *testing.T) {
 			// Given
 			mediaService := service.NewMediaService(db, nil)
 			userService := service.NewUserService(db, mediaService)
-			userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+			userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
 			petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
 			petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
 			createdPets, _ := userService.AddPetsToOwner(
-				ctx, userRequest.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
-			createdPet := createdPets[0]
+				ctx, userData.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			createdPet := createdPets.Pets[0]
 
 			// When
 			updatedPetProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+			birthData, _ := datatype.ParseDate("2021-01-01")
 			updatedPetRequest := pet.UpdatePetRequest{
 				Name:           "updated",
 				Neutered:       true,
 				Breed:          "updated",
-				BirthDate:      "2021-01-01",
-				WeightInKg:     10.0,
+				BirthDate:      birthData,
+				WeightInKg:     decimal.NewFromFloat(10.0),
 				Remarks:        "updated",
 				ProfileImageID: &updatedPetProfileImage.ID,
 			}
 
-			userService.UpdatePet(ctx, userRequest.FirebaseUID, createdPet.ID, updatedPetRequest)
+			userService.UpdatePet(ctx, userData.FirebaseUID, createdPet.ID, updatedPetRequest)
 
 			// Then
-			found, _ := userService.FindPetsByOwnerUID(ctx, userRequest.FirebaseUID)
+			found, _ := userService.FindPets(ctx, pet.FindPetsParams{OwnerID: &userData.ID})
 			if len(found.Pets) != 1 {
 				t.Errorf("got %v want %v", len(found.Pets), 1)
 			}
 
-			assertUpdatedPetEquals(t, updatedPetRequest, found.Pets[0])
+			assert.UpdatedPetEquals(t, updatedPetRequest, found.Pets[0])
 		})
 	})
 
@@ -373,81 +381,33 @@ func TestUserService(t *testing.T) {
 			// Given
 			mediaService := service.NewMediaService(db, nil)
 			userService := service.NewUserService(db, mediaService)
-			userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+			userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
 			petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
 			petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
-			createdPets, _ := userService.AddPetsToOwner(
+			createdPets, err := userService.AddPetsToOwner(
 				ctx,
-				userRequest.FirebaseUID,
+				userData.FirebaseUID,
 				pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}},
 			)
-			createdPet := createdPets[0]
+			if err != nil {
+				t.Fatalf("got %v want %v", err, nil)
+			}
+			createdPet := createdPets.Pets[0]
 
 			// When
-			userService.DeletePet(ctx, userRequest.FirebaseUID, createdPet.ID)
+			err = userService.DeletePet(ctx, userData.FirebaseUID, createdPet.ID)
+			if err != nil {
+				t.Fatalf("got %v want %v", err, nil)
+			}
 
 			// Then
-			found, _ := userService.FindPetsByOwnerUID(ctx, userRequest.FirebaseUID)
+			found, _ := userService.FindPets(ctx, pet.FindPetsParams{
+				OwnerID: &userData.ID,
+			})
 			if len(found.Pets) != 0 {
-				t.Errorf("got %v want %v", len(found.Pets), 0)
+				t.Fatalf("got %v want %v", len(found.Pets), 0)
 			}
 		})
 	})
-}
-
-func assertPetRequestAndViewEquals(t *testing.T, expected pet.AddPetRequest, found pet.PetView) {
-	t.Helper()
-
-	if expected.Name != found.Name {
-		t.Errorf("got %v want %v", expected.Name, found.Name)
-	}
-
-	if expected.PetType != found.PetType {
-		t.Errorf("got %v want %v", expected.PetType, found.PetType)
-	}
-
-	if expected.Sex != found.Sex {
-		t.Errorf("got %v want %v", expected.Sex, found.PetType)
-	}
-
-	if expected.Neutered != found.Neutered {
-		t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
-	}
-
-	if expected.Breed != found.Breed {
-		t.Errorf("got %v want %v", expected.Breed, found.Breed)
-	}
-
-	if expected.BirthDate != found.BirthDate {
-		t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
-	}
-
-	if expected.WeightInKg != found.WeightInKg {
-		t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
-	}
-}
-
-func assertUpdatedPetEquals(t *testing.T, expected pet.UpdatePetRequest, found pet.PetView) {
-	t.Helper()
-
-	if expected.Name != found.Name {
-		t.Errorf("got %v want %v", expected.Name, found.Name)
-	}
-
-	if expected.Neutered != found.Neutered {
-		t.Errorf("got %v want %v", expected.Neutered, found.Neutered)
-	}
-
-	if expected.Breed != found.Breed {
-		t.Errorf("got %v want %v", expected.Breed, found.Breed)
-	}
-
-	if expected.BirthDate != found.BirthDate {
-		t.Errorf("got %v want %v", expected.BirthDate, found.BirthDate)
-	}
-
-	if expected.WeightInKg != found.WeightInKg {
-		t.Errorf("got %v want %v", expected.WeightInKg, found.WeightInKg)
-	}
 }

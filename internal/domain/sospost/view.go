@@ -33,14 +33,14 @@ func (cl *ConditionList) ToConditionViewList() []ConditionView {
 type WriteSOSPostRequest struct {
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
-	ImageIDs     []int         `json:"imageIds" validate:"required"`
+	ImageIDs     []int64       `json:"imageIds" validate:"required"`
 	Reward       string        `json:"reward"`
 	Dates        []SOSDateView `json:"dates" validate:"required"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
 	ConditionIDs []int         `json:"conditionIds"`
-	PetIDs       []int         `json:"petIds"`
+	PetIDs       []int64       `json:"petIds"`
 }
 
 type WriteSOSPostView struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
@@ -140,15 +141,36 @@ func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) *pn
 	return tx.Commit()
 }
 
+func (service *UserService) FindPet(
+	ctx context.Context, params pet.FindPetParams,
+) (*pet.WithProfileImage, *pnd.AppError) {
+	row, err := databasegen.New(service.conn).FindPet(ctx, params.ToDBParams())
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	return pet.ToWithProfileImage(row), nil
+}
+
+func (service *UserService) FindPets(ctx context.Context, params pet.FindPetsParams) (*pet.ListView, *pnd.AppError) {
+	rows, err := databasegen.New(service.conn).FindPets(ctx, params.ToDBParams())
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	return pet.ToListView(rows), nil
+}
+
 func (service *UserService) AddPetsToOwner(
 	ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest,
-) ([]pet.PetView, *pnd.AppError) {
+) (*pet.ListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
+	// 사용자가 존재하는지 확인
 	userData, err2 := databasegen.New(service.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(uid),
 	})
@@ -156,38 +178,65 @@ func (service *UserService) AddPetsToOwner(
 		return nil, pnd.FromPostgresError(err2)
 	}
 
-	pets := make(pet.PetWithProfileList, len(addPetsRequest.Pets))
-	for i, item := range addPetsRequest.Pets {
+	// 프로필 이미지 ID가 DB에 존재하는지 확인
+	for _, item := range addPetsRequest.Pets {
 		if item.ProfileImageID != nil {
 			if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
 				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
 			}
 		}
+	}
 
-		petToCreate := item.ToPet(int(userData.ID))
-		createdPet, err := postgres.CreatePet(ctx, tx, petToCreate)
+	// 사용자의 반려동물 추가
+	petIDs := make([]int32, 0, len(addPetsRequest.Pets))
+	for _, item := range addPetsRequest.Pets {
+		birthDate, err := time.Parse(time.DateOnly, item.BirthDate.String())
 		if err != nil {
-			return nil, err
+			return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", item.BirthDate.String()))
 		}
-		pets[i] = createdPet
+
+		petToCreate := databasegen.CreatePetParams{
+			OwnerID:        int64(userData.ID),
+			Name:           item.Name,
+			PetType:        string(item.PetType),
+			Sex:            string(item.Sex),
+			Neutered:       item.Neutered,
+			Breed:          item.Breed,
+			BirthDate:      birthDate,
+			WeightInKg:     item.WeightInKg.String(),
+			Remarks:        item.Remarks,
+			ProfileImageID: utils.IntPtrToNullInt64(item.ProfileImageID),
+		}
+		row, err := databasegen.New(service.conn).WithTx(tx.Tx).CreatePet(ctx, petToCreate)
+		if err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+		petIDs = append(petIDs, row.ID)
 	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	return pets.ToPetViewList(), nil
+	rows, err2 := databasegen.New(service.conn).FindPetsByIDs(ctx, databasegen.FindPetsByIDsParams{
+		Ids: petIDs,
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
+	}
+
+	return pet.ToListViewFromIDsRows(rows), nil
 }
 
 func (service *UserService) UpdatePet(
-	ctx context.Context, uid string, petID int, updatePetRequest pet.UpdatePetRequest,
-) (*pet.PetView, *pnd.AppError) {
+	ctx context.Context, uid string, petID int64, updatePetRequest pet.UpdatePetRequest,
+) (*pet.DetailView, *pnd.AppError) {
 	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid, IncludeDeleted: false})
 	if err != nil {
 		return nil, err
 	}
 
-	petToUpdate, err := service.findPetByID(ctx, petID)
+	petToUpdate, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID, IncludeDeleted: false})
 	if err != nil {
 		return nil, err
 	}
@@ -208,28 +257,42 @@ func (service *UserService) UpdatePet(
 		return nil, err
 	}
 
-	err = postgres.UpdatePet(ctx, tx, petID, &updatePetRequest)
-	if err != nil {
-		return nil, err
+	birthDate, err2 := time.Parse(time.DateOnly, updatePetRequest.BirthDate.String())
+	if err2 != nil {
+		return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", updatePetRequest.BirthDate.String()))
 	}
+
+	if err := databasegen.New(service.conn).WithTx(tx.Tx).UpdatePet(ctx, databasegen.UpdatePetParams{
+		ID:             int32(petID),
+		Name:           updatePetRequest.Name,
+		Neutered:       updatePetRequest.Neutered,
+		Breed:          updatePetRequest.Breed,
+		BirthDate:      birthDate,
+		WeightInKg:     updatePetRequest.WeightInKg.String(),
+		Remarks:        updatePetRequest.Remarks,
+		ProfileImageID: utils.IntPtrToNullInt64(updatePetRequest.ProfileImageID),
+	}); err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	updatedPet, err := service.findPetByID(ctx, petID)
+	updatedPet, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID, IncludeDeleted: false})
 	if err != nil {
 		return nil, err
 	}
-	return updatedPet.ToPetView(), nil
+	return updatedPet.ToDetailView(), nil
 }
 
-func (service *UserService) DeletePet(ctx context.Context, uid string, petID int) *pnd.AppError {
-	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid, IncludeDeleted: false})
+func (service *UserService) DeletePet(ctx context.Context, uid string, petID int64) *pnd.AppError {
+	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid})
 	if err != nil {
 		return err
 	}
 
-	petToDelete, err := service.findPetByID(ctx, petID)
+	petToDelete, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID})
 	if err != nil {
 		return err
 	}
@@ -244,55 +307,9 @@ func (service *UserService) DeletePet(ctx context.Context, uid string, petID int
 		return err
 	}
 
-	if err := postgres.DeletePet(ctx, tx, petID); err != nil {
-		return err
+	if err := databasegen.New(service.conn).WithTx(tx.Tx).DeletePet(ctx, int32(petID)); err != nil {
+		return pnd.FromPostgresError(err)
 	}
 
 	return tx.Commit()
-}
-
-func (service *UserService) FindPetsByOwnerUID(ctx context.Context, uid string) (*pet.FindMyPetsView, *pnd.AppError) {
-	userData, err2 := databasegen.New(service.conn).FindUser(ctx, databasegen.FindUserParams{
-		FbUid:          utils.StrToNullStr(uid),
-		IncludeDeleted: false,
-	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
-	}
-
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
-	if err != nil {
-		return nil, err
-	}
-
-	pets, err := postgres.FindPetsByOwnerID(ctx, tx, int(userData.ID))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return pets.ToFindMyPetsView(), nil
-}
-
-func (service *UserService) findPetByID(ctx context.Context, petID int) (*pet.PetWithProfileImage, *pnd.AppError) {
-	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
-	if err != nil {
-		return nil, err
-	}
-
-	petData, err := postgres.FindPetByID(ctx, tx, petID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return petData, nil
 }

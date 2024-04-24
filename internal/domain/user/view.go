@@ -7,7 +7,7 @@ import (
 )
 
 type InternalView struct {
-	ID                   int                  `json:"id"`
+	ID                   int64                `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
@@ -28,7 +28,7 @@ func (r *InternalView) ToMyProfileView() *MyProfileView {
 }
 
 type MyProfileView struct {
-	ID                   int                  `json:"id"`
+	ID                   int64                `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
@@ -60,14 +60,14 @@ func NewStatusView(providerType FirebaseProviderType) *StatusView {
 }
 
 type WithoutPrivateInfo struct {
-	ID              int     `json:"id"`
+	ID              int64   `json:"id"`
 	Nickname        string  `json:"nickname"`
 	ProfileImageURL *string `json:"profileImageUrl"`
 }
 
 func ToWithoutPrivateInfo(row databasegen.FindUserRow) *WithoutPrivateInfo {
 	return &WithoutPrivateInfo{
-		ID:              int(row.ID),
+		ID:              int64(row.ID),
 		Nickname:        row.Nickname,
 		ProfileImageURL: utils.NullStrToStrPtr(row.ProfileImageUrl),
 	}
@@ -84,7 +84,7 @@ func ToListWithoutPrivateInfo(page, size int, rows []databasegen.FindUsersRow) *
 
 	for _, row := range rows {
 		ul.Items = append(ul.Items, WithoutPrivateInfo{
-			ID:              int(row.ID),
+			ID:              int64(row.ID),
 			Nickname:        row.Nickname,
 			ProfileImageURL: utils.NullStrToStrPtr(row.ProfileImageUrl),
 		})
