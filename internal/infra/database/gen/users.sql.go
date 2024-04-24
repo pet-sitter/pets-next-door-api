@@ -125,6 +125,7 @@ WHERE (users.id = $1 OR $1 IS NULL)
   AND (users.email = $3 OR $3 IS NULL)
   AND (users.fb_uid = $4 OR $4 IS NULL)
   AND (users.deleted_at IS NULL OR $5::boolean = TRUE)
+LIMIT 1
 `
 
 type FindUserParams struct {
