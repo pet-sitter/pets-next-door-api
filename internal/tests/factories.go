@@ -3,9 +3,11 @@ package tests
 import (
 	"fmt"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	"github.com/shopspring/decimal"
 )
 
 func GenerateDummyRegisterUserRequest(profileImageID *int) *user.RegisterUserRequest {
@@ -20,19 +22,24 @@ func GenerateDummyRegisterUserRequest(profileImageID *int) *user.RegisterUserReq
 }
 
 func GenerateDummyAddPetRequest(profileImageID *int) *pet.AddPetRequest {
+	birthDate, _ := datatype.ParseDate("2020-01-01")
 	return &pet.AddPetRequest{
 		Name:           "name",
 		PetType:        "dog",
 		Sex:            "male",
 		Neutered:       true,
 		Breed:          "poodle",
-		BirthDate:      "2020-01-01",
-		WeightInKg:     10.0,
+		BirthDate:      birthDate,
+		WeightInKg:     decimal.NewFromFloat(10.0),
 		ProfileImageID: profileImageID,
 	}
 }
 
 func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
+	birthDate1, _ := datatype.ParseDate("2020-01-01")
+	birthDate2, _ := datatype.ParseDate("2020-02-01")
+	birthDate3, _ := datatype.ParseDate("2020-03-01")
+
 	return []pet.AddPetRequest{
 		{
 			Name:           "dog_1",
@@ -40,8 +47,8 @@ func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
 			Sex:            "male",
 			Neutered:       true,
 			Breed:          "poodle",
-			BirthDate:      "2020-01-01",
-			WeightInKg:     10.0,
+			BirthDate:      birthDate1,
+			WeightInKg:     decimal.NewFromFloat(10.0),
 			Remarks:        "remarks",
 			ProfileImageID: profileImageID,
 		},
@@ -51,8 +58,8 @@ func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
 			Sex:            "male",
 			Neutered:       true,
 			Breed:          "poodle",
-			BirthDate:      "2020-02-01",
-			WeightInKg:     10.0,
+			BirthDate:      birthDate2,
+			WeightInKg:     decimal.NewFromFloat(10.0),
 			Remarks:        "remarks",
 			ProfileImageID: profileImageID,
 		},
@@ -62,15 +69,15 @@ func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
 			Sex:            "female",
 			Neutered:       true,
 			Breed:          "munchkin",
-			BirthDate:      "2020-03-01",
-			WeightInKg:     8.0,
+			BirthDate:      birthDate3,
+			WeightInKg:     decimal.NewFromFloat(8.0),
 			Remarks:        "remarks",
 			ProfileImageID: profileImageID,
 		},
 	}
 }
 
-func GenerateDummyWriteSOSPostRequest(imageID, petIDs []int, sosPostCnt int) *sospost.WriteSOSPostRequest {
+func GenerateDummyWriteSOSPostRequest(imageID, petIDs []int64, sosPostCnt int) *sospost.WriteSOSPostRequest {
 	return &sospost.WriteSOSPostRequest{
 		Title:    fmt.Sprintf("Title%d", sosPostCnt),
 		Content:  fmt.Sprintf("Content%d", sosPostCnt),

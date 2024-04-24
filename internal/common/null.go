@@ -69,3 +69,10 @@ func IntPtrToNullInt32(val *int) sql.NullInt32 {
 		Valid: IsNotNil(val),
 	}
 }
+
+func Int64PtrToNullInt32(val *int64) sql.NullInt32 {
+	return sql.NullInt32{
+		Int32: int32(DerefOrEmpty(val)),
+		Valid: IsNotNil(val),
+	}
+}

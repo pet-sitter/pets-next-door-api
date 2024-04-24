@@ -47,16 +47,16 @@ func AddDummyPet(
 	userService *service.UserService,
 	ownerUID string,
 	profileImageID *int,
-) *pet.PetView {
+) *pet.DetailView {
 	t.Helper()
-	pets, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
+	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
 		Pets: []pet.AddPetRequest{*GenerateDummyAddPetRequest(profileImageID)},
 	})
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)
 	}
 
-	return &pets[0]
+	return &petList.Pets[0]
 }
 
 func AddDummyPets(
@@ -65,16 +65,16 @@ func AddDummyPets(
 	userService *service.UserService,
 	ownerUID string,
 	profileImageID *int,
-) []pet.PetView {
+) pet.ListView {
 	t.Helper()
-	pets, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
+	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
 		Pets: GenerateDummyAddPetsRequest(profileImageID),
 	})
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)
 	}
 
-	return pets
+	return *petList
 }
 
 func WriteDummySOSPosts(
@@ -82,8 +82,8 @@ func WriteDummySOSPosts(
 	ctx context.Context,
 	sosPostService *service.SOSPostService,
 	uid string,
-	imageID []int,
-	petIDs []int,
+	imageID []int64,
+	petIDs []int64,
 	sosPostCnt int,
 ) *sospost.WriteSOSPostView {
 	t.Helper()

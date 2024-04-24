@@ -7,11 +7,13 @@ import (
 	"flag"
 	"log"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/breed"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
+
 	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breedsimporterservice"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
@@ -40,16 +42,16 @@ func main() {
 	switch flags.petTypeToImport {
 	case Cat:
 		catRows := client.GetCatNames(spreadsheet)
-		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
+		importBreeds(ctx, db, commonvo.PetTypeCat, &catRows)
 	case Dog:
 		dogRows := client.GetDogNames(spreadsheet)
-		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)
+		importBreeds(ctx, db, commonvo.PetTypeDog, &dogRows)
 	case All:
 		catRows := client.GetCatNames(spreadsheet)
 		dogRows := client.GetDogNames(spreadsheet)
 
-		importBreeds(ctx, db, pet.PetTypeCat, &catRows)
-		importBreeds(ctx, db, pet.PetTypeDog, &dogRows)
+		importBreeds(ctx, db, commonvo.PetTypeCat, &catRows)
+		importBreeds(ctx, db, commonvo.PetTypeDog, &dogRows)
 	}
 
 	log.Println("Completed importing pet types to database")
@@ -90,11 +92,11 @@ func parseFlags() Flags {
 }
 
 func importBreed(
-	ctx context.Context, conn *database.DB, petType pet.PetType, row breedsimporterservice.Row,
-) (*pet.Breed, *pnd.AppError) {
+	ctx context.Context, conn *database.DB, petType commonvo.PetType, row breedsimporterservice.Row,
+) (*breed.Breed, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
-	var breed *pet.Breed
+	var breedData *breed.Breed
 	err := database.WithTransaction(ctx, conn, func(tx *database.Tx) *pnd.AppError {
 		existing, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, row.Breed)
 		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
@@ -108,20 +110,20 @@ func importBreed(
 				existing.PetType,
 				existing.Name,
 			)
-			breed = existing
+			breedData = existing
 			return nil
 		}
 
-		breed, err = postgres.CreateBreed(ctx, tx, &pet.Breed{PetType: petType, Name: row.Breed})
+		breedData, err = postgres.CreateBreed(ctx, tx, &breed.Breed{PetType: petType, Name: row.Breed})
 		if err != nil {
 			return err
 		}
 
 		log.Printf(
 			"Succeeded to import breed with id: %d, pet_type: %s, name: %s to database",
-			breed.ID,
-			breed.PetType,
-			breed.Name,
+			breedData.ID,
+			breedData.PetType,
+			breedData.Name,
 		)
 		return nil
 	})
@@ -129,14 +131,14 @@ func importBreed(
 		return nil, err
 	}
 
-	return breed, nil
+	return breedData, nil
 }
 
-func importBreeds(ctx context.Context, conn *database.DB, petType pet.PetType, rows *[]breedsimporterservice.Row) {
+func importBreeds(ctx context.Context, conn *database.DB, petType commonvo.PetType, rows *[]breedsimporterservice.Row) {
 	for _, row := range *rows {
-		breed, err := importBreed(ctx, conn, petType, row)
+		breedData, err := importBreed(ctx, conn, petType, row)
 		if err != nil {
-			log.Printf("Failed to import breed with pet_type: %s, name: %s to database", breed.PetType, breed.Name)
+			log.Printf("Failed to import breed with pet_type: %s, name: %s to database", breedData.PetType, breedData.Name)
 		}
 	}
 }

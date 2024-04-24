@@ -55,8 +55,8 @@ func TestSOSPostService(t *testing.T) {
 
 			// when
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
-			petIDs := []int{addPets.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			petIDs := []int64{addPets.ID}
 
 			sosPostData := tests.GenerateDummyWriteSOSPostRequest(imageIDs, petIDs, 0)
 			sosPost, err := sosPostService.WriteSOSPost(ctx, uid, sosPostData)
@@ -88,10 +88,10 @@ func TestSOSPostService(t *testing.T) {
 			if sosPost.RewardType != sosPostData.RewardType {
 				t.Errorf("got %v want %v", sosPost.RewardType, sosPostData.RewardType)
 			}
-			if sosPost.ThumbnailID != sosPostData.ImageIDs[0] {
+			if int64(sosPost.ThumbnailID) != sosPostData.ImageIDs[0] {
 				t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostData.ImageIDs[0])
 			}
-			if sosPost.AuthorID != owner.ID {
+			if int64(sosPost.AuthorID) != owner.ID {
 				t.Errorf("got %v want %v", sosPost.AuthorID, owner.ID)
 			}
 		})
@@ -120,8 +120,8 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
-			petIDs := []int{addPets.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			petIDs := []int64{addPets.ID}
 			conditionIDs := []int{1, 2}
 
 			var sosPosts []sospost.WriteSOSPostView
@@ -170,12 +170,12 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
 			conditionIDs := []int{1, 2}
 
 			var sosPosts []sospost.WriteSOSPostView
 			for i := 1; i < 4; i++ {
-				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[i-1].ID}, i)
+				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[i-1].ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
@@ -189,7 +189,7 @@ func TestSOSPostService(t *testing.T) {
 			for i, sosPost := range sosPostList.Items {
 				idx := len(sosPostList.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-				assertPetEquals(t, sosPost.Pets[i-1], addPets[i-1])
+				assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
 				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
@@ -219,23 +219,27 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
 			conditionIDs := []int{1, 2}
 
 			var sosPosts []sospost.WriteSOSPostView
 			// 강아지인 경우
 			for i := 1; i < 3; i++ {
-				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[i-1].ID}, i)
+				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[i-1].ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
 			// 고양이인 경우
 			sosPosts = append(sosPosts,
-				*tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[2].ID}, 3))
+				*tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[2].ID}, 3))
 
 			// 강아지, 고양이인 경우
 			sosPosts = append(sosPosts,
-				*tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPets[1].ID, addPets[2].ID}, 4))
+				*tests.WriteDummySOSPosts(t, ctx,
+					sosPostService, uid, imageIDs, []int64{addPets.Pets[1].ID, addPets.Pets[2].ID},
+					4,
+				),
+			)
 
 			// when
 			sosPostList, err := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
@@ -247,7 +251,7 @@ func TestSOSPostService(t *testing.T) {
 			for i, sosPost := range sosPostList.Items {
 				idx := len(sosPostList.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-				assertPetEquals(t, sosPost.Pets[i-1], addPets[i-1])
+				assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
 				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
@@ -276,17 +280,17 @@ func TestSOSPostService(t *testing.T) {
 			addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
 			conditionIDs := []int{1, 2}
 
 			sosPosts := make([]sospost.WriteSOSPostView, 0)
 			for i := 1; i < 4; i++ {
-				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPet.ID}, i)
+				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPet.ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
 			// when
-			sosPostListByAuthorID, err := sosPostService.FindSOSPostsByAuthorID(ctx, owner.ID, 1, 3, "newest", "all")
+			sosPostListByAuthorID, err := sosPostService.FindSOSPostsByAuthorID(ctx, int(owner.ID), 1, 3, "newest", "all")
 			if err != nil {
 				t.Errorf("got %v want %v", err, nil)
 			}
@@ -326,12 +330,12 @@ func TestSOSPostService(t *testing.T) {
 			addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int{sosPostImage.ID, sosPostImage2.ID}
+			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
 			conditionIDs := []int{1, 2}
 
 			sosPosts := make([]sospost.WriteSOSPostView, 0)
 			for i := 1; i < 4; i++ {
-				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int{addPet.ID}, i)
+				sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPet.ID}, i)
 				sosPosts = append(sosPosts, *sosPost)
 			}
 
@@ -370,7 +374,10 @@ func TestSOSPostService(t *testing.T) {
 			addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, []int{sosPostImage.ID}, []int{addPet.ID}, 1)
+			sosPost := tests.WriteDummySOSPosts(t, ctx,
+				sosPostService, uid, []int64{int64(sosPostImage.ID)}, []int64{addPet.ID},
+				1,
+			)
 
 			updateSOSPostData := &sospost.UpdateSOSPostRequest{
 				ID:       sosPost.ID,
@@ -386,7 +393,7 @@ func TestSOSPostService(t *testing.T) {
 				CarerGender:  sospost.CarerGenderMale,
 				RewardType:   sospost.RewardTypeFee,
 				ConditionIDs: []int{1, 2},
-				PetIDs:       []int{addPet.ID},
+				PetIDs:       []int{int(addPet.ID)},
 			}
 
 			// when
@@ -421,7 +428,7 @@ func TestSOSPostService(t *testing.T) {
 			if updateSOSPost.ThumbnailID != sosPostImage.ID {
 				t.Errorf("got %v want %v", updateSOSPost.ThumbnailID, sosPostImage.ID)
 			}
-			if updateSOSPost.AuthorID != owner.ID {
+			if int64(updateSOSPost.AuthorID) != owner.ID {
 				t.Errorf("got %v want %v", updateSOSPost.AuthorID, owner.ID)
 			}
 		})
@@ -464,11 +471,52 @@ func assertConditionEquals(t *testing.T, got []sospost.ConditionView, want []int
 	}
 }
 
-func assertPetEquals(t *testing.T, got, want pet.PetView) {
+func assertPetEquals(t *testing.T, got pet.PetView, want pet.DetailView) {
 	t.Helper()
 
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v want %v", got, want)
+	if int64(got.ID) != want.ID {
+		t.Errorf("got %v want %v", got.ID, want.ID)
+	}
+
+	if got.Name != want.Name {
+		t.Errorf("got %v want %v", got.Name, want.Name)
+	}
+
+	if got.PetType != want.PetType {
+		t.Errorf("got %v want %v", got.PetType, want.PetType)
+	}
+
+	if got.Sex != want.Sex {
+		t.Errorf("got %v want %v", got.Sex, want.Sex)
+	}
+
+	if got.Neutered != want.Neutered {
+		t.Errorf("got %v want %v", got.Neutered, want.Neutered)
+	}
+
+	if got.Breed != want.Breed {
+		t.Errorf("got %v want %v", got.Breed, want.Breed)
+	}
+
+	if got.BirthDate != want.BirthDate {
+		t.Errorf("got %v want %v", got.BirthDate, want.BirthDate)
+	}
+
+	if got.WeightInKg.String() != want.WeightInKg.String() {
+		t.Errorf("got %v want %v", got.WeightInKg, want.WeightInKg)
+	}
+
+	if got.Remarks != want.Remarks {
+		t.Errorf("got %v want %v", got.Remarks, want.Remarks)
+	}
+
+	switch {
+	case got.ProfileImageURL == nil && want.ProfileImageURL != nil:
+		t.Errorf("got %v want %v", got.ProfileImageURL, want.ProfileImageURL)
+	case got.ProfileImageURL != nil && want.ProfileImageURL == nil:
+		t.Errorf("got %v want %v", got.ProfileImageURL, want.ProfileImageURL)
+	case *got.ProfileImageURL != *want.ProfileImageURL:
+		t.Errorf("got %v want %v", *got.ProfileImageURL, *want.ProfileImageURL)
 	}
 }
 

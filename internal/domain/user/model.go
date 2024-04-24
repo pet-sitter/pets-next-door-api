@@ -26,7 +26,7 @@ func (f FirebaseProviderType) NullString() sql.NullString {
 }
 
 type WithProfileImage struct {
-	ID                   int
+	ID                   int64
 	Email                string
 	Password             string
 	Nickname             string
@@ -41,7 +41,7 @@ type WithProfileImage struct {
 
 func ToWithProfileImage(row databasegen.FindUserRow) *WithProfileImage {
 	return &WithProfileImage{
-		ID:                   int(row.ID),
+		ID:                   int64(row.ID),
 		Email:                row.Email,
 		Nickname:             row.Nickname,
 		Fullname:             row.Fullname,
