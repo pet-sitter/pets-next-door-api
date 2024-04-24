@@ -11,41 +11,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type BasePet struct {
-	ID         int              `field:"id" json:"id"`
-	OwnerID    int              `field:"owner_id" json:"owner_id"`
-	Name       string           `field:"name" json:"name"`
-	PetType    commonvo.PetType `field:"pet_type" json:"pet_type"`
-	Sex        PetSex           `field:"sex" json:"sex"`
-	Neutered   bool             `field:"neutered" json:"neutered"`
-	Breed      string           `field:"breed" json:"breed"`
-	BirthDate  datatype.Date    `field:"birth_date" json:"birth_date"`
-	WeightInKg decimal.Decimal  `field:"weight_in_kg" json:"weight_in_kg"`
-	Remarks    string           `field:"remarks" json:"remarks"`
-	CreatedAt  string           `field:"created_at" json:"created_at"`
-	UpdatedAt  string           `field:"updated_at" json:"updated_at"`
-	DeletedAt  string           `field:"deleted_at" json:"deleted_at"`
-}
-
-type Pet struct {
-	BasePet
-	ProfileImageID *int `field:"profile_image_id"`
-}
-
-type PetList []*Pet
-
-type PetWithProfileImage struct {
-	BasePet
-	ProfileImageURL *string `field:"profile_image_url" json:"profile_image_url"`
-}
-
-type PetWithProfileList []*PetWithProfileImage
-
-type PetSex string
+type Gender string
 
 const (
-	PetSexMale   PetSex = "male"
-	PetSexFemale PetSex = "female"
+	GenderMale   Gender = "male"
+	GenderFemale Gender = "female"
 )
 
 type WithProfileImage struct {
@@ -53,7 +23,7 @@ type WithProfileImage struct {
 	OwnerID         int64
 	Name            string
 	PetType         commonvo.PetType
-	Sex             PetSex
+	Sex             Gender
 	Neutered        bool
 	Breed           string
 	BirthDate       datatype.Date
@@ -74,7 +44,7 @@ func ToWithProfileImage(row databasegen.FindPetRow) *WithProfileImage {
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
-		Sex:             PetSex(row.Sex),
+		Sex:             Gender(row.Sex),
 		Neutered:        row.Neutered,
 		Breed:           row.Breed,
 		BirthDate:       birthDate,
@@ -96,7 +66,7 @@ func ToWithProfileImageFromRows(row databasegen.FindPetsRow) *WithProfileImage {
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
-		Sex:             PetSex(row.Sex),
+		Sex:             Gender(row.Sex),
 		Neutered:        row.Neutered,
 		Breed:           row.Breed,
 		BirthDate:       birthDate,
@@ -118,7 +88,7 @@ func ToWithProfileImageFromIDsRows(row databasegen.FindPetsByIDsRow) *WithProfil
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
-		Sex:             PetSex(row.Sex),
+		Sex:             Gender(row.Sex),
 		Neutered:        row.Neutered,
 		Breed:           row.Breed,
 		BirthDate:       birthDate,
