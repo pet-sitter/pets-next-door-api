@@ -7,11 +7,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type PetView struct {
+type LegacyView struct {
 	ID              int              `json:"id"`
 	Name            string           `json:"name"`
 	PetType         commonvo.PetType `json:"petType"`
-	Sex             PetSex           `json:"sex"`
+	Sex             Gender           `json:"sex"`
 	Neutered        bool             `json:"neutered"`
 	Breed           string           `json:"breed"`
 	BirthDate       utils.Date       `json:"birthDate"`
@@ -20,48 +20,11 @@ type PetView struct {
 	ProfileImageURL *string          `json:"profileImageUrl"`
 }
 
-func (pet *Pet) ToPetView() *PetView {
-	return &PetView{
-		ID:         pet.ID,
-		Name:       pet.Name,
-		PetType:    pet.PetType,
-		Sex:        pet.Sex,
-		Neutered:   pet.Neutered,
-		Breed:      pet.Breed,
-		BirthDate:  pet.BirthDate,
-		WeightInKg: pet.WeightInKg,
-		Remarks:    pet.Remarks,
-	}
-}
-
-func (pets *PetList) ToPetViewList() []PetView {
-	petViews := make([]PetView, len(*pets))
-	for i, pet := range *pets {
-		petViews[i] = *pet.ToPetView()
-	}
-	return petViews
-}
-
-func (pet *PetWithProfileImage) ToPetView() *PetView {
-	return &PetView{
-		ID:              pet.ID,
-		Name:            pet.Name,
-		PetType:         pet.PetType,
-		Sex:             pet.Sex,
-		Neutered:        pet.Neutered,
-		Breed:           pet.Breed,
-		BirthDate:       pet.BirthDate,
-		WeightInKg:      pet.WeightInKg,
-		Remarks:         pet.Remarks,
-		ProfileImageURL: pet.ProfileImageURL,
-	}
-}
-
 type DetailView struct {
 	ID              int64            `json:"id"`
 	Name            string           `json:"name"`
 	PetType         commonvo.PetType `json:"petType"`
-	Sex             PetSex           `json:"sex"`
+	Sex             Gender           `json:"sex"`
 	Neutered        bool             `json:"neutered"`
 	Breed           string           `json:"breed"`
 	BirthDate       utils.Date       `json:"birthDate"`
@@ -103,12 +66,4 @@ func ToListViewFromIDsRows(rows []databasegen.FindPetsByIDsRow) *ListView {
 		pl.Pets[i] = *ToWithProfileImageFromIDsRows(row).ToDetailView()
 	}
 	return pl
-}
-
-func (pets *PetWithProfileList) ToPetViewList() []PetView {
-	petViews := make([]PetView, len(*pets))
-	for i, pet := range *pets {
-		petViews[i] = *pet.ToPetView()
-	}
-	return petViews
 }

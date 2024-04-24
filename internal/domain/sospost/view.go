@@ -50,7 +50,7 @@ type WriteSOSPostView struct {
 	Content     string              `json:"content"`
 	Media       media.MediaViewList `json:"media"`
 	Conditions  []ConditionView     `json:"conditions"`
-	Pets        []pet.PetView       `json:"pets"`
+	Pets        []pet.DetailView    `json:"pets"`
 	Reward      string              `json:"reward"`
 	Dates       []SOSDateView       `json:"dates"`
 	CareType    CareType            `json:"careType"`
@@ -64,7 +64,7 @@ type WriteSOSPostView struct {
 func (p *SOSPost) ToWriteSOSPostView(
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
-	pets []pet.PetView,
+	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *WriteSOSPostView {
 	return &WriteSOSPostView{
@@ -93,7 +93,7 @@ type FindSOSPostView struct {
 	Content     string                   `json:"content"`
 	Media       media.MediaViewList      `json:"media"`
 	Conditions  []ConditionView          `json:"conditions"`
-	Pets        []pet.PetView            `json:"pets"`
+	Pets        []pet.DetailView         `json:"pets"`
 	Reward      string                   `json:"reward"`
 	Dates       []SOSDateView            `json:"dates"`
 	CareType    CareType                 `json:"careType"`
@@ -108,7 +108,7 @@ func (p *SOSPost) ToFindSOSPostView(
 	author *user.WithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
-	pets []pet.PetView,
+	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
 	return &FindSOSPostView{
@@ -154,7 +154,7 @@ func (p *SOSPostInfo) ToFindSOSPostInfoView(
 	author *user.WithoutPrivateInfo,
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
-	pets []pet.PetView,
+	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
 	return &FindSOSPostView{
@@ -197,7 +197,7 @@ type UpdateSOSPostView struct {
 	Content     string              `json:"content"`
 	Media       media.MediaViewList `json:"media"`
 	Conditions  []ConditionView     `json:"conditions"`
-	Pets        []pet.PetView       `json:"pets"`
+	Pets        []pet.DetailView    `json:"pets"`
 	Reward      string              `json:"reward"`
 	Dates       []SOSDateView       `json:"dates"`
 	CareType    CareType            `json:"careType"`
@@ -211,7 +211,7 @@ type UpdateSOSPostView struct {
 func (p *SOSPost) ToUpdateSOSPostView(
 	mediaList media.MediaViewList,
 	conditions []ConditionView,
-	pets []pet.PetView,
+	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *UpdateSOSPostView {
 	return &UpdateSOSPostView{

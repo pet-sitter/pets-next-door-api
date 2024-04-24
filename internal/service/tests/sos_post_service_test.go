@@ -471,10 +471,10 @@ func assertConditionEquals(t *testing.T, got []sospost.ConditionView, want []int
 	}
 }
 
-func assertPetEquals(t *testing.T, got pet.PetView, want pet.DetailView) {
+func assertPetEquals(t *testing.T, got, want pet.DetailView) {
 	t.Helper()
 
-	if int64(got.ID) != want.ID {
+	if got.ID != want.ID {
 		t.Errorf("got %v want %v", got.ID, want.ID)
 	}
 
