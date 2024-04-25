@@ -11,7 +11,6 @@ import (
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -740,73 +739,6 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 	}
 
 	return &conditions, nil
-}
-
-func FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.ViewListForSOSPost, *pnd.AppError) {
-	const query = `
-	SELECT
-		pets.id,
-		pets.owner_id,
-		pets.name,
-		pets.pet_type,
-		pets.sex,
-		pets.neutered,
-		pets.breed,
-		pets.birth_date,
-		pets.weight_in_kg,
-		pets.remarks,
-		pets.created_at,
-		pets.updated_at,
-		media.url AS profile_image_url
-	FROM
-		pets
-	INNER JOIN
-		sos_posts_pets
-	ON
-		pets.id = sos_posts_pets.pet_id
-	LEFT JOIN
-		media
-	ON
-		pets.profile_image_id = media.id
-	WHERE
-		sos_posts_pets.sos_post_id = $1 AND
-		sos_posts_pets.deleted_at IS NULL;
-
-	`
-
-	pets := pet.ViewListForSOSPost{}
-	rows, err := tx.QueryContext(ctx, query, id)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		petData := pet.ViewForSOSPost{}
-		if err := rows.Scan(
-			&petData.ID,
-			&petData.OwnerID,
-			&petData.Name,
-			&petData.PetType,
-			&petData.Sex,
-			&petData.Neutered,
-			&petData.Breed,
-			&petData.BirthDate,
-			&petData.WeightInKg,
-			&petData.Remarks,
-			&petData.CreatedAt,
-			&petData.UpdatedAt,
-			&petData.ProfileImageURL,
-		); err != nil {
-			return nil, pnd.FromPostgresError(err)
-		}
-		pets = append(pets, &petData)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-
-	return &pets, nil
 }
 
 func FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*sospost.SOSDatesList, *pnd.AppError) {
