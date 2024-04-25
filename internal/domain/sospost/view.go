@@ -14,7 +14,7 @@ type WriteSOSPostRequest struct {
 	Content      string        `json:"content" validate:"required"`
 	ImageIDs     []int64       `json:"imageIds" validate:"required"`
 	Reward       string        `json:"reward"`
-	Dates        []SOSDateView `json:"dates" validate:"required"`
+	Dates        []SOSDateView `json:"dates" validate:"required,min=1"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
