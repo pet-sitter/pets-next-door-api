@@ -3,31 +3,33 @@ package breed
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
-type BreedView struct {
-	ID      int              `json:"id"`
+type DetailView struct {
+	ID      int64            `json:"id"`
 	PetType commonvo.PetType `json:"petType"`
 	Name    string           `json:"name"`
 }
 
-type BreedListView struct {
-	*pnd.PaginatedView[*BreedView]
+func ToDetailViewFromRows(row databasegen.FindBreedsRow) *DetailView {
+	return &DetailView{
+		ID:      int64(row.ID),
+		PetType: commonvo.PetType(row.PetType),
+		Name:    row.Name,
+	}
 }
 
-func (breeds *BreedList) ToBreedListView() *BreedListView {
-	breedViews := make([]*BreedView, len(breeds.Items))
-	for i, breed := range breeds.Items {
-		breedViews[i] = &BreedView{
-			ID:      breed.ID,
-			PetType: breed.PetType,
-			Name:    breed.Name,
-		}
+type ListView struct {
+	*pnd.PaginatedView[*DetailView]
+}
+
+func ToListViewFromRows(page, size int, rows []databasegen.FindBreedsRow) *ListView {
+	bl := &ListView{PaginatedView: pnd.NewPaginatedView(page, size, false, make([]*DetailView, len(rows)))}
+	for i, row := range rows {
+		bl.Items[i] = ToDetailViewFromRows(row)
 	}
 
-	return &BreedListView{
-		PaginatedView: pnd.NewPaginatedView(
-			breeds.Page, breeds.Size, breeds.IsLastPage, breedViews,
-		),
-	}
+	bl.CalcLastPage()
+	return bl
 }
