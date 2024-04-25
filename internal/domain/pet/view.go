@@ -48,6 +48,14 @@ func (pet *WithProfileImage) ToDetailView() *DetailView {
 	}
 }
 
+func ToDetailViewList(rows []databasegen.FindPetsBySOSPostIDRow) []DetailView {
+	pl := make([]DetailView, len(rows))
+	for i, row := range rows {
+		pl[i] = *ToWithProfileImageFromSOSPostIDRow(row).ToDetailView()
+	}
+	return pl
+}
+
 type ListView struct {
 	Pets []DetailView `json:"pets"`
 }

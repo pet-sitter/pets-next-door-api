@@ -125,7 +125,7 @@ type SOSPostStore interface {
 	FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*SOSPost, *pnd.AppError)
 	UpdateSOSPost(ctx context.Context, tx *database.Tx, request *UpdateSOSPostRequest) (*SOSPost, *pnd.AppError)
 	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*ConditionList, *pnd.AppError)
-	FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.PetList, *pnd.AppError)
+	FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.ViewListForSOSPost, *pnd.AppError)
 	WriteDates(ctx context.Context, tx *database.Tx, dates []string, sosPostID int) (*SOSDatesList, *pnd.AppError)
 	FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*SOSDatesList, *pnd.AppError)
 }

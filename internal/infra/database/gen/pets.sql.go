@@ -335,6 +335,89 @@ func (q *Queries) FindPetsByIDs(ctx context.Context, arg FindPetsByIDsParams) ([
 	return items, nil
 }
 
+const findPetsBySOSPostID = `-- name: FindPetsBySOSPostID :many
+SELECT pets.id,
+       pets.owner_id,
+       pets.name,
+       pets.pet_type,
+       pets.sex,
+       pets.neutered,
+       pets.breed,
+       pets.birth_date,
+       pets.weight_in_kg,
+       pets.remarks,
+       media.url AS profile_image_url,
+       pets.created_at,
+       pets.updated_at,
+       pets.deleted_at
+FROM pets
+         INNER JOIN
+     sos_posts_pets
+     ON
+         pets.id = sos_posts_pets.pet_id
+         LEFT JOIN
+     media
+     ON
+         pets.profile_image_id = media.id
+WHERE sos_posts_pets.sos_post_id = $1
+  AND sos_posts_pets.deleted_at IS NULL
+`
+
+type FindPetsBySOSPostIDRow struct {
+	ID              int32
+	OwnerID         int64
+	Name            string
+	PetType         string
+	Sex             string
+	Neutered        bool
+	Breed           string
+	BirthDate       time.Time
+	WeightInKg      string
+	Remarks         string
+	ProfileImageUrl sql.NullString
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       sql.NullTime
+}
+
+func (q *Queries) FindPetsBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) ([]FindPetsBySOSPostIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findPetsBySOSPostID, sosPostID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindPetsBySOSPostIDRow
+	for rows.Next() {
+		var i FindPetsBySOSPostIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.Name,
+			&i.PetType,
+			&i.Sex,
+			&i.Neutered,
+			&i.Breed,
+			&i.BirthDate,
+			&i.WeightInKg,
+			&i.Remarks,
+			&i.ProfileImageUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updatePet = `-- name: UpdatePet :exec
 UPDATE
     pets

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
@@ -56,9 +58,9 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, err
 	}
 
-	pets, err := postgres.FindPetsByID(ctx, tx, sosPost.ID)
-	if err != nil {
-		return nil, err
+	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(sosPost.ID))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	dates, err := postgres.FindDatesBySOSPostID(ctx, tx, sosPost.ID)
@@ -73,7 +75,7 @@ func (service *SOSPostService) WriteSOSPost(
 	return sosPost.ToWriteSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
-		pets.ToDetailViewList(),
+		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),
 	), nil
 }
@@ -223,9 +225,9 @@ func (service *SOSPostService) UpdateSOSPost(
 		return nil, err
 	}
 
-	pets, err := postgres.FindPetsByID(ctx, tx, updateSOSPost.ID)
-	if err != nil {
-		return nil, err
+	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(updateSOSPost.ID))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	dates, err := postgres.FindDatesBySOSPostID(ctx, tx, request.ID)
@@ -240,7 +242,7 @@ func (service *SOSPostService) UpdateSOSPost(
 	return updateSOSPost.ToUpdateSOSPostView(
 		mediaData.ToMediaViewList(),
 		conditions.ToConditionViewList(),
-		pets.ToDetailViewList(),
+		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),
 	), nil
 }
