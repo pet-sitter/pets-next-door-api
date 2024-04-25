@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"flag"
 	"log"
+
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/breed"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
@@ -15,7 +16,6 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 func main() {
@@ -93,45 +93,48 @@ func parseFlags() Flags {
 
 func importBreed(
 	ctx context.Context, conn *database.DB, petType commonvo.PetType, row breedsimporterservice.Row,
-) (*breed.Breed, *pnd.AppError) {
+) (*breed.DetailView, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
-	var breedData *breed.Breed
-	err := database.WithTransaction(ctx, conn, func(tx *database.Tx) *pnd.AppError {
-		existing, err := postgres.FindBreedByPetTypeAndName(ctx, tx, petType, row.Breed)
-		if err != nil && !errors.Is(err.Err, sql.ErrNoRows) {
-			return err
-		}
-
-		if existing != nil {
-			log.Printf(
-				"Breed with id: %d, pet_type: %s, name: %s already exists in database",
-				existing.ID,
-				existing.PetType,
-				existing.Name,
-			)
-			breedData = existing
-			return nil
-		}
-
-		breedData, err = postgres.CreateBreed(ctx, tx, &breed.Breed{PetType: petType, Name: row.Breed})
-		if err != nil {
-			return err
-		}
-
-		log.Printf(
-			"Succeeded to import breed with id: %d, pet_type: %s, name: %s to database",
-			breedData.ID,
-			breedData.PetType,
-			breedData.Name,
-		)
-		return nil
+	existingList, err := databasegen.New(conn).FindBreeds(ctx, databasegen.FindBreedsParams{
+		PetType: utils.StrToNullStr(petType.String()),
+		Name:    utils.StrToNullStr(row.Breed),
 	})
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	return breedData, nil
+	if len(existingList) > 1 {
+		existing := existingList[0]
+		log.Printf(
+			"Breed with id: %d, pet_type: %s, name: %s already exists in database",
+			existing.ID,
+			existing.PetType,
+			existing.Name,
+		)
+		return breed.ToDetailViewFromRows(existing), nil
+	}
+
+	breedData, err := databasegen.New(conn).CreateBreed(ctx, databasegen.CreateBreedParams{
+		Name:    row.Breed,
+		PetType: petType.String(),
+	})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	log.Printf(
+		"Succeeded to import breed with id: %d, pet_type: %s, name: %s to database",
+		breedData.ID,
+		breedData.PetType,
+		breedData.Name,
+	)
+
+	return &breed.DetailView{
+		ID:      int64(breedData.ID),
+		PetType: commonvo.PetType(breedData.PetType),
+		Name:    breedData.Name,
+	}, nil
 }
 
 func importBreeds(ctx context.Context, conn *database.DB, petType commonvo.PetType, rows *[]breedsimporterservice.Row) {
