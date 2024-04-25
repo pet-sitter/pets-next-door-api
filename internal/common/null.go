@@ -42,6 +42,13 @@ func NullInt64ToInt64Ptr(val sql.NullInt64) *int64 {
 	return nil
 }
 
+func IntToNullInt64(val int) sql.NullInt64 {
+	return sql.NullInt64{
+		Int64: int64(val),
+		Valid: val != 0,
+	}
+}
+
 func Int64PtrToNullInt64(val *int64) sql.NullInt64 {
 	return sql.NullInt64{
 		Int64: DerefOrEmpty(val),

@@ -93,6 +93,33 @@ WHERE pets.id = ANY (sqlc.arg('ids')::int[])
        (sqlc.arg('include_deleted')::boolean = FALSE AND pets.deleted_at IS NULL))
 ORDER BY pets.created_at DESC;
 
+-- name: FindPetsBySOSPostID :many
+SELECT pets.id,
+       pets.owner_id,
+       pets.name,
+       pets.pet_type,
+       pets.sex,
+       pets.neutered,
+       pets.breed,
+       pets.birth_date,
+       pets.weight_in_kg,
+       pets.remarks,
+       media.url AS profile_image_url,
+       pets.created_at,
+       pets.updated_at,
+       pets.deleted_at
+FROM pets
+         INNER JOIN
+     sos_posts_pets
+     ON
+         pets.id = sos_posts_pets.pet_id
+         LEFT JOIN
+     media
+     ON
+         pets.profile_image_id = media.id
+WHERE sos_posts_pets.sos_post_id = $1
+  AND sos_posts_pets.deleted_at IS NULL;
+
 -- name: UpdatePet :exec
 UPDATE
     pets
