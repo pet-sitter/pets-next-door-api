@@ -55,7 +55,7 @@ func TestSOSPostService(t *testing.T) {
 
 			// when
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			petIDs := []int64{addPets.ID}
 
 			sosPostData := tests.GenerateDummyWriteSOSPostRequest(imageIDs, petIDs, 0)
@@ -67,7 +67,7 @@ func TestSOSPostService(t *testing.T) {
 			// then
 			assertConditionEquals(t, sosPost.Conditions, sosPostData.ConditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], *addPets)
-			assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+			assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
 			assertDatesEquals(t, sosPost.Dates, sosPostData.Dates)
 
 			if sosPost.Title != sosPostData.Title {
@@ -88,7 +88,7 @@ func TestSOSPostService(t *testing.T) {
 			if sosPost.RewardType != sosPostData.RewardType {
 				t.Errorf("got %v want %v", sosPost.RewardType, sosPostData.RewardType)
 			}
-			if int64(sosPost.ThumbnailID) != sosPostData.ImageIDs[0] {
+			if sosPost.ThumbnailID != sosPostData.ImageIDs[0] {
 				t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostData.ImageIDs[0])
 			}
 			if int64(sosPost.AuthorID) != owner.ID {
@@ -120,7 +120,7 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			petIDs := []int64{addPets.ID}
 			conditionIDs := []int{1, 2}
 
@@ -141,7 +141,7 @@ func TestSOSPostService(t *testing.T) {
 				idx := len(sosPostList.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], *addPets)
-				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
 				assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
@@ -170,7 +170,7 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
 			var sosPosts []sospost.WriteSOSPostView
@@ -190,7 +190,7 @@ func TestSOSPostService(t *testing.T) {
 				idx := len(sosPostList.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
-				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
 				assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
@@ -219,7 +219,7 @@ func TestSOSPostService(t *testing.T) {
 			addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
 			var sosPosts []sospost.WriteSOSPostView
@@ -252,7 +252,7 @@ func TestSOSPostService(t *testing.T) {
 				idx := len(sosPostList.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
-				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
 				assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
@@ -280,7 +280,7 @@ func TestSOSPostService(t *testing.T) {
 			addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
 			sosPosts := make([]sospost.WriteSOSPostView, 0)
@@ -300,7 +300,7 @@ func TestSOSPostService(t *testing.T) {
 				idx := len(sosPostListByAuthorID.Items) - i - 1
 				assertConditionEquals(t, sosPost.Conditions, conditionIDs)
 				assertPetEquals(t, sosPost.Pets[0], *addPet)
-				assertMediaEquals(t, sosPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+				assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
 				assertAuthorEquals(t, sosPost.Author, author)
 				assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
 				assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
@@ -330,7 +330,7 @@ func TestSOSPostService(t *testing.T) {
 			addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
 
 			sosPostService := service.NewSOSPostService(db)
-			imageIDs := []int64{int64(sosPostImage.ID), int64(sosPostImage2.ID)}
+			imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 			conditionIDs := []int{1, 2}
 
 			sosPosts := make([]sospost.WriteSOSPostView, 0)
@@ -348,7 +348,7 @@ func TestSOSPostService(t *testing.T) {
 			// then
 			assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
 			assertPetEquals(t, sosPosts[0].Pets[0], *addPet)
-			assertMediaEquals(t, findSOSPostByID.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+			assertMediaEquals(t, findSOSPostByID.Media, media.ListView{sosPostImage, sosPostImage2})
 			assertAuthorEquals(t, findSOSPostByID.Author, author)
 			assertDatesEquals(t, findSOSPostByID.Dates, sosPosts[0].Dates)
 			assertFindSOSPostEquals(t, *findSOSPostByID, sosPosts[0])
@@ -375,7 +375,7 @@ func TestSOSPostService(t *testing.T) {
 
 			sosPostService := service.NewSOSPostService(db)
 			sosPost := tests.WriteDummySOSPosts(t, ctx,
-				sosPostService, uid, []int64{int64(sosPostImage.ID)}, []int64{addPet.ID},
+				sosPostService, uid, []int64{sosPostImage.ID}, []int64{addPet.ID},
 				1,
 			)
 
@@ -383,7 +383,7 @@ func TestSOSPostService(t *testing.T) {
 				ID:       sosPost.ID,
 				Title:    "Title2",
 				Content:  "Content2",
-				ImageIDs: []int{sosPostImage.ID, sosPostImage2.ID},
+				ImageIDs: []int64{sosPostImage.ID, sosPostImage2.ID},
 				Reward:   "Reward2",
 				Dates: []sospost.SOSDateView{
 					{"2024-04-10", "2024-04-20"},
@@ -404,7 +404,7 @@ func TestSOSPostService(t *testing.T) {
 
 			assertConditionEquals(t, sosPost.Conditions, updateSOSPostData.ConditionIDs)
 			assertPetEquals(t, sosPost.Pets[0], *addPet)
-			assertMediaEquals(t, updateSOSPost.Media, (&media.MediaList{sosPostImage, sosPostImage2}).ToMediaViewList())
+			assertMediaEquals(t, updateSOSPost.Media, media.ListView{sosPostImage, sosPostImage2})
 			assertDatesEquals(t, updateSOSPost.Dates, updateSOSPostData.Dates)
 
 			if updateSOSPost.Title != updateSOSPostData.Title {
@@ -520,7 +520,7 @@ func assertPetEquals(t *testing.T, got, want pet.DetailView) {
 	}
 }
 
-func assertMediaEquals(t *testing.T, got, want media.MediaViewList) {
+func assertMediaEquals(t *testing.T, got, want media.ListView) {
 	t.Helper()
 
 	for i, mediaData := range want {

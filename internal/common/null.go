@@ -70,6 +70,13 @@ func IntToNullInt32(val int) sql.NullInt32 {
 	}
 }
 
+func Int64ToNullInt32(val int64) sql.NullInt32 {
+	return sql.NullInt32{
+		Int32: int32(val),
+		Valid: val != 0,
+	}
+}
+
 func IntPtrToNullInt32(val *int) sql.NullInt32 {
 	return sql.NullInt32{
 		Int32: int32(DerefOrEmpty(val)),

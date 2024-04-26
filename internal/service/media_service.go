@@ -5,13 +5,15 @@ import (
 	"io"
 	"path/filepath"
 
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+
 	"github.com/aws/aws-sdk-go/private/protocol/rest"
 	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type MediaService struct {
@@ -36,8 +38,8 @@ type UploadFileView struct {
 }
 
 func (s *MediaService) UploadMedia(
-	ctx context.Context, file io.ReadSeeker, mediaType media.MediaType, fileName string,
-) (*media.Media, *pnd.AppError) {
+	ctx context.Context, file io.ReadSeeker, mediaType media.Type, fileName string,
+) (*media.DetailView, *pnd.AppError) {
 	randomFileName := generateRandomFileName(fileName)
 	fullPath := "media/" + randomFileName
 
@@ -51,51 +53,44 @@ func (s *MediaService) UploadMedia(
 		return nil, pnd.ErrUnknown(err)
 	}
 
-	created, err := s.CreateMedia(ctx, &media.Media{
-		MediaType: mediaType,
-		URL:       req.HTTPRequest.URL.String(),
+	created, err := s.CreateMedia(ctx, mediaType, req.HTTPRequest.URL.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return created, nil
+}
+
+func (s *MediaService) CreateMedia(
+	ctx context.Context, mediaType media.Type, url string,
+) (*media.DetailView, *pnd.AppError) {
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
+	if err != nil {
+		return nil, err
+	}
+
+	created, err2 := databasegen.New(s.conn).CreateMedia(ctx, databasegen.CreateMediaParams{
+		MediaType: mediaType.String(),
+		Url:       url,
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return media.ToDetailViewFromCreated(created), nil
+}
+
+func (s *MediaService) FindMediaByID(ctx context.Context, id int64) (*media.DetailView, *pnd.AppError) {
+	mediaData, err := databasegen.New(s.conn).FindSingleMedia(ctx, databasegen.FindSingleMediaParams{
+		ID: utils.Int64ToNullInt32(id),
 	})
 	if err != nil {
-		return nil, err
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	return created, nil
-}
-
-func (s *MediaService) CreateMedia(ctx context.Context, mediaData *media.Media) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
-	if err != nil {
-		return nil, err
-	}
-
-	created, err := postgres.CreateMedia(ctx, tx, mediaData)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return created, nil
-}
-
-func (s *MediaService) FindMediaByID(ctx context.Context, id int) (*media.Media, *pnd.AppError) {
-	tx, err := s.conn.BeginTx(ctx)
-	defer tx.Rollback()
-	if err != nil {
-		return nil, err
-	}
-
-	mediaData, err := postgres.FindMediaByID(ctx, tx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return mediaData, nil
+	return media.ToDetailView(mediaData), nil
 }

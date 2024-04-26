@@ -9,7 +9,7 @@ type RegisterUserRequest struct {
 	Email                string               `json:"email" validate:"required,email"`
 	Nickname             string               `json:"nickname" validate:"required"`
 	Fullname             string               `json:"fullname" validate:"required"`
-	ProfileImageID       *int                 `json:"profileImageId"`
+	ProfileImageID       *int64               `json:"profileImageId"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType" validate:"required"`
 	FirebaseUID          string               `json:"fbUid" validate:"required"`
 }
@@ -20,7 +20,7 @@ func (r *RegisterUserRequest) ToDBParams() databasegen.CreateUserParams {
 		Nickname:       r.Nickname,
 		Fullname:       r.Fullname,
 		Password:       "",
-		ProfileImageID: utils.IntPtrToNullInt64(r.ProfileImageID),
+		ProfileImageID: utils.Int64PtrToNullInt64(r.ProfileImageID),
 		FbProviderType: r.FirebaseProviderType.NullString(),
 		FbUid:          utils.StrToNullStr(r.FirebaseUID),
 	}
@@ -36,5 +36,5 @@ type UserStatusRequest struct {
 
 type UpdateUserRequest struct {
 	Nickname       string `json:"nickname" validate:"required"`
-	ProfileImageID *int   `json:"profileImageId" validate:"omitempty"`
+	ProfileImageID *int64 `json:"profileImageId" validate:"omitempty"`
 }

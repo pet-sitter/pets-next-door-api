@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/resourcemedia"
+
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -134,7 +135,7 @@ func WriteSOSPost(
 		VALUES ($1, $2, $3, NOW(), NOW())`,
 			imageID,
 			sosPost.ID,
-			media.SOSResourceType,
+			resourcemedia.SOSResourceType,
 		); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
@@ -590,7 +591,7 @@ func updateSOSPostsDates(ctx context.Context, tx *database.Tx, postID int, dates
 	return nil
 }
 
-func updateSOSPostsMedia(ctx context.Context, tx *database.Tx, postID int, mediaIDs []int) *pnd.AppError {
+func updateSOSPostsMedia(ctx context.Context, tx *database.Tx, postID int, mediaIDs []int64) *pnd.AppError {
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE
 			resource_media
@@ -618,7 +619,7 @@ func updateSOSPostsMedia(ctx context.Context, tx *database.Tx, postID int, media
 		`,
 			mediaID,
 			postID,
-			media.SOSResourceType,
+			resourcemedia.SOSResourceType,
 		); err != nil {
 			return pnd.FromPostgresError(err)
 		}
