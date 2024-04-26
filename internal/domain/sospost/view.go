@@ -165,8 +165,8 @@ type UpdateSOSPostRequest struct {
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds"`
-	PetIDs       []int         `json:"petIds"`
+	ConditionIDs []int         `json:"conditionIds,min=1"`
+	PetIDs       []int         `json:"petIds,min=1"`
 }
 
 type UpdateSOSPostView struct {
