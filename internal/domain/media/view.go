@@ -1,34 +1,80 @@
 package media
 
-type MediaView struct {
-	ID        int       `json:"id"`
-	MediaType MediaType `json:"mediaType"`
+import (
+	"time"
+
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+)
+
+type DetailView struct {
+	ID        int64     `json:"id"`
+	MediaType Type      `json:"mediaType"`
 	URL       string    `json:"url"`
-	CreatedAt string    `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
-type MediaViewList []*MediaView
+type ListView []*DetailView
 
-func (media *Media) ToMediaView() *MediaView {
-	return &MediaView{
-		ID:        media.ID,
-		MediaType: media.MediaType,
-		URL:       media.URL,
+func ToDetailView(media databasegen.FindSingleMediaRow) *DetailView {
+	return &DetailView{
+		ID:        int64(media.ID),
+		MediaType: Type(media.MediaType),
+		URL:       media.Url,
 		CreatedAt: media.CreatedAt,
 	}
 }
 
-func (mediaList *MediaList) ToMediaViewList() MediaViewList {
-	mediaViewList := make(MediaViewList, len(*mediaList))
-	for i, media := range *mediaList {
-		mediaViewList[i] = media.ToMediaView()
+func ToDetailViewFromCreated(media databasegen.CreateMediaRow) *DetailView {
+	return &DetailView{
+		ID:        int64(media.ID),
+		MediaType: Type(media.MediaType),
+		URL:       media.Url,
+		CreatedAt: media.CreatedAt,
+	}
+}
+
+func ToDetailViewFromResourceMediaRows(resourceMedia databasegen.FindResourceMediaRow) *DetailView {
+	return &DetailView{
+		ID:        int64(resourceMedia.MediaID),
+		MediaType: Type(resourceMedia.MediaType),
+		URL:       resourceMedia.Url,
+		CreatedAt: resourceMedia.CreatedAt,
+	}
+}
+
+func ToDetailViewFromViewForSOSPost(media ViewForSOSPost) *DetailView {
+	createdAt, err := time.Parse(time.RFC3339, media.CreatedAt)
+	if err != nil {
+		createdAt = time.Time{}
+	}
+
+	return &DetailView{
+		ID:        media.ID,
+		MediaType: media.MediaType,
+		URL:       media.URL,
+		CreatedAt: createdAt,
+	}
+}
+
+func ToListViewFromResourceMediaRows(resourceMediaList []databasegen.FindResourceMediaRow) ListView {
+	mediaViewList := make(ListView, len(resourceMediaList))
+	for i, resourceMedia := range resourceMediaList {
+		mediaViewList[i] = ToDetailViewFromResourceMediaRows(resourceMedia)
 	}
 	return mediaViewList
 }
 
-type ResourceMediaView struct {
-	ID           int          `field:"id"`
-	ResourceType ResourceType `field:"resource_type"`
-	ResourceID   int          `field:"resource_id"`
-	MediaID      int          `field:"media_id"`
+func ToListViewFromViewListForSOSPost(mediaList ViewListForSOSPost) ListView {
+	mediaViewList := make(ListView, len(mediaList))
+	for i, media := range mediaList {
+		mediaViewList[i] = ToDetailViewFromViewForSOSPost(
+			ViewForSOSPost{
+				ID:        media.ID,
+				MediaType: media.MediaType,
+				URL:       media.URL,
+				CreatedAt: media.CreatedAt,
+			},
+		)
+	}
+	return mediaViewList
 }

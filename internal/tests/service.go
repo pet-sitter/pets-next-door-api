@@ -11,12 +11,9 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
-func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.Media {
+func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.DetailView {
 	t.Helper()
-	mediaData, err := mediaService.CreateMedia(ctx, &media.Media{
-		MediaType: media.MediaTypeImage,
-		URL:       "http://example.com",
-	})
+	mediaData, err := mediaService.CreateMedia(ctx, media.TypeImage, "http://example.com")
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)
 	}
@@ -46,7 +43,7 @@ func AddDummyPet(
 	ctx context.Context,
 	userService *service.UserService,
 	ownerUID string,
-	profileImageID *int,
+	profileImageID *int64,
 ) *pet.DetailView {
 	t.Helper()
 	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
@@ -64,7 +61,7 @@ func AddDummyPets(
 	ctx context.Context,
 	userService *service.UserService,
 	ownerUID string,
-	profileImageID *int,
+	profileImageID *int64,
 ) pet.ListView {
 	t.Helper()
 	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
