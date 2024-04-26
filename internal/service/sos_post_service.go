@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/resourcemedia"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -48,9 +50,12 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, err
 	}
 
-	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, sosPost.ID, string(media.SOSResourceType))
-	if err != nil {
-		return nil, err
+	mediaData, err2 := databasegen.New(tx).FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
+		ResourceID:   utils.IntToNullInt64(sosPost.ID),
+		ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
@@ -73,7 +78,7 @@ func (service *SOSPostService) WriteSOSPost(
 	}
 
 	return sosPost.ToWriteSOSPostView(
-		mediaData.ToMediaViewList(),
+		media.ToListViewFromResourceMediaRows(mediaData),
 		conditions.ToConditionViewList(),
 		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),
@@ -111,7 +116,7 @@ func (service *SOSPostService) FindSOSPosts(
 				Nickname:        author.Nickname,
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
-			sosPost.Media.ToMediaViewList(),
+			media.ToListViewFromViewListForSOSPost(sosPost.Media),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
@@ -153,7 +158,7 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 				Nickname:        author.Nickname,
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
-			sosPost.Media.ToMediaViewList(),
+			media.ToListViewFromViewListForSOSPost(sosPost.Media),
 			sosPost.Conditions.ToConditionViewList(),
 			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
@@ -194,7 +199,7 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 			Nickname:        author.Nickname,
 			ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 		},
-		sosPost.Media.ToMediaViewList(),
+		media.ToListViewFromViewListForSOSPost(sosPost.Media),
 		sosPost.Conditions.ToConditionViewList(),
 		sosPost.Pets.ToDetailViewList(),
 		sosPost.Dates.ToSOSDateViewList(),
@@ -215,9 +220,12 @@ func (service *SOSPostService) UpdateSOSPost(
 		return nil, err
 	}
 
-	mediaData, err := postgres.FindResourceMediaByResourceID(ctx, tx, updateSOSPost.ID, string(media.SOSResourceType))
-	if err != nil {
-		return nil, err
+	mediaData, err2 := databasegen.New(tx).FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
+		ResourceID:   utils.IntToNullInt64(updateSOSPost.ID),
+		ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	conditions, err := postgres.FindConditionByID(ctx, tx, updateSOSPost.ID)
@@ -240,7 +248,7 @@ func (service *SOSPostService) UpdateSOSPost(
 	}
 
 	return updateSOSPost.ToUpdateSOSPostView(
-		mediaData.ToMediaViewList(),
+		media.ToListViewFromResourceMediaRows(mediaData),
 		conditions.ToConditionViewList(),
 		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),

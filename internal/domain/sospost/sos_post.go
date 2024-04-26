@@ -42,7 +42,7 @@ type SOSPost struct {
 	CareType    CareType    `field:"care_type"`
 	CarerGender CarerGender `field:"carer_gender"`
 	RewardType  RewardType  `field:"reward_type"`
-	ThumbnailID int         `field:"thumbnail_id"`
+	ThumbnailID int64       `field:"thumbnail_id"`
 	CreatedAt   time.Time   `field:"created_at"`
 	UpdatedAt   time.Time   `field:"updated_at"`
 	DeletedAt   time.Time   `field:"deleted_at"`
@@ -53,22 +53,22 @@ type SOSPostList struct {
 }
 
 type SOSPostInfo struct {
-	ID          int                    `field:"id" json:"id"`
-	AuthorID    int                    `field:"author" json:"author"`
-	Title       string                 `field:"title" json:"title"`
-	Content     string                 `field:"content" json:"content"`
-	Media       media.MediaList        `field:"media" json:"media"`
-	Conditions  ConditionList          `field:"conditions" json:"conditions"`
-	Pets        pet.ViewListForSOSPost `field:"pets" json:"pets"`
-	Reward      string                 `field:"reward" json:"reward"`
-	Dates       SOSDatesList           `field:"dates" json:"dates"`
-	CareType    CareType               `field:"careType" json:"careType"`
-	CarerGender CarerGender            `field:"carerGender" json:"carerGender"`
-	RewardType  RewardType             `field:"rewardType" json:"rewardType"`
-	ThumbnailID int                    `field:"thumbnailId" json:"thumbnailId"`
-	CreatedAt   time.Time              `field:"createdAt" json:"createdAt"`
-	UpdatedAt   time.Time              `field:"updatedAt" json:"updatedAt"`
-	DeletedAt   time.Time              `field:"deletedAt" json:"deletedAt"`
+	ID          int                      `field:"id" json:"id"`
+	AuthorID    int                      `field:"author" json:"author"`
+	Title       string                   `field:"title" json:"title"`
+	Content     string                   `field:"content" json:"content"`
+	Media       media.ViewListForSOSPost `field:"media" json:"media"`
+	Conditions  ConditionList            `field:"conditions" json:"conditions"`
+	Pets        pet.ViewListForSOSPost   `field:"pets" json:"pets"`
+	Reward      string                   `field:"reward" json:"reward"`
+	Dates       SOSDatesList             `field:"dates" json:"dates"`
+	CareType    CareType                 `field:"careType" json:"careType"`
+	CarerGender CarerGender              `field:"carerGender" json:"carerGender"`
+	RewardType  RewardType               `field:"rewardType" json:"rewardType"`
+	ThumbnailID int64                    `field:"thumbnailId" json:"thumbnailId"`
+	CreatedAt   time.Time                `field:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time                `field:"updatedAt" json:"updatedAt"`
+	DeletedAt   time.Time                `field:"deletedAt" json:"deletedAt"`
 }
 
 type SOSPostInfoList struct {

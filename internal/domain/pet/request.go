@@ -19,7 +19,7 @@ type AddPetRequest struct {
 	BirthDate      utils.Date       `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal  `json:"weightInKg" validate:"required"`
 	Remarks        string           `json:"remarks"`
-	ProfileImageID *int             `json:"profileImageId"`
+	ProfileImageID *int64           `json:"profileImageId"`
 }
 
 type UpdatePetRequest struct {
@@ -29,5 +29,5 @@ type UpdatePetRequest struct {
 	BirthDate      utils.Date      `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal `json:"weightInKg" validate:"required"`
 	Remarks        string          `json:"remarks"`
-	ProfileImageID *int            `json:"profileImageId"`
+	ProfileImageID *int64          `json:"profileImageId"`
 }

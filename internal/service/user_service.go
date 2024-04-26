@@ -13,7 +13,6 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 type UserService struct {
@@ -96,7 +95,7 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 }
 
 func (service *UserService) UpdateUserByUID(
-	ctx context.Context, uid, nickname string, profileImageID *int,
+	ctx context.Context, uid, nickname string, profileImageID *int64,
 ) (*user.MyProfileView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -106,7 +105,7 @@ func (service *UserService) UpdateUserByUID(
 
 	_, err2 := databasegen.New(service.conn).WithTx(tx.Tx).UpdateUserByFbUID(ctx, databasegen.UpdateUserByFbUIDParams{
 		Nickname:       nickname,
-		ProfileImageID: utils.IntPtrToNullInt64(profileImageID),
+		ProfileImageID: utils.Int64PtrToNullInt64(profileImageID),
 		FbUid:          utils.StrToNullStr(uid),
 	})
 	if err2 != nil {
@@ -181,7 +180,7 @@ func (service *UserService) AddPetsToOwner(
 	// 프로필 이미지 ID가 DB에 존재하는지 확인
 	for _, item := range addPetsRequest.Pets {
 		if item.ProfileImageID != nil {
-			if _, err := postgres.FindMediaByID(ctx, tx, *item.ProfileImageID); err != nil {
+			if _, err := service.mediaService.FindMediaByID(ctx, *item.ProfileImageID); err != nil {
 				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
 			}
 		}
@@ -205,7 +204,7 @@ func (service *UserService) AddPetsToOwner(
 			BirthDate:      birthDate,
 			WeightInKg:     item.WeightInKg.String(),
 			Remarks:        item.Remarks,
-			ProfileImageID: utils.IntPtrToNullInt64(item.ProfileImageID),
+			ProfileImageID: utils.Int64PtrToNullInt64(item.ProfileImageID),
 		}
 		row, err := databasegen.New(service.conn).WithTx(tx.Tx).CreatePet(ctx, petToCreate)
 		if err != nil {
@@ -270,7 +269,7 @@ func (service *UserService) UpdatePet(
 		BirthDate:      birthDate,
 		WeightInKg:     updatePetRequest.WeightInKg.String(),
 		Remarks:        updatePetRequest.Remarks,
-		ProfileImageID: utils.IntPtrToNullInt64(updatePetRequest.ProfileImageID),
+		ProfileImageID: utils.Int64PtrToNullInt64(updatePetRequest.ProfileImageID),
 	}); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

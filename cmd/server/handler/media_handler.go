@@ -28,7 +28,7 @@ func NewMediaHandler(mediaService service.MediaService) *MediaHandler {
 // @Tags media
 // @Produce  json
 // @Param id path int true "미디어 ID"
-// @Success 200 {object} media.MediaView
+// @Success 200 {object} media.DetailView
 // @Router /media/{id} [get]
 func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
@@ -36,12 +36,12 @@ func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	found, err := h.mediaService.FindMediaByID(c.Request().Context(), *id)
+	found, err := h.mediaService.FindMediaByID(c.Request().Context(), int64(*id))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	return c.JSON(http.StatusOK, found.ToMediaView())
+	return c.JSON(http.StatusOK, found)
 }
 
 // UploadImage godoc
@@ -51,7 +51,7 @@ func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 // @Accept  multipart/form-data
 // @Produce  json
 // @Param file formData file true "이미지 파일"
-// @Success 201 {object} media.MediaView
+// @Success 201 {object} media.DetailView
 // @Router /media/images [post]
 func (h *MediaHandler) UploadImage(c echo.Context) error {
 	fileHeader, err := c.FormFile("file")
@@ -79,12 +79,12 @@ func (h *MediaHandler) UploadImage(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	res, err2 := h.mediaService.UploadMedia(c.Request().Context(), file, media.MediaTypeImage, fileHeader.Filename)
+	res, err2 := h.mediaService.UploadMedia(c.Request().Context(), file, media.TypeImage, fileHeader.Filename)
 	if err2 != nil {
 		return c.JSON(err2.StatusCode, err2)
 	}
 
-	return c.JSON(http.StatusCreated, res.ToMediaView())
+	return c.JSON(http.StatusCreated, res)
 }
 
 var supportedMimeTypes = []string{

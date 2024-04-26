@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func GenerateDummyRegisterUserRequest(profileImageID *int) *user.RegisterUserRequest {
+func GenerateDummyRegisterUserRequest(profileImageID *int64) *user.RegisterUserRequest {
 	return &user.RegisterUserRequest{
 		Email:                "test@example.com",
 		Nickname:             "nickname",
@@ -21,7 +21,7 @@ func GenerateDummyRegisterUserRequest(profileImageID *int) *user.RegisterUserReq
 	}
 }
 
-func GenerateDummyAddPetRequest(profileImageID *int) *pet.AddPetRequest {
+func GenerateDummyAddPetRequest(profileImageID *int64) *pet.AddPetRequest {
 	birthDate, _ := datatype.ParseDate("2020-01-01")
 	return &pet.AddPetRequest{
 		Name:           "name",
@@ -35,7 +35,7 @@ func GenerateDummyAddPetRequest(profileImageID *int) *pet.AddPetRequest {
 	}
 }
 
-func GenerateDummyAddPetsRequest(profileImageID *int) []pet.AddPetRequest {
+func GenerateDummyAddPetsRequest(profileImageID *int64) []pet.AddPetRequest {
 	birthDate1, _ := datatype.ParseDate("2020-01-01")
 	birthDate2, _ := datatype.ParseDate("2020-02-01")
 	birthDate3, _ := datatype.ParseDate("2020-03-01")
