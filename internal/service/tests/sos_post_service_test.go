@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"testing"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 )
@@ -23,11 +23,9 @@ func TestSOSPostService(t *testing.T) {
 		db, _ := database.Open(tests.TestDatabaseURL)
 		db.Flush()
 
-		if err := database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-			postgres.InitConditions(ctx, tx, sospost.ConditionName)
-			return nil
-		}); err != nil {
-			t.Errorf("InitConditions failed: %v", err)
+		conditionService := service.NewSOSConditionService(db)
+		if _, err2 := conditionService.InitConditions(ctx); err2 != nil {
+			t.Errorf("InitConditions failed: %v", err2)
 		}
 
 		return db, func(t *testing.T) {
@@ -461,11 +459,11 @@ func assertFindSOSPostEquals(t *testing.T, got sospost.FindSOSPostView, want sos
 	}
 }
 
-func assertConditionEquals(t *testing.T, got []sospost.ConditionView, want []int) {
+func assertConditionEquals(t *testing.T, got soscondition.ListView, want []int) {
 	t.Helper()
 
 	for i := range want {
-		if i+1 != got[i].ID {
+		if int64(i+1) != got[i].ID {
 			t.Errorf("got %v want %v", got[i].ID, i+1)
 		}
 	}

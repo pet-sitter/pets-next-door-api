@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/resourcemedia"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -698,7 +700,7 @@ func updateSOSPostsPets(ctx context.Context, tx *database.Tx, postID int, petIDs
 	return nil
 }
 
-func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.ConditionList, *pnd.AppError) {
+func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*soscondition.ViewListForSOSPost, *pnd.AppError) {
 	const query = `
 	SELECT
 		sos_conditions.id,
@@ -716,7 +718,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 		sos_posts_conditions.deleted_at IS NULL
 	`
 
-	conditions := sospost.ConditionList{}
+	conditions := soscondition.ViewListForSOSPost{}
 	rows, err := tx.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -724,7 +726,7 @@ func FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*sospost.C
 	defer rows.Close()
 
 	for rows.Next() {
-		condition := sospost.Condition{}
+		condition := soscondition.ViewForSOSPost{}
 		if err := rows.Scan(
 			&condition.ID,
 			&condition.Name,
