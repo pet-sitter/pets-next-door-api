@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/resourcemedia"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -58,9 +60,11 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, pnd.FromPostgresError(err2)
 	}
 
-	conditions, err := postgres.FindConditionByID(ctx, tx, sosPost.ID)
-	if err != nil {
-		return nil, err
+	conditionList, err2 := databasegen.New(tx).FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
+		SosPostID: utils.IntToNullInt64(sosPost.ID),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(sosPost.ID))
@@ -79,7 +83,7 @@ func (service *SOSPostService) WriteSOSPost(
 
 	return sosPost.ToWriteSOSPostView(
 		media.ToListViewFromResourceMediaRows(mediaData),
-		conditions.ToConditionViewList(),
+		soscondition.ToListViewFromSOSPostConditions(conditionList),
 		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),
 	), nil
@@ -117,7 +121,7 @@ func (service *SOSPostService) FindSOSPosts(
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
 			media.ToListViewFromViewListForSOSPost(sosPost.Media),
-			sosPost.Conditions.ToConditionViewList(),
+			soscondition.ToListViewFromViewForSOSPost(sosPost.Conditions),
 			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
 		)
@@ -159,7 +163,7 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 				ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 			},
 			media.ToListViewFromViewListForSOSPost(sosPost.Media),
-			sosPost.Conditions.ToConditionViewList(),
+			soscondition.ToListViewFromViewForSOSPost(sosPost.Conditions),
 			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
 		)
@@ -200,7 +204,7 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 			ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 		},
 		media.ToListViewFromViewListForSOSPost(sosPost.Media),
-		sosPost.Conditions.ToConditionViewList(),
+		soscondition.ToListViewFromViewForSOSPost(sosPost.Conditions),
 		sosPost.Pets.ToDetailViewList(),
 		sosPost.Dates.ToSOSDateViewList(),
 	), nil
@@ -228,9 +232,11 @@ func (service *SOSPostService) UpdateSOSPost(
 		return nil, pnd.FromPostgresError(err2)
 	}
 
-	conditions, err := postgres.FindConditionByID(ctx, tx, updateSOSPost.ID)
-	if err != nil {
-		return nil, err
+	conditionList, err2 := databasegen.New(tx).FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
+		SosPostID: utils.IntToNullInt64(updateSOSPost.ID),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(updateSOSPost.ID))
@@ -249,7 +255,7 @@ func (service *SOSPostService) UpdateSOSPost(
 
 	return updateSOSPost.ToUpdateSOSPostView(
 		media.ToListViewFromResourceMediaRows(mediaData),
-		conditions.ToConditionViewList(),
+		soscondition.ToListViewFromSOSPostConditions(conditionList),
 		pet.ToDetailViewList(petRows),
 		dates.ToSOSDateViewList(),
 	), nil

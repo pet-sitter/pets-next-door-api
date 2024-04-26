@@ -53,7 +53,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	authService := service.NewFirebaseBearerAuthService(authClient, userService)
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
-	conditionService := service.NewConditionService(db)
+	conditionService := service.NewSOSConditionService(db)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())

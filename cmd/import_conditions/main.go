@@ -4,11 +4,10 @@ import (
 	"context"
 	"log"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 )
 
 func main() {
@@ -19,22 +18,18 @@ func main() {
 		log.Fatalf("error opening database: %v\n", err)
 	}
 
-	var result string
-	var err2 *pnd.AppError
-
 	ctx := context.Background()
-	err2 = database.WithTransaction(ctx, db, func(tx *database.Tx) *pnd.AppError {
-		result, err2 = postgres.InitConditions(ctx, tx, sospost.ConditionName)
-		if err2 != nil {
-			return err2
-		}
 
-		return nil
-	})
-
+	conditionService := service.NewSOSConditionService(db)
+	conditionList, err2 := conditionService.InitConditions(ctx)
 	if err2 != nil {
-		log.Fatalf("error initializing condition: %v\n", err2)
+		log.Fatalf("error initializing conditions: %v\n", err2)
 	}
 
-	log.Println(result)
+	log.Println("Total conditions imported: ", len(conditionList))
+	for _, condition := range conditionList {
+		log.Println("Condition ID: ", condition.ID, "Condition Name: ", condition.Name)
+	}
+
+	log.Println("Finished importing condition")
 }

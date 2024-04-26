@@ -21,6 +21,10 @@ func NullStrToStrPtr(val sql.NullString) *string {
 	return nil
 }
 
+func NullStrToStr(val sql.NullString) string {
+	return val.String
+}
+
 func StrPtrToNullStr(val *string) sql.NullString {
 	return sql.NullString{
 		String: DerefOrEmpty(val),
