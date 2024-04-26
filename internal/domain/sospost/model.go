@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -53,22 +55,22 @@ type SOSPostList struct {
 }
 
 type SOSPostInfo struct {
-	ID          int                      `field:"id" json:"id"`
-	AuthorID    int                      `field:"author" json:"author"`
-	Title       string                   `field:"title" json:"title"`
-	Content     string                   `field:"content" json:"content"`
-	Media       media.ViewListForSOSPost `field:"media" json:"media"`
-	Conditions  ConditionList            `field:"conditions" json:"conditions"`
-	Pets        pet.ViewListForSOSPost   `field:"pets" json:"pets"`
-	Reward      string                   `field:"reward" json:"reward"`
-	Dates       SOSDatesList             `field:"dates" json:"dates"`
-	CareType    CareType                 `field:"careType" json:"careType"`
-	CarerGender CarerGender              `field:"carerGender" json:"carerGender"`
-	RewardType  RewardType               `field:"rewardType" json:"rewardType"`
-	ThumbnailID int64                    `field:"thumbnailId" json:"thumbnailId"`
-	CreatedAt   time.Time                `field:"createdAt" json:"createdAt"`
-	UpdatedAt   time.Time                `field:"updatedAt" json:"updatedAt"`
-	DeletedAt   time.Time                `field:"deletedAt" json:"deletedAt"`
+	ID          int                             `field:"id" json:"id"`
+	AuthorID    int                             `field:"author" json:"author"`
+	Title       string                          `field:"title" json:"title"`
+	Content     string                          `field:"content" json:"content"`
+	Media       media.ViewListForSOSPost        `field:"media" json:"media"`
+	Conditions  soscondition.ViewListForSOSPost `field:"conditions" json:"conditions"`
+	Pets        pet.ViewListForSOSPost          `field:"pets" json:"pets"`
+	Reward      string                          `field:"reward" json:"reward"`
+	Dates       SOSDatesList                    `field:"dates" json:"dates"`
+	CareType    CareType                        `field:"careType" json:"careType"`
+	CarerGender CarerGender                     `field:"carerGender" json:"carerGender"`
+	RewardType  RewardType                      `field:"rewardType" json:"rewardType"`
+	ThumbnailID int64                           `field:"thumbnailId" json:"thumbnailId"`
+	CreatedAt   time.Time                       `field:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time                       `field:"updatedAt" json:"updatedAt"`
+	DeletedAt   time.Time                       `field:"deletedAt" json:"deletedAt"`
 }
 
 type SOSPostInfoList struct {
@@ -124,7 +126,7 @@ type SOSPostStore interface {
 	) (*SOSPostInfoList, *pnd.AppError)
 	FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*SOSPost, *pnd.AppError)
 	UpdateSOSPost(ctx context.Context, tx *database.Tx, request *UpdateSOSPostRequest) (*SOSPost, *pnd.AppError)
-	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*ConditionList, *pnd.AppError)
+	FindConditionByID(ctx context.Context, tx *database.Tx, id int) (*soscondition.ViewListForSOSPost, *pnd.AppError)
 	FindPetsByID(ctx context.Context, tx *database.Tx, id int) (*pet.ViewListForSOSPost, *pnd.AppError)
 	WriteDates(ctx context.Context, tx *database.Tx, dates []string, sosPostID int) (*SOSDatesList, *pnd.AppError)
 	FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (*SOSDatesList, *pnd.AppError)

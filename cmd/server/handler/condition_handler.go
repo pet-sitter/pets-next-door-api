@@ -9,10 +9,10 @@ import (
 )
 
 type ConditionHandler struct {
-	conditionService service.ConditionService
+	conditionService service.SOSConditionService
 }
 
-func NewConditionHandler(conditionService service.ConditionService) *ConditionHandler {
+func NewConditionHandler(conditionService service.SOSConditionService) *ConditionHandler {
 	return &ConditionHandler{conditionService: conditionService}
 }
 
@@ -22,7 +22,7 @@ func NewConditionHandler(conditionService service.ConditionService) *ConditionHa
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} []sospost.ConditionView
+// @Success 200 {object} soscondition.ListView
 // @Router /posts/sos/conditions [get]
 func (h *ConditionHandler) FindConditions(c echo.Context) error {
 	res, err := h.conditionService.FindConditions(c.Request().Context())

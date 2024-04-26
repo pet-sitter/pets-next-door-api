@@ -5,30 +5,9 @@ import (
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 )
-
-type ConditionView struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type ConditionViewList []*ConditionView
-
-func (c *Condition) ToConditionView() *ConditionView {
-	return &ConditionView{
-		ID:   c.ID,
-		Name: c.Name,
-	}
-}
-
-func (cl *ConditionList) ToConditionViewList() []ConditionView {
-	conditionViews := make([]ConditionView, len(*cl))
-	for i, c := range *cl {
-		conditionViews[i] = *c.ToConditionView()
-	}
-	return conditionViews
-}
 
 type WriteSOSPostRequest struct {
 	Title        string        `json:"title" validate:"required"`
@@ -44,26 +23,26 @@ type WriteSOSPostRequest struct {
 }
 
 type WriteSOSPostView struct {
-	ID          int              `json:"id"`
-	AuthorID    int              `json:"authorId"`
-	Title       string           `json:"title"`
-	Content     string           `json:"content"`
-	Media       media.ListView   `json:"media"`
-	Conditions  []ConditionView  `json:"conditions"`
-	Pets        []pet.DetailView `json:"pets"`
-	Reward      string           `json:"reward"`
-	Dates       []SOSDateView    `json:"dates"`
-	CareType    CareType         `json:"careType"`
-	CarerGender CarerGender      `json:"carerGender"`
-	RewardType  RewardType       `json:"rewardType"`
-	ThumbnailID int64            `json:"thumbnailId"`
-	CreatedAt   string           `json:"createdAt"`
-	UpdatedAt   string           `json:"updatedAt"`
+	ID          int                   `json:"id"`
+	AuthorID    int                   `json:"authorId"`
+	Title       string                `json:"title"`
+	Content     string                `json:"content"`
+	Media       media.ListView        `json:"media"`
+	Conditions  soscondition.ListView `json:"conditions"`
+	Pets        []pet.DetailView      `json:"pets"`
+	Reward      string                `json:"reward"`
+	Dates       []SOSDateView         `json:"dates"`
+	CareType    CareType              `json:"careType"`
+	CarerGender CarerGender           `json:"carerGender"`
+	RewardType  RewardType            `json:"rewardType"`
+	ThumbnailID int64                 `json:"thumbnailId"`
+	CreatedAt   string                `json:"createdAt"`
+	UpdatedAt   string                `json:"updatedAt"`
 }
 
 func (p *SOSPost) ToWriteSOSPostView(
 	mediaList media.ListView,
-	conditions []ConditionView,
+	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *WriteSOSPostView {
@@ -92,7 +71,7 @@ type FindSOSPostView struct {
 	Title       string                   `json:"title"`
 	Content     string                   `json:"content"`
 	Media       media.ListView           `json:"media"`
-	Conditions  []ConditionView          `json:"conditions"`
+	Conditions  soscondition.ListView    `json:"conditions"`
 	Pets        []pet.DetailView         `json:"pets"`
 	Reward      string                   `json:"reward"`
 	Dates       []SOSDateView            `json:"dates"`
@@ -107,7 +86,7 @@ type FindSOSPostView struct {
 func (p *SOSPost) ToFindSOSPostView(
 	author *user.WithoutPrivateInfo,
 	mediaList media.ListView,
-	conditions []ConditionView,
+	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
@@ -153,7 +132,7 @@ func FromEmptySOSPostInfoList(sosPosts *SOSPostInfoList) *FindSOSPostListView {
 func (p *SOSPostInfo) ToFindSOSPostInfoView(
 	author *user.WithoutPrivateInfo,
 	mediaList media.ListView,
-	conditions []ConditionView,
+	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
@@ -191,26 +170,26 @@ type UpdateSOSPostRequest struct {
 }
 
 type UpdateSOSPostView struct {
-	ID          int              `json:"id"`
-	AuthorID    int              `json:"authorId"`
-	Title       string           `json:"title"`
-	Content     string           `json:"content"`
-	Media       media.ListView   `json:"media"`
-	Conditions  []ConditionView  `json:"conditions"`
-	Pets        []pet.DetailView `json:"pets"`
-	Reward      string           `json:"reward"`
-	Dates       []SOSDateView    `json:"dates"`
-	CareType    CareType         `json:"careType"`
-	CarerGender CarerGender      `json:"carerGender"`
-	RewardType  RewardType       `json:"rewardType"`
-	ThumbnailID int64            `json:"thumbnailId"`
-	CreatedAt   string           `json:"createdAt"`
-	UpdatedAt   string           `json:"updatedAt"`
+	ID          int                   `json:"id"`
+	AuthorID    int                   `json:"authorId"`
+	Title       string                `json:"title"`
+	Content     string                `json:"content"`
+	Media       media.ListView        `json:"media"`
+	Conditions  soscondition.ListView `json:"conditions"`
+	Pets        []pet.DetailView      `json:"pets"`
+	Reward      string                `json:"reward"`
+	Dates       []SOSDateView         `json:"dates"`
+	CareType    CareType              `json:"careType"`
+	CarerGender CarerGender           `json:"carerGender"`
+	RewardType  RewardType            `json:"rewardType"`
+	ThumbnailID int64                 `json:"thumbnailId"`
+	CreatedAt   string                `json:"createdAt"`
+	UpdatedAt   string                `json:"updatedAt"`
 }
 
 func (p *SOSPost) ToUpdateSOSPostView(
 	mediaList media.ListView,
-	conditions []ConditionView,
+	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *UpdateSOSPostView {
