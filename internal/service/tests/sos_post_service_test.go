@@ -36,9 +36,9 @@ func TestCreateSOSPost(t *testing.T) {
 
 		// given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -98,9 +98,9 @@ func TestFindSOSPosts(t *testing.T) {
 
 		// given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -149,9 +149,9 @@ func TestFindSOSPosts(t *testing.T) {
 
 		// given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -199,9 +199,9 @@ func TestFindSOSPosts(t *testing.T) {
 
 		// given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -261,9 +261,9 @@ func TestFindSOSPosts(t *testing.T) {
 		defer tearDown(t)
 
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -312,9 +312,9 @@ func TestFindSOSPostByID(t *testing.T) {
 		defer tearDown(t)
 
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -361,9 +361,9 @@ func TestUpdateSOSPost(t *testing.T) {
 
 		// given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
-		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)

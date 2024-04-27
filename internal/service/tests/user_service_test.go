@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/tests/assert"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
@@ -23,7 +25,7 @@ func TestRegisterUser(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -69,7 +71,7 @@ func TestRegisterUser(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -91,7 +93,7 @@ func TestFindUsers(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		targetNickname := "target"
@@ -134,7 +136,7 @@ func TestFindUser(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -156,7 +158,7 @@ func TestFindUser(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -215,7 +217,7 @@ func TestExistsByEmail(t *testing.T) {
 
 		// Given
 		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
@@ -245,7 +247,7 @@ func TestUpdateUserByUID(t *testing.T) {
 
 		// When
 		updatedNickname := "updated"
-		updatedProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		updatedProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_profile_image.jpg")
 		userService.UpdateUserByUID(ctx, userRequest.FirebaseUID, updatedNickname, &updatedProfileImage.ID)
 
 		// Then
@@ -271,7 +273,7 @@ func TestAddPetsToOwner(t *testing.T) {
 		userService := service.NewUserService(db, mediaService)
 
 		owner := tests.RegisterDummyUser(t, ctx, userService, mediaService)
-		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		petsToAdd := pet.AddPetsToOwnerRequest{
 			Pets: []pet.AddPetRequest{
 				*tests.GenerateDummyAddPetRequest(&profileImage.ID),
@@ -305,14 +307,14 @@ func TestUpdatePet(t *testing.T) {
 		userService := service.NewUserService(db, mediaService)
 		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
-		petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
 		petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
 		createdPets, _ := userService.AddPetsToOwner(
 			ctx, userData.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
 		createdPet := createdPets.Pets[0]
 
 		// When
-		updatedPetProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		updatedPetProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_pet_profile_image.jpg")
 		birthData, _ := datatype.ParseDate("2021-01-01")
 		updatedPetRequest := pet.UpdatePetRequest{
 			Name:           "updated",
@@ -347,7 +349,7 @@ func TestDeletePet(t *testing.T) {
 		userService := service.NewUserService(db, mediaService)
 		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
-		petProfileImage := tests.AddDummyMedia(t, ctx, mediaService)
+		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
 		petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
 		createdPets, err := userService.AddPetsToOwner(
 			ctx,

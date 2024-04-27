@@ -2,10 +2,11 @@ package tests
 
 import (
 	"context"
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 	"io"
 	"testing"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -24,16 +25,6 @@ func NewDummyFileUploader() bucketinfra.FileUploader {
 	return DummyUploader{}
 }
 
-func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.DetailView {
-	t.Helper()
-	mediaData, err := mediaService.CreateMedia(ctx, media.TypeImage, "http://example.com")
-	if err != nil {
-		t.Errorf("got %v want %v", err, nil)
-	}
-
-	return mediaData
-}
-
 func RegisterDummyUser(
 	t *testing.T,
 	ctx context.Context,
@@ -41,7 +32,7 @@ func RegisterDummyUser(
 	mediaService *service.MediaService,
 ) *user.InternalView {
 	t.Helper()
-	profileImage := AddDummyMedia(t, ctx, mediaService)
+	profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 	userRequest := GenerateDummyRegisterUserRequest(&profileImage.ID)
 	registeredUser, err := userService.RegisterUser(ctx, userRequest)
 	if err != nil {
