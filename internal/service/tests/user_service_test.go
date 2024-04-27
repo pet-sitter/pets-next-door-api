@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
+	"github.com/stretchr/testify/assert"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/tests/assert"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 	"github.com/shopspring/decimal"
 )
@@ -22,30 +23,28 @@ func TestRegisterUser(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 
 		// When
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// Then
-		if created.Email != userRequest.Email {
-			t.Errorf("got %v want %v", created.Email, userRequest.Email)
-		}
+		assert.Equal(t, userRequest.Email, created.Email)
 	})
 
 	t.Run("사용자의 프로필 이미지가 존재하지 않아도 생성한다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		userService := service.NewUserService(db, nil)
 		userRequest := &user.RegisterUserRequest{
 			Email:                "test@example.com",
 			Nickname:             "nickname",
@@ -59,29 +58,26 @@ func TestRegisterUser(t *testing.T) {
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// Then
-		if created.Email != userRequest.Email {
-			t.Errorf("got %v want %v", created.Email, userRequest.Email)
-		}
+		assert.Equal(t, userRequest.Email, created.Email)
 	})
 
 	t.Run("사용자가 이미 존재할 경우 에러를 반환한다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
-
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
-
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		userService.RegisterUser(ctx, userRequest)
 
-		// When & Then
-		if _, err := userService.RegisterUser(ctx, userRequest); err == nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		// When
+		_, err := userService.RegisterUser(ctx, userRequest)
+
+		// Then
+		assert.NotNil(t, err)
 	})
 }
 
@@ -90,12 +86,12 @@ func TestFindUsers(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userService := service.NewUserService(db, mediaService)
 		targetNickname := "target"
 		targetUserRequest := &user.RegisterUserRequest{
 			Email:                "test@example.com",
@@ -122,9 +118,7 @@ func TestFindUsers(t *testing.T) {
 		found, _ := userService.FindUsers(ctx, user.FindUsersParams{Page: 1, Size: 20, Nickname: &targetNickname})
 
 		// Then
-		if len(found.Items) != 1 {
-			t.Errorf("got %v want %v", len(found.Items), 1)
-		}
+		assert.Equal(t, 1, len(found.Items))
 	})
 }
 
@@ -133,62 +127,54 @@ func TestFindUser(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// When
 		found, _ := userService.FindUser(ctx, user.FindUserParams{Email: &created.Email})
 
 		// Then
-		if found.Email != userRequest.Email {
-			t.Errorf("got %v want %v", found.Email, userRequest.Email)
-		}
+		assert.Equal(t, created.Email, found.Email)
 	})
 
 	t.Run("사용자를 UID로 찾는다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// When
 		found, _ := userService.FindUser(ctx, user.FindUserParams{FbUID: &created.FirebaseUID})
 
 		// Then
-		if found.FirebaseUID != userRequest.FirebaseUID {
-			t.Errorf("got %v want %v", found.FirebaseUID, userRequest.FirebaseUID)
-		}
+		assert.Equal(t, created.FirebaseUID, found.FirebaseUID)
 	})
 
 	t.Run("사용자가 존재하지 않을 경우 에러를 반환한다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
-
-		// Given
-		userService := service.NewUserService(db, nil)
+		userService := tests.NewMockUserService(db)
 
 		// When
 		email := "non-existent@example.com"
 		_, err := userService.FindUser(ctx, user.FindUserParams{Email: &email})
 
 		// Then
-		if err == nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		assert.NotNil(t, err)
 	})
 }
 
@@ -197,39 +183,33 @@ func TestExistsByEmail(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
-
-		// Given
-		userService := service.NewUserService(db, nil)
+		userService := tests.NewMockUserService(db)
 
 		// When
 		exists, _ := userService.ExistsByNickname(ctx, "non-existent")
 
 		// Then
-		if exists {
-			t.Errorf("got %v want %v", exists, false)
-		}
+		assert.False(t, exists)
 	})
 
 	t.Run("사용자의 닉네임이 존재할 경우 true를 반환한다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		userService.RegisterUser(ctx, userRequest)
 
 		// When
 		exists, _ := userService.ExistsByNickname(ctx, userRequest.Nickname)
 
 		// Then
-		if !exists {
-			t.Errorf("got %v want %v", exists, true)
-		}
+		assert.True(t, exists)
 	})
 }
 
@@ -238,27 +218,22 @@ func TestUpdateUserByUID(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		targetUser, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
 
 		// When
 		updatedNickname := "updated"
 		updatedProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_profile_image.jpg")
-		userService.UpdateUserByUID(ctx, userRequest.FirebaseUID, updatedNickname, &updatedProfileImage.ID)
+		userService.UpdateUserByUID(ctx, targetUser.FirebaseUID, updatedNickname, &updatedProfileImage.ID)
 
 		// Then
-		found, _ := userService.FindUser(ctx, user.FindUserParams{FbUID: &userRequest.FirebaseUID})
-		if found.Nickname != updatedNickname {
-			t.Errorf("got %v want %v", found.Nickname, updatedNickname)
-		}
-
-		if *found.ProfileImageURL != updatedProfileImage.URL {
-			t.Errorf("got %v want %v", *found.ProfileImageURL, updatedProfileImage.URL)
-		}
+		found, _ := userService.FindUser(ctx, user.FindUserParams{FbUID: &targetUser.FirebaseUID})
+		assert.Equal(t, updatedNickname, found.Nickname)
+		assert.Equal(t, updatedProfileImage.URL, *found.ProfileImageURL)
 	})
 }
 
@@ -267,16 +242,17 @@ func TestAddPetsToOwner(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		userService := service.NewUserService(db, mediaService)
-
-		owner := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		owner, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
+
+		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
 		petsToAdd := pet.AddPetsToOwnerRequest{
 			Pets: []pet.AddPetRequest{
-				*tests.GenerateDummyAddPetRequest(&profileImage.ID),
+				*tests.NewDummyAddPetRequest(&petProfileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
 			},
 		}
 
@@ -284,13 +260,17 @@ func TestAddPetsToOwner(t *testing.T) {
 		created, _ := userService.AddPetsToOwner(ctx, owner.FirebaseUID, petsToAdd)
 
 		// Then
-		if len(created.Pets) != 1 {
-			t.Errorf("got %v want %v", len(created.Pets), 1)
-		}
+		assert.Equal(t, 1, len(created.Pets))
 
-		for _, expected := range petsToAdd.Pets {
-			for _, found := range created.Pets {
-				assert.PetRequestAndViewEquals(t, expected, found)
+		for _, want := range petsToAdd.Pets {
+			for _, got := range created.Pets {
+				assert.Equal(t, want.Name, got.Name)
+				assert.Equal(t, want.PetType, got.PetType)
+				assert.Equal(t, want.Sex, got.Sex)
+				assert.Equal(t, want.Neutered, got.Neutered)
+				assert.Equal(t, want.Breed, got.Breed)
+				assert.Equal(t, want.BirthDate, got.BirthDate)
+				assert.Equal(t, want.WeightInKg.String(), got.WeightInKg.String())
 			}
 		}
 	})
@@ -301,16 +281,17 @@ func TestUpdatePet(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		userService := service.NewUserService(db, mediaService)
-		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		registeredUser, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
 
 		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
-		petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
+		petRequest := tests.NewDummyAddPetRequest(&petProfileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle")
 		createdPets, _ := userService.AddPetsToOwner(
-			ctx, userData.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			ctx, registeredUser.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
 		createdPet := createdPets.Pets[0]
 
 		// When
@@ -326,15 +307,22 @@ func TestUpdatePet(t *testing.T) {
 			ProfileImageID: &updatedPetProfileImage.ID,
 		}
 
-		userService.UpdatePet(ctx, userData.FirebaseUID, createdPet.ID, updatedPetRequest)
-
-		// Then
-		found, _ := userService.FindPets(ctx, pet.FindPetsParams{OwnerID: &userData.ID})
-		if len(found.Pets) != 1 {
-			t.Errorf("got %v want %v", len(found.Pets), 1)
+		_, err := userService.UpdatePet(ctx, registeredUser.FirebaseUID, createdPet.ID, updatedPetRequest)
+		if err != nil {
+			t.Errorf("got %v want %v", err, nil)
 		}
 
-		assert.UpdatedPetEquals(t, updatedPetRequest, found.Pets[0])
+		// Then
+		found, _ := userService.FindPets(ctx, pet.FindPetsParams{OwnerID: &registeredUser.ID})
+		assert.Equal(t, 1, len(found.Pets))
+
+		want := updatedPetRequest
+		got := found.Pets[0]
+		assert.Equal(t, want.Name, got.Name)
+		assert.Equal(t, want.Neutered, got.Neutered)
+		assert.Equal(t, want.Breed, got.Breed)
+		assert.Equal(t, want.BirthDate, got.BirthDate)
+		assert.Equal(t, want.WeightInKg.String(), got.WeightInKg.String())
 	})
 }
 
@@ -343,36 +331,29 @@ func TestDeletePet(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
 		defer tearDown(t)
 		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
 
 		// Given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
-		userService := service.NewUserService(db, mediaService)
-		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		registeredUser, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
 
 		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
-		petRequest := tests.GenerateDummyAddPetRequest(&petProfileImage.ID)
-		createdPets, err := userService.AddPetsToOwner(
+		petRequest := tests.NewDummyAddPetRequest(&petProfileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle")
+		createdPets, _ := userService.AddPetsToOwner(
 			ctx,
-			userData.FirebaseUID,
+			registeredUser.FirebaseUID,
 			pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}},
 		)
-		if err != nil {
-			t.Fatalf("got %v want %v", err, nil)
-		}
 		createdPet := createdPets.Pets[0]
 
 		// When
-		err = userService.DeletePet(ctx, userData.FirebaseUID, createdPet.ID)
-		if err != nil {
-			t.Fatalf("got %v want %v", err, nil)
-		}
+		userService.DeletePet(ctx, registeredUser.FirebaseUID, createdPet.ID)
 
 		// Then
 		found, _ := userService.FindPets(ctx, pet.FindPetsParams{
-			OwnerID: &userData.ID,
+			OwnerID: &registeredUser.ID,
 		})
-		if len(found.Pets) != 0 {
-			t.Fatalf("got %v want %v", len(found.Pets), 0)
-		}
+		assert.Equal(t, 0, len(found.Pets))
 	})
 }

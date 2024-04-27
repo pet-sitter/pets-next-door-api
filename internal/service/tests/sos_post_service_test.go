@@ -2,10 +2,13 @@ package service_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/tests/asserts"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -33,60 +36,43 @@ func TestCreateSOSPost(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
 		// given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
-		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
-
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
-		owner, _ := userService.RegisterUser(ctx, userRequest)
-		uid := owner.FirebaseUID
-		addPets := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
+		owner, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
+		addPets, _ := userService.AddPetsToOwner(
+			ctx,
+			owner.FirebaseUID,
+			pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+			}},
+		)
 
 		// when
-		sosPostService := service.NewSOSPostService(db)
-		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
-		petIDs := []int64{addPets.ID}
-
-		sosPostData := tests.GenerateDummyWriteSOSPostRequest(imageIDs, petIDs, 0)
-		sosPost, err := sosPostService.WriteSOSPost(ctx, uid, sosPostData)
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostData := tests.NewDummyWriteSOSPostRequest(
+			[]int64{sosPostImage.ID, sosPostImage2.ID},
+			[]int64{addPets.Pets[0].ID},
+			0,
+		)
+		created, _ := sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, tests.NewDummyWriteSOSPostRequest(
+			[]int64{sosPostImage.ID, sosPostImage2.ID},
+			[]int64{addPets.Pets[0].ID},
+			0,
+		))
 
 		// then
-		assertConditionEquals(t, sosPost.Conditions, sosPostData.ConditionIDs)
-		assertPetEquals(t, sosPost.Pets[0], *addPets)
-		assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
-		assertDatesEquals(t, sosPost.Dates, sosPostData.Dates)
-
-		if sosPost.Title != sosPostData.Title {
-			t.Errorf("got %v want %v", sosPost.Title, sosPostData.Title)
-		}
-		if sosPost.Content != sosPostData.Content {
-			t.Errorf("got %v want %v", sosPost.Content, sosPostData.Content)
-		}
-		if sosPost.Reward != sosPostData.Reward {
-			t.Errorf("got %v want %v", sosPost.Reward, sosPostData.Reward)
-		}
-		if sosPost.CareType != sosPostData.CareType {
-			t.Errorf("got %v want %v", sosPost.CareType, sosPostData.CareType)
-		}
-		if sosPost.CarerGender != sosPostData.CarerGender {
-			t.Errorf("got %v want %v", sosPost.CarerGender, sosPostData.CarerGender)
-		}
-		if sosPost.RewardType != sosPostData.RewardType {
-			t.Errorf("got %v want %v", sosPost.RewardType, sosPostData.RewardType)
-		}
-		if sosPost.ThumbnailID != sosPostData.ImageIDs[0] {
-			t.Errorf("got %v want %v", sosPost.ThumbnailID, sosPostData.ImageIDs[0])
-		}
-		if int64(sosPost.AuthorID) != owner.ID {
-			t.Errorf("got %v want %v", sosPost.AuthorID, owner.ID)
-		}
+		found, _ := sosPostService.FindSOSPostByID(ctx, created.ID)
+		asserts.ConditionIDEquals(t, sosPostData.ConditionIDs, found.Conditions)
+		assertPetEquals(t, addPets.Pets[0], found.Pets[0])
+		asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, found.Media)
+		asserts.DatesEquals(t, sosPostData.Dates, found.Dates)
+		writtenAndFoundSOSPostEquals(t, *sosPostData, *found)
+		assert.Equal(t, owner.ID, int64(created.AuthorID))
 	})
 }
 
@@ -95,50 +81,57 @@ func TestFindSOSPosts(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
 		// given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
-		author := &user.WithoutPrivateInfo{
-			ID:              owner.ID,
-			ProfileImageURL: owner.ProfileImageURL,
-			Nickname:        owner.Nickname,
-		}
-		uid := owner.FirebaseUID
-		addPets := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
+		addPets, _ := userService.AddPetsToOwner(
+			ctx,
+			owner.FirebaseUID,
+			pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
+					*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				},
+			},
+		)
 
-		sosPostService := service.NewSOSPostService(db)
 		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
-		petIDs := []int64{addPets.ID}
+		petIDs := []int64{addPets.Pets[0].ID}
 		conditionIDs := []int{1, 2}
 
+		sosPostRequests := make([]sospost.WriteSOSPostRequest, 0)
 		var sosPosts []sospost.WriteSOSPostView
 		for i := 1; i < 4; i++ {
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, petIDs, i)
+			request := tests.NewDummyWriteSOSPostRequest(imageIDs, petIDs, i)
+			sosPost, _ := sosPostService.WriteSOSPost(
+				ctx, owner.FirebaseUID, request,
+			)
 			sosPosts = append(sosPosts, *sosPost)
+			sosPostRequests = append(sosPostRequests, *request)
 		}
 
 		// when
-		sosPostList, err := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
+		foundList, err := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
 		if err != nil {
 			t.Errorf("got %v want %v", err, nil)
 		}
 
 		// then
-		for i, sosPost := range sosPostList.Items {
-			idx := len(sosPostList.Items) - i - 1
-			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-			assertPetEquals(t, sosPost.Pets[0], *addPets)
-			assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
-			assertAuthorEquals(t, sosPost.Author, author)
-			assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
-			assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
+		for i, found := range foundList.Items {
+			idx := len(foundList.Items) - i - 1
+			asserts.ConditionIDEquals(t, conditionIDs, found.Conditions)
+			assertPetEquals(t, addPets.Pets[0], found.Pets[0])
+			asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, found.Media)
+			assert.Equal(t, owner.ID, found.Author.ID)
+			asserts.DatesEquals(t, sosPosts[idx].Dates, found.Dates)
+			writtenAndFoundSOSPostEquals(t, sosPostRequests[idx], found)
 		}
 	})
 
@@ -146,49 +139,48 @@ func TestFindSOSPosts(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
 		// given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
-		author := &user.WithoutPrivateInfo{
-			ID:              owner.ID,
-			ProfileImageURL: owner.ProfileImageURL,
-			Nickname:        owner.Nickname,
-		}
 		uid := owner.FirebaseUID
-		addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
+		addPetRequest, _ := userService.AddPetsToOwner(ctx, uid, pet.AddPetsToOwnerRequest{
+			Pets: []pet.AddPetRequest{
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeCat, pet.GenderMale, "munchkin"),
+			},
+		})
 
-		sosPostService := service.NewSOSPostService(db)
 		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 		conditionIDs := []int{1, 2}
 
-		var sosPosts []sospost.WriteSOSPostView
+		sosPostRequests := make([]sospost.WriteSOSPostRequest, 0)
 		for i := 1; i < 4; i++ {
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[i-1].ID}, i)
-			sosPosts = append(sosPosts, *sosPost)
+			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{addPetRequest.Pets[i-1].ID}, i)
+			sosPostService.WriteSOSPost(ctx, uid, request)
+			sosPostRequests = append(sosPostRequests, *request)
 		}
 
 		// when
-		sosPostList, err := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		sosPostList, _ := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
 
 		// then
 		for i, sosPost := range sosPostList.Items {
 			idx := len(sosPostList.Items) - i - 1
-			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-			assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
-			assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
-			assertAuthorEquals(t, sosPost.Author, author)
-			assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
-			assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
+			asserts.ConditionIDEquals(t, conditionIDs, sosPost.Conditions)
+			assertPetEquals(t, addPetRequest.Pets[i-1], sosPost.Pets[i-1])
+			asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, sosPost.Media)
+			assert.Equal(t, owner.ID, sosPost.Author.ID)
+			asserts.DatesEquals(t, sosPostRequests[idx].Dates, sosPost.Dates)
+			writtenAndFoundSOSPostEquals(t, sosPostRequests[idx], sosPost)
 		}
 	})
 
@@ -196,62 +188,58 @@ func TestFindSOSPosts(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
 		// given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+		owner, _ := userService.RegisterUser(ctx, tests.NewDummyRegisterUserRequest(&profileImage.ID))
+
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
-
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
-		owner, _ := userService.RegisterUser(ctx, userRequest)
-		author := &user.WithoutPrivateInfo{
-			ID:              owner.ID,
-			ProfileImageURL: owner.ProfileImageURL,
-			Nickname:        owner.Nickname,
-		}
 		uid := owner.FirebaseUID
-		addPets := tests.AddDummyPets(t, ctx, userService, uid, &profileImage.ID)
+		petList, _ := userService.AddPetsToOwner(ctx, uid, pet.AddPetsToOwnerRequest{
+			Pets: []pet.AddPetRequest{
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeCat, pet.GenderMale, "munchkin"),
+			},
+		})
 
-		sosPostService := service.NewSOSPostService(db)
 		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 		conditionIDs := []int{1, 2}
 
-		var sosPosts []sospost.WriteSOSPostView
+		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
 		// 강아지인 경우
 		for i := 1; i < 3; i++ {
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[i-1].ID}, i)
-			sosPosts = append(sosPosts, *sosPost)
+			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{petList.Pets[i-1].ID}, i)
+			sosPostService.WriteSOSPost(ctx, uid, request)
+			writeRequests = append(writeRequests, *request)
 		}
 
 		// 고양이인 경우
-		sosPosts = append(sosPosts,
-			*tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPets.Pets[2].ID}, 3))
+		request := tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{petList.Pets[2].ID}, 3)
+		sosPostService.WriteSOSPost(ctx, uid, request)
+		writeRequests = append(writeRequests, *request)
 
 		// 강아지, 고양이인 경우
-		sosPosts = append(sosPosts,
-			*tests.WriteDummySOSPosts(t, ctx,
-				sosPostService, uid, imageIDs, []int64{addPets.Pets[1].ID, addPets.Pets[2].ID},
-				4,
-			),
-		)
+		request = tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{petList.Pets[1].ID, petList.Pets[2].ID}, 4)
+		sosPostService.WriteSOSPost(ctx, uid, request)
+		writeRequests = append(writeRequests, *request)
 
 		// when
-		sosPostList, err := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		foundList, _ := sosPostService.FindSOSPosts(ctx, 1, 3, "newest", "all")
 
 		// then
-		for i, sosPost := range sosPostList.Items {
-			idx := len(sosPostList.Items) - i - 1
-			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-			assertPetEquals(t, sosPost.Pets[i-1], addPets.Pets[i-1])
-			assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
-			assertAuthorEquals(t, sosPost.Author, author)
-			assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
-			assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
+		for i, sosPost := range foundList.Items {
+			idx := len(foundList.Items) - i - 1
+			asserts.ConditionIDEquals(t, conditionIDs, sosPost.Conditions)
+			assertPetEquals(t, petList.Pets[i-1], sosPost.Pets[i-1])
+			asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, sosPost.Media)
+			assert.Equal(t, owner.ID, sosPost.Author.ID)
+			asserts.DatesEquals(t, writeRequests[idx].Dates, sosPost.Dates)
+			writtenAndFoundSOSPostEquals(t, writeRequests[idx], sosPost)
 		}
 	})
 
@@ -259,48 +247,54 @@ func TestFindSOSPosts(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
+		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		author := &user.WithoutPrivateInfo{
 			ID:              owner.ID,
 			ProfileImageURL: owner.ProfileImageURL,
 			Nickname:        owner.Nickname,
 		}
-		uid := owner.FirebaseUID
-		addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
+		petList, _ := userService.AddPetsToOwner(
+			ctx,
+			owner.FirebaseUID,
+			pet.AddPetsToOwnerRequest{
+				Pets: []pet.AddPetRequest{
+					*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+				},
+			},
+		)
 
-		sosPostService := service.NewSOSPostService(db)
 		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 		conditionIDs := []int{1, 2}
 
-		sosPosts := make([]sospost.WriteSOSPostView, 0)
+		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
 		for i := 1; i < 4; i++ {
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPet.ID}, i)
-			sosPosts = append(sosPosts, *sosPost)
+			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{petList.Pets[0].ID}, i)
+			sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
+			writeRequests = append(writeRequests, *request)
 		}
 
 		// when
-		sosPostListByAuthorID, err := sosPostService.FindSOSPostsByAuthorID(ctx, int(owner.ID), 1, 3, "newest", "all")
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		foundList, _ := sosPostService.FindSOSPostsByAuthorID(ctx, int(owner.ID), 1, 3, "newest", "all")
 
 		// then
-		for i, sosPost := range sosPostListByAuthorID.Items {
-			idx := len(sosPostListByAuthorID.Items) - i - 1
-			assertConditionEquals(t, sosPost.Conditions, conditionIDs)
-			assertPetEquals(t, sosPost.Pets[0], *addPet)
-			assertMediaEquals(t, sosPost.Media, media.ListView{sosPostImage, sosPostImage2})
-			assertAuthorEquals(t, sosPost.Author, author)
-			assertDatesEquals(t, sosPost.Dates, sosPosts[idx].Dates)
-			assertFindSOSPostEquals(t, sosPost, sosPosts[idx])
+		for i, sosPost := range foundList.Items {
+			idx := len(foundList.Items) - i - 1
+			asserts.ConditionIDEquals(t, conditionIDs, sosPost.Conditions)
+			assertPetEquals(t, petList.Pets[0], sosPost.Pets[0])
+			asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, sosPost.Media)
+			assert.Equal(t, author.ID, sosPost.Author.ID)
+			asserts.DatesEquals(t, writeRequests[idx].Dates, sosPost.Dates)
+			writtenAndFoundSOSPostEquals(t, writeRequests[idx], sosPost)
 		}
 	})
 }
@@ -310,46 +304,52 @@ func TestFindSOSPostByID(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
+		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		author := &user.WithoutPrivateInfo{
 			ID:              owner.ID,
 			ProfileImageURL: owner.ProfileImageURL,
 			Nickname:        owner.Nickname,
 		}
-		uid := owner.FirebaseUID
-		addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
+		addPets, _ := userService.AddPetsToOwner(
+			ctx,
+			owner.FirebaseUID,
+			pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+			}},
+		)
 
-		sosPostService := service.NewSOSPostService(db)
 		imageIDs := []int64{sosPostImage.ID, sosPostImage2.ID}
 		conditionIDs := []int{1, 2}
 
-		sosPosts := make([]sospost.WriteSOSPostView, 0)
+		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
+		writtenIDs := make([]int64, 0)
 		for i := 1; i < 4; i++ {
-			sosPost := tests.WriteDummySOSPosts(t, ctx, sosPostService, uid, imageIDs, []int64{addPet.ID}, i)
-			sosPosts = append(sosPosts, *sosPost)
+			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []int64{addPets.Pets[0].ID}, i)
+			sosPost, _ := sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
+			writeRequests = append(writeRequests, *request)
+			writtenIDs = append(writtenIDs, int64(sosPost.ID))
 		}
 
 		// when
-		findSOSPostByID, err := sosPostService.FindSOSPostByID(ctx, sosPosts[0].ID)
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
+		found, _ := sosPostService.FindSOSPostByID(ctx, int(writtenIDs[0]))
 
 		// then
-		assertConditionEquals(t, sosPosts[0].Conditions, conditionIDs)
-		assertPetEquals(t, sosPosts[0].Pets[0], *addPet)
-		assertMediaEquals(t, findSOSPostByID.Media, media.ListView{sosPostImage, sosPostImage2})
-		assertAuthorEquals(t, findSOSPostByID.Author, author)
-		assertDatesEquals(t, findSOSPostByID.Dates, sosPosts[0].Dates)
-		assertFindSOSPostEquals(t, *findSOSPostByID, sosPosts[0])
+		asserts.ConditionIDEquals(t, conditionIDs, found.Conditions)
+		assertPetEquals(t, addPets.Pets[0], found.Pets[0])
+		asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, found.Media)
+		assert.Equal(t, author.ID, found.Author.ID)
+		asserts.DatesEquals(t, writeRequests[0].Dates, found.Dates)
+		writtenAndFoundSOSPostEquals(t, writeRequests[0], *found)
 	})
 }
 
@@ -358,26 +358,31 @@ func TestUpdateSOSPost(t *testing.T) {
 		ctx := context.Background()
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+		sosPostService := tests.NewMockSOSPostService(db)
 
 		// given
-		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
 		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
 
-		userService := service.NewUserService(db, mediaService)
-		userRequest := tests.GenerateDummyRegisterUserRequest(&profileImage.ID)
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
-		uid := owner.FirebaseUID
-		addPet := tests.AddDummyPet(t, ctx, userService, uid, &profileImage.ID)
-
-		sosPostService := service.NewSOSPostService(db)
-		sosPost := tests.WriteDummySOSPosts(t, ctx,
-			sosPostService, uid, []int64{sosPostImage.ID}, []int64{addPet.ID},
-			1,
+		addPets, _ := userService.AddPetsToOwner(
+			ctx,
+			owner.FirebaseUID,
+			pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{
+				*tests.NewDummyAddPetRequest(&profileImage.ID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+			}},
 		)
 
-		updateSOSPostData := &sospost.UpdateSOSPostRequest{
+		sosPost, _ := sosPostService.WriteSOSPost(
+			ctx, owner.FirebaseUID, tests.NewDummyWriteSOSPostRequest([]int64{sosPostImage.ID}, []int64{addPets.Pets[0].ID}, 1),
+		)
+
+		// when
+		updateRequest := &sospost.UpdateSOSPostRequest{
 			ID:       sosPost.ID,
 			Title:    "Title2",
 			Content:  "Content2",
@@ -391,160 +396,50 @@ func TestUpdateSOSPost(t *testing.T) {
 			CarerGender:  sospost.CarerGenderMale,
 			RewardType:   sospost.RewardTypeFee,
 			ConditionIDs: []int{1, 2},
-			PetIDs:       []int{int(addPet.ID)},
+			PetIDs:       []int{int(addPets.Pets[0].ID)},
 		}
+		updated, _ := sosPostService.UpdateSOSPost(ctx, updateRequest)
 
-		// when
-		updateSOSPost, err := sosPostService.UpdateSOSPost(ctx, updateSOSPostData)
-		if err != nil {
-			t.Errorf("got %v want %v", err, nil)
-		}
-
-		assertConditionEquals(t, sosPost.Conditions, updateSOSPostData.ConditionIDs)
-		assertPetEquals(t, sosPost.Pets[0], *addPet)
-		assertMediaEquals(t, updateSOSPost.Media, media.ListView{sosPostImage, sosPostImage2})
-		assertDatesEquals(t, updateSOSPost.Dates, updateSOSPostData.Dates)
-
-		if updateSOSPost.Title != updateSOSPostData.Title {
-			t.Errorf("got %v want %v", updateSOSPost.Title, updateSOSPostData.Title)
-		}
-		if updateSOSPost.Content != updateSOSPostData.Content {
-			t.Errorf("got %v want %v", updateSOSPost.Content, updateSOSPostData.Content)
-		}
-		if updateSOSPost.Reward != updateSOSPostData.Reward {
-			t.Errorf("got %v want %v", updateSOSPost.Reward, updateSOSPostData.Reward)
-		}
-		if updateSOSPost.CareType != updateSOSPostData.CareType {
-			t.Errorf("got %v want %v", updateSOSPost.CareType, updateSOSPostData.CareType)
-		}
-		if updateSOSPost.CarerGender != updateSOSPostData.CarerGender {
-			t.Errorf("got %v want %v", updateSOSPost.CarerGender, updateSOSPostData.CarerGender)
-		}
-		if updateSOSPost.RewardType != updateSOSPostData.RewardType {
-			t.Errorf("got %v want %v", updateSOSPost.RewardType, updateSOSPostData.RewardType)
-		}
-		if updateSOSPost.ThumbnailID != sosPostImage.ID {
-			t.Errorf("got %v want %v", updateSOSPost.ThumbnailID, sosPostImage.ID)
-		}
-		if int64(updateSOSPost.AuthorID) != owner.ID {
-			t.Errorf("got %v want %v", updateSOSPost.AuthorID, owner.ID)
-		}
+		// then
+		found, _ := sosPostService.FindSOSPostByID(ctx, sosPost.ID)
+		asserts.ConditionIDEquals(t, updateRequest.ConditionIDs, found.Conditions)
+		assertPetEquals(t, sosPost.Pets[0], found.Pets[0])
+		asserts.MediaEquals(t, media.ListView{sosPostImage, sosPostImage2}, found.Media)
+		asserts.DatesEquals(t, updateRequest.Dates, found.Dates)
+		assert.Equal(t, updateRequest.Title, found.Title)
+		assert.Equal(t, updateRequest.Content, found.Content)
+		assert.Equal(t, updateRequest.Reward, found.Reward)
+		assert.Equal(t, updateRequest.CareType, found.CareType)
+		assert.Equal(t, updateRequest.CarerGender, found.CarerGender)
+		assert.Equal(t, updateRequest.RewardType, found.RewardType)
+		assert.Equal(t, updateRequest.ImageIDs[0], found.ThumbnailID)
+		assert.Equal(t, int64(updated.AuthorID), owner.ID)
 	})
 }
 
-func assertFindSOSPostEquals(t *testing.T, got sospost.FindSOSPostView, want sospost.WriteSOSPostView) {
+func assertPetEquals(t *testing.T, want, got pet.DetailView) {
 	t.Helper()
 
-	if got.Title != want.Title {
-		t.Errorf("got %v want %v", got.Title, want.Title)
-	}
-	if got.Content != want.Content {
-		t.Errorf("got %v want %v", got.Content, want.Content)
-	}
-	if got.Reward != want.Reward {
-		t.Errorf("got %v want %v", got.Reward, want.Reward)
-	}
-	if got.CareType != want.CareType {
-		t.Errorf("got %v want %v", got.CareType, want.CareType)
-	}
-	if got.CarerGender != want.CarerGender {
-		t.Errorf("got %v want %v", got.CarerGender, want.CarerGender)
-	}
-	if got.RewardType != want.RewardType {
-		t.Errorf("got %v want %v", got.RewardType, want.RewardType)
-	}
-	if got.ThumbnailID != want.ThumbnailID {
-		t.Errorf("got %v want %v", got.ThumbnailID, want.ThumbnailID)
-	}
+	assert.Equal(t, want.ID, got.ID)
+	assert.Equal(t, want.Name, got.Name)
+	assert.Equal(t, want.PetType, got.PetType)
+	assert.Equal(t, want.Sex, got.Sex)
+	assert.Equal(t, want.Neutered, got.Neutered)
+	assert.Equal(t, want.Breed, got.Breed)
+	assert.Equal(t, want.BirthDate, got.BirthDate)
+	assert.Equal(t, want.WeightInKg.String(), got.WeightInKg.String())
+	assert.Equal(t, want.Remarks, got.Remarks)
+	assert.Equal(t, want.ProfileImageURL, got.ProfileImageURL)
 }
 
-func assertConditionEquals(t *testing.T, got soscondition.ListView, want []int) {
+func writtenAndFoundSOSPostEquals(t *testing.T, want sospost.WriteSOSPostRequest, got sospost.FindSOSPostView) {
 	t.Helper()
 
-	for i := range want {
-		if int64(i+1) != got[i].ID {
-			t.Errorf("got %v want %v", got[i].ID, i+1)
-		}
-	}
-}
-
-func assertPetEquals(t *testing.T, got, want pet.DetailView) {
-	t.Helper()
-
-	if got.ID != want.ID {
-		t.Errorf("got %v want %v", got.ID, want.ID)
-	}
-
-	if got.Name != want.Name {
-		t.Errorf("got %v want %v", got.Name, want.Name)
-	}
-
-	if got.PetType != want.PetType {
-		t.Errorf("got %v want %v", got.PetType, want.PetType)
-	}
-
-	if got.Sex != want.Sex {
-		t.Errorf("got %v want %v", got.Sex, want.Sex)
-	}
-
-	if got.Neutered != want.Neutered {
-		t.Errorf("got %v want %v", got.Neutered, want.Neutered)
-	}
-
-	if got.Breed != want.Breed {
-		t.Errorf("got %v want %v", got.Breed, want.Breed)
-	}
-
-	if got.BirthDate != want.BirthDate {
-		t.Errorf("got %v want %v", got.BirthDate, want.BirthDate)
-	}
-
-	if got.WeightInKg.String() != want.WeightInKg.String() {
-		t.Errorf("got %v want %v", got.WeightInKg, want.WeightInKg)
-	}
-
-	if got.Remarks != want.Remarks {
-		t.Errorf("got %v want %v", got.Remarks, want.Remarks)
-	}
-
-	switch {
-	case got.ProfileImageURL == nil && want.ProfileImageURL != nil:
-		t.Errorf("got %v want %v", got.ProfileImageURL, want.ProfileImageURL)
-	case got.ProfileImageURL != nil && want.ProfileImageURL == nil:
-		t.Errorf("got %v want %v", got.ProfileImageURL, want.ProfileImageURL)
-	case *got.ProfileImageURL != *want.ProfileImageURL:
-		t.Errorf("got %v want %v", *got.ProfileImageURL, *want.ProfileImageURL)
-	}
-}
-
-func assertMediaEquals(t *testing.T, got, want media.ListView) {
-	t.Helper()
-
-	for i, mediaData := range want {
-		if got[i].ID != mediaData.ID {
-			t.Errorf("got %v want %v", got[i].ID, mediaData.ID)
-		}
-		if got[i].MediaType != mediaData.MediaType {
-			t.Errorf("got %v want %v", got[i].MediaType, mediaData.MediaType)
-		}
-		if got[i].URL != mediaData.URL {
-			t.Errorf("got %v want %v", got[i].URL, mediaData.URL)
-		}
-	}
-}
-
-func assertAuthorEquals(t *testing.T, got, want *user.WithoutPrivateInfo) {
-	t.Helper()
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v want %v", got, want)
-	}
-}
-
-func assertDatesEquals(t *testing.T, got, want []sospost.SOSDateView) {
-	t.Helper()
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v want %v", got, want)
-	}
+	assert.Equal(t, want.Title, got.Title)
+	assert.Equal(t, want.Content, got.Content)
+	assert.Equal(t, want.Reward, got.Reward)
+	assert.Equal(t, want.CareType, got.CareType)
+	assert.Equal(t, want.CarerGender, got.CarerGender)
+	assert.Equal(t, want.RewardType, got.RewardType)
+	assert.Equal(t, want.ImageIDs[0], got.ThumbnailID)
 }
