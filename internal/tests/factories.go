@@ -3,6 +3,8 @@ package tests
 import (
 	"fmt"
 
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
@@ -10,74 +12,39 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func GenerateDummyRegisterUserRequest(profileImageID *int64) *user.RegisterUserRequest {
+func randomUUID() string {
+	uuid, _ := datatype.NewV7()
+	return uuid.String()
+}
+
+func NewDummyRegisterUserRequest(profileImageID *int64) *user.RegisterUserRequest {
 	return &user.RegisterUserRequest{
-		Email:                "test@example.com",
-		Nickname:             "nickname",
-		Fullname:             "fullname",
+		Email:                randomUUID() + "@example.com",
+		Nickname:             randomUUID()[0:20],
+		Fullname:             randomUUID()[0:20],
 		ProfileImageID:       profileImageID,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          "uid",
+		FirebaseUID:          randomUUID(),
 	}
 }
 
-func GenerateDummyAddPetRequest(profileImageID *int64) *pet.AddPetRequest {
+func NewDummyAddPetRequest(
+	profileImageID *int64, petType commonvo.PetType, gender pet.Gender, breed string,
+) *pet.AddPetRequest {
 	birthDate, _ := datatype.ParseDate("2020-01-01")
 	return &pet.AddPetRequest{
-		Name:           "name",
-		PetType:        "dog",
-		Sex:            "male",
+		Name:           randomUUID()[0:20],
+		PetType:        petType,
+		Sex:            gender,
 		Neutered:       true,
-		Breed:          "poodle",
+		Breed:          breed,
 		BirthDate:      birthDate,
 		WeightInKg:     decimal.NewFromFloat(10.0),
 		ProfileImageID: profileImageID,
 	}
 }
 
-func GenerateDummyAddPetsRequest(profileImageID *int64) []pet.AddPetRequest {
-	birthDate1, _ := datatype.ParseDate("2020-01-01")
-	birthDate2, _ := datatype.ParseDate("2020-02-01")
-	birthDate3, _ := datatype.ParseDate("2020-03-01")
-
-	return []pet.AddPetRequest{
-		{
-			Name:           "dog_1",
-			PetType:        "dog",
-			Sex:            "male",
-			Neutered:       true,
-			Breed:          "poodle",
-			BirthDate:      birthDate1,
-			WeightInKg:     decimal.NewFromFloat(10.0),
-			Remarks:        "remarks",
-			ProfileImageID: profileImageID,
-		},
-		{
-			Name:           "dog_2",
-			PetType:        "dog",
-			Sex:            "male",
-			Neutered:       true,
-			Breed:          "poodle",
-			BirthDate:      birthDate2,
-			WeightInKg:     decimal.NewFromFloat(10.0),
-			Remarks:        "remarks",
-			ProfileImageID: profileImageID,
-		},
-		{
-			Name:           "cat_1",
-			PetType:        "cat",
-			Sex:            "female",
-			Neutered:       true,
-			Breed:          "munchkin",
-			BirthDate:      birthDate3,
-			WeightInKg:     decimal.NewFromFloat(8.0),
-			Remarks:        "remarks",
-			ProfileImageID: profileImageID,
-		},
-	}
-}
-
-func GenerateDummyWriteSOSPostRequest(imageID, petIDs []int64, sosPostCnt int) *sospost.WriteSOSPostRequest {
+func NewDummyWriteSOSPostRequest(imageID, petIDs []int64, sosPostCnt int) *sospost.WriteSOSPostRequest {
 	return &sospost.WriteSOSPostRequest{
 		Title:    fmt.Sprintf("Title%d", sosPostCnt),
 		Content:  fmt.Sprintf("Content%d", sosPostCnt),
