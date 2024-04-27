@@ -20,19 +20,16 @@ import (
 func TestSOSPostService(t *testing.T) {
 	setUp := func(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T)) {
 		t.Helper()
-		db, _ := database.Open(tests.TestDatabaseURL)
-		db.Flush()
+		db, tearDown := tests.SetUp(t)
 
 		conditionService := service.NewSOSConditionService(db)
 		if _, err2 := conditionService.InitConditions(ctx); err2 != nil {
 			t.Errorf("InitConditions failed: %v", err2)
 		}
 
-		return db, func(t *testing.T) {
-			t.Helper()
-			db.Close()
-		}
+		return db, tearDown
 	}
+
 	t.Run("CreateSOSPost", func(t *testing.T) {
 		t.Run("돌봄 급구 게시글을 작성한다", func(t *testing.T) {
 			ctx := context.Background()

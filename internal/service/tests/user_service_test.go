@@ -10,7 +10,6 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
-	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"github.com/pet-sitter/pets-next-door-api/internal/tests"
 	"github.com/shopspring/decimal"
@@ -18,22 +17,9 @@ import (
 
 //nolint:gocognit
 func TestUserService(t *testing.T) {
-	setUp := func(t *testing.T) (*database.DB, func(t *testing.T)) {
-		t.Helper()
-
-		db, _ := database.Open(tests.TestDatabaseURL)
-		db.Flush()
-
-		return db, func(t *testing.T) {
-			t.Helper()
-
-			db.Close()
-		}
-	}
-
 	t.Run("RegisterUser", func(t *testing.T) {
 		t.Run("사용자를 새로 생성한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -54,7 +40,7 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자의 프로필 이미지가 존재하지 않아도 생성한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -79,7 +65,7 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 이미 존재할 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -101,7 +87,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUsers", func(t *testing.T) {
 		t.Run("사용자를 닉네임으로 검색한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -144,7 +130,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUserByEmail", func(t *testing.T) {
 		t.Run("사용자를 이메일로 찾는다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -166,7 +152,7 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 존재하지 않을 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -186,7 +172,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("FindUserByUID", func(t *testing.T) {
 		t.Run("사용자를 UID로 찾는다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -208,7 +194,7 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자가 존재하지 않을 경우 에러를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -228,7 +214,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("ExistsByNickname", func(t *testing.T) {
 		t.Run("사용자의 닉네임이 존재하지 않을 경우 false를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -245,7 +231,7 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("사용자의 닉네임이 존재할 경우 true를 반환한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -269,7 +255,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("UpdateUserByUID", func(t *testing.T) {
 		t.Run("사용자를 업데이트한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -298,7 +284,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("AddPetsToOwner", func(t *testing.T) {
 		t.Run("사용자에게 반려동물을 추가한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -332,7 +318,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("UpdatePet", func(t *testing.T) {
 		t.Run("반려동물을 업데이트한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
@@ -374,7 +360,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("DeletePet", func(t *testing.T) {
 		t.Run("반려동물을 삭제한다", func(t *testing.T) {
-			db, tearDown := setUp(t)
+			db, tearDown := tests.SetUp(t)
 			defer tearDown(t)
 			ctx := context.Background()
 
