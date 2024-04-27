@@ -3,34 +3,27 @@ package service
 import (
 	"context"
 	"io"
-	"path/filepath"
+
+	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
-	"github.com/aws/aws-sdk-go/private/protocol/rest"
-	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/s3"
 )
 
 type MediaService struct {
 	conn     *database.DB
-	s3Client *s3infra.S3Client
+	uploader bucketinfra.FileUploader
 }
 
-func NewMediaService(conn *database.DB, s3Client *s3infra.S3Client) *MediaService {
+func NewMediaService(conn *database.DB, uploader bucketinfra.FileUploader) *MediaService {
 	return &MediaService{
 		conn:     conn,
-		s3Client: s3Client,
+		uploader: uploader,
 	}
-}
-
-func generateRandomFileName(originalFileName string) string {
-	extension := filepath.Ext(originalFileName)
-	return uuid.New().String() + extension
 }
 
 type UploadFileView struct {
@@ -40,20 +33,12 @@ type UploadFileView struct {
 func (s *MediaService) UploadMedia(
 	ctx context.Context, file io.ReadSeeker, mediaType media.Type, fileName string,
 ) (*media.DetailView, *pnd.AppError) {
-	randomFileName := generateRandomFileName(fileName)
-	fullPath := "media/" + randomFileName
-
-	if _, err := s.s3Client.UploadFile(file, fullPath, "media"); err != nil {
-		return nil, pnd.ErrUnknown(err)
+	url, err := s.uploader.UploadFile(file, fileName)
+	if err != nil {
+		return nil, err
 	}
 
-	req, _ := s.s3Client.GetFileRequest(fullPath)
-	rest.Build(req)
-	if err := req.Send(); err != nil {
-		return nil, pnd.ErrUnknown(err)
-	}
-
-	created, err := s.CreateMedia(ctx, mediaType, req.HTTPRequest.URL.String())
+	created, err := s.CreateMedia(ctx, mediaType, url)
 	if err != nil {
 		return nil, err
 	}
