@@ -35,7 +35,7 @@ func TestCreateSOSPost(t *testing.T) {
 		defer tearDown(t)
 
 		// given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -97,7 +97,7 @@ func TestFindSOSPosts(t *testing.T) {
 		defer tearDown(t)
 
 		// given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -148,7 +148,7 @@ func TestFindSOSPosts(t *testing.T) {
 		defer tearDown(t)
 
 		// given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -198,7 +198,7 @@ func TestFindSOSPosts(t *testing.T) {
 		defer tearDown(t)
 
 		// given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -260,7 +260,7 @@ func TestFindSOSPosts(t *testing.T) {
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
 
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -311,7 +311,7 @@ func TestFindSOSPostByID(t *testing.T) {
 		db, tearDown := setUp(ctx, t)
 		defer tearDown(t)
 
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)
@@ -360,7 +360,7 @@ func TestUpdateSOSPost(t *testing.T) {
 		defer tearDown(t)
 
 		// given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage := tests.AddDummyMedia(t, ctx, mediaService)
 		sosPostImage2 := tests.AddDummyMedia(t, ctx, mediaService)

@@ -22,7 +22,7 @@ func TestRegisterUser(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -68,7 +68,7 @@ func TestRegisterUser(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -90,7 +90,7 @@ func TestFindUsers(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -133,7 +133,7 @@ func TestFindUser(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -155,7 +155,7 @@ func TestFindUser(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -214,7 +214,7 @@ func TestExistsByEmail(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		profileImage := tests.AddDummyMedia(t, ctx, mediaService)
 
 		userService := service.NewUserService(db, mediaService)
@@ -238,7 +238,7 @@ func TestUpdateUserByUID(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 
 		userService := service.NewUserService(db, mediaService)
 		userRequest := tests.RegisterDummyUser(t, ctx, userService, mediaService)
@@ -267,7 +267,7 @@ func TestAddPetsToOwner(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		userService := service.NewUserService(db, mediaService)
 
 		owner := tests.RegisterDummyUser(t, ctx, userService, mediaService)
@@ -301,7 +301,7 @@ func TestUpdatePet(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		userService := service.NewUserService(db, mediaService)
 		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 
@@ -343,7 +343,7 @@ func TestDeletePet(t *testing.T) {
 		ctx := context.Background()
 
 		// Given
-		mediaService := service.NewMediaService(db, nil)
+		mediaService := service.NewMediaService(db, tests.NewDummyFileUploader())
 		userService := service.NewUserService(db, mediaService)
 		userData := tests.RegisterDummyUser(t, ctx, userService, mediaService)
 

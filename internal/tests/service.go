@@ -2,6 +2,9 @@ package tests
 
 import (
 	"context"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
+	"io"
 	"testing"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -10,6 +13,16 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
+
+type DummyUploader struct{}
+
+func (d DummyUploader) UploadFile(_ io.ReadSeeker, fileName string) (url string, appError *pnd.AppError) {
+	return "https://example.com/files/" + fileName, nil
+}
+
+func NewDummyFileUploader() bucketinfra.FileUploader {
+	return DummyUploader{}
+}
 
 func AddDummyMedia(t *testing.T, ctx context.Context, mediaService *service.MediaService) *media.DetailView {
 	t.Helper()
