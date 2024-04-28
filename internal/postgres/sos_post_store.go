@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"time"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 
@@ -247,23 +248,7 @@ func FindSOSPosts(
 		sortString = "v_sos_posts.earliest_date_start_at"
 	}
 
-	var filterString string
-	switch filterType {
-	case "dog":
-		filterString = "AND " +
-			"NOT EXISTS " +
-			"(SELECT 1 " +
-			"FROM unnest(pet_type_list) AS pet_type " +
-			"WHERE pet_type <> 'dog')"
-	case "cat":
-		filterString = "AND " +
-			"NOT EXISTS " +
-			"(SELECT 1 " +
-			"FROM unnest(pet_type_list) AS pet_type " +
-			"WHERE pet_type <> 'cat')"
-	case "all":
-		filterString = ""
-	}
+	filterString := buildFilterString(filterType)
 
 	query := fmt.Sprintf(`
 		SELECT
@@ -326,23 +311,7 @@ func FindSOSPostsByAuthorID(
 		sortString = "v_sos_posts.earliest_date_start_at"
 	}
 
-	var filterString string
-	switch filterType {
-	case "dog":
-		filterString = "AND " +
-			"NOT EXISTS " +
-			"(SELECT 1 " +
-			"FROM unnest(pet_type_list) AS pet_type " +
-			"WHERE pet_type <> 'dog')"
-	case "cat":
-		filterString = "AND " +
-			"NOT EXISTS " +
-			"(SELECT 1 " +
-			"FROM unnest(pet_type_list) AS pet_type " +
-			"WHERE pet_type <> 'cat')"
-	case "all":
-		filterString = ""
-	}
+	filterString := buildFilterString(filterType)
 
 	query := fmt.Sprintf(`
 		SELECT
@@ -801,4 +770,16 @@ func setThumbnailID(imageIDs []int64) *int64 {
 		return &imageIDs[0]
 	}
 	return nil
+}
+
+func buildFilterString(petType string) string {
+	if petType == "all" {
+		return ""
+	}
+	return fmt.Sprintf(`
+AND NOT EXISTS 
+	(SELECT 1 
+	FROM unnest(pet_type_list) AS pet_type 
+	WHERE pet_type <> '%s')
+`, petType)
 }
