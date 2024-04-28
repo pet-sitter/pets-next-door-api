@@ -412,7 +412,7 @@ func TestUpdateSOSPost(t *testing.T) {
 		assert.Equal(t, updateRequest.CareType, found.CareType)
 		assert.Equal(t, updateRequest.CarerGender, found.CarerGender)
 		assert.Equal(t, updateRequest.RewardType, found.RewardType)
-		assert.Equal(t, updateRequest.ImageIDs[0], found.ThumbnailID)
+		assert.Equal(t, &updateRequest.ImageIDs[0], found.ThumbnailID)
 		assert.Equal(t, int64(updated.AuthorID), owner.ID)
 	})
 }
@@ -441,5 +441,5 @@ func writtenAndFoundSOSPostEquals(t *testing.T, want sospost.WriteSOSPostRequest
 	assert.Equal(t, want.CareType, got.CareType)
 	assert.Equal(t, want.CarerGender, got.CarerGender)
 	assert.Equal(t, want.RewardType, got.RewardType)
-	assert.Equal(t, want.ImageIDs[0], got.ThumbnailID)
+	assert.Equal(t, &want.ImageIDs[0], got.ThumbnailID)
 }
