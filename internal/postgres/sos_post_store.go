@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"time"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
@@ -49,6 +50,7 @@ RETURNING
 func WriteSOSPost(
 	ctx context.Context, tx *database.Tx, authorID int, request *sospost.WriteSOSPostRequest,
 ) (*sospost.SOSPost, *pnd.AppError) {
+	thumbnailID := setThumbnailID(request.ImageIDs)
 	sosPost := &sospost.SOSPost{}
 	err := tx.QueryRowContext(ctx, writeSOSPostQuery,
 		authorID,
@@ -58,7 +60,7 @@ func WriteSOSPost(
 		request.CareType,
 		request.CarerGender,
 		request.RewardType,
-		request.ImageIDs[0],
+		thumbnailID,
 	).Scan(&sosPost.ID,
 		&sosPost.AuthorID,
 		&sosPost.Title,
@@ -213,8 +215,12 @@ func readSOSPostRows(rows *sql.Rows, page, size int) (*sospost.SOSPostInfoList, 
 		if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
-			return nil, pnd.FromPostgresError(err)
+		if len(mediaData) > 0 {
+			if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
+				return nil, pnd.FromPostgresError(err)
+			}
+		} else {
+			sosPost.Media = media.ViewListForSOSPost{}
 		}
 		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
 			return nil, pnd.FromPostgresError(err)
@@ -784,4 +790,11 @@ func FindDatesBySOSPostID(ctx context.Context, tx *database.Tx, sosPostID int) (
 	}
 
 	return &sosDates, nil
+}
+
+func setThumbnailID(imageIDs []int64) *int64 {
+	if len(imageIDs) > 0 {
+		return &imageIDs[0]
+	}
+	return nil
 }

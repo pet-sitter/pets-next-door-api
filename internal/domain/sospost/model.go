@@ -44,7 +44,7 @@ type SOSPost struct {
 	CareType    CareType    `field:"care_type"`
 	CarerGender CarerGender `field:"carer_gender"`
 	RewardType  RewardType  `field:"reward_type"`
-	ThumbnailID int64       `field:"thumbnail_id"`
+	ThumbnailID *int64      `field:"thumbnail_id"`
 	CreatedAt   time.Time   `field:"created_at"`
 	UpdatedAt   time.Time   `field:"updated_at"`
 	DeletedAt   time.Time   `field:"deleted_at"`
@@ -67,7 +67,7 @@ type SOSPostInfo struct {
 	CareType    CareType                        `field:"careType" json:"careType"`
 	CarerGender CarerGender                     `field:"carerGender" json:"carerGender"`
 	RewardType  RewardType                      `field:"rewardType" json:"rewardType"`
-	ThumbnailID int64                           `field:"thumbnailId" json:"thumbnailId"`
+	ThumbnailID *int64                          `field:"thumbnailId" json:"thumbnailId"`
 	CreatedAt   time.Time                       `field:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time                       `field:"updatedAt" json:"updatedAt"`
 	DeletedAt   time.Time                       `field:"deletedAt" json:"deletedAt"`
