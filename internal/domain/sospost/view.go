@@ -14,12 +14,12 @@ type WriteSOSPostRequest struct {
 	Content      string        `json:"content" validate:"required"`
 	ImageIDs     []int64       `json:"imageIds" validate:"required"`
 	Reward       string        `json:"reward"`
-	Dates        []SOSDateView `json:"dates" validate:"required,min=1"`
+	Dates        []SOSDateView `json:"dates" validate:"required,gte=1"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds"`
-	PetIDs       []int64       `json:"petIds"`
+	ConditionIDs []int         `json:"conditionIds" validate:"required,gte=1"`
+	PetIDs       []int64       `json:"petIds" validate:"required,gte=1"`
 }
 
 type WriteSOSPostView struct {
@@ -160,13 +160,13 @@ type UpdateSOSPostRequest struct {
 	Title        string        `json:"title" validate:"required"`
 	Content      string        `json:"content" validate:"required"`
 	ImageIDs     []int64       `json:"imageIds" validate:"required"`
-	Dates        []SOSDateView `json:"dates" validate:"required"`
+	Dates        []SOSDateView `json:"dates" validate:"required,gte=1"`
 	Reward       string        `json:"reward"`
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds,min=1"`
-	PetIDs       []int         `json:"petIds,min=1"`
+	ConditionIDs []int         `json:"conditionIds" validate:"required,gte=1"`
+	PetIDs       []int         `json:"petIds" validate:"required,gte=1"`
 }
 
 type UpdateSOSPostView struct {
