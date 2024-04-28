@@ -35,7 +35,7 @@ type WriteSOSPostView struct {
 	CareType    CareType              `json:"careType"`
 	CarerGender CarerGender           `json:"carerGender"`
 	RewardType  RewardType            `json:"rewardType"`
-	ThumbnailID int64                 `json:"thumbnailId"`
+	ThumbnailID *int64                `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
 }
@@ -78,7 +78,7 @@ type FindSOSPostView struct {
 	CareType    CareType                 `json:"careType"`
 	CarerGender CarerGender              `json:"carerGender"`
 	RewardType  RewardType               `json:"rewardType"`
-	ThumbnailID int64                    `json:"thumbnailId"`
+	ThumbnailID *int64                   `json:"thumbnailId"`
 	CreatedAt   string                   `json:"createdAt"`
 	UpdatedAt   string                   `json:"updatedAt"`
 }
@@ -182,7 +182,7 @@ type UpdateSOSPostView struct {
 	CareType    CareType              `json:"careType"`
 	CarerGender CarerGender           `json:"carerGender"`
 	RewardType  RewardType            `json:"rewardType"`
-	ThumbnailID int64                 `json:"thumbnailId"`
+	ThumbnailID *int64                `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
 }
