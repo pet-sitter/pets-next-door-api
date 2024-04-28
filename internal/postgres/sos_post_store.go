@@ -452,8 +452,12 @@ func FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SOS
 	if err := json.Unmarshal(petsData, &sosPost.Pets); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-	if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
-		return nil, pnd.FromPostgresError(err)
+	if len(mediaData) > 0 {
+		if err := json.Unmarshal(mediaData, &sosPost.Media); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+	} else {
+		sosPost.Media = media.ViewListForSOSPost{}
 	}
 	if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
 		return nil, pnd.FromPostgresError(err)
