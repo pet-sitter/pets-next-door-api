@@ -45,7 +45,9 @@ RETURNING
 	care_type,
 	carer_gender,
 	reward_type,
-	thumbnail_id
+	thumbnail_id,
+	created_at,
+	updated_at
 `
 
 func WriteSOSPost(
@@ -70,7 +72,10 @@ func WriteSOSPost(
 		&sosPost.CareType,
 		&sosPost.CarerGender,
 		&sosPost.RewardType,
-		&sosPost.ThumbnailID)
+		&sosPost.ThumbnailID,
+		&sosPost.CreatedAt,
+		&sosPost.UpdatedAt,
+	)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
