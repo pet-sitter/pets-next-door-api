@@ -18,7 +18,7 @@ type WriteSOSPostRequest struct {
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds" validate:"required,gte=1"`
+	ConditionIDs []int         `json:"conditionIds" validate:"required"`
 	PetIDs       []int64       `json:"petIds" validate:"required,gte=1"`
 }
 
@@ -165,7 +165,7 @@ type UpdateSOSPostRequest struct {
 	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
 	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds" validate:"required,gte=1"`
+	ConditionIDs []int         `json:"conditionIds" validate:"required"`
 	PetIDs       []int         `json:"petIds" validate:"required,gte=1"`
 }
 
