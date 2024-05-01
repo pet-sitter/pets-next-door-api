@@ -228,8 +228,12 @@ func readSOSPostRows(rows *sql.Rows, page, size int) (*sospost.SOSPostInfoList, 
 		} else {
 			sosPost.Media = media.ViewListForSOSPost{}
 		}
-		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
-			return nil, pnd.FromPostgresError(err)
+		if len(conditionsData) > 0 {
+			if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
+				return nil, pnd.FromPostgresError(err)
+			}
+		} else {
+			sosPost.Conditions = soscondition.ViewListForSOSPost{}
 		}
 		sosPostList.Items = append(sosPostList.Items, sosPost)
 	}
