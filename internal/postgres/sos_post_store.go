@@ -437,8 +437,12 @@ func FindSOSPostByID(ctx context.Context, tx *database.Tx, id int) (*sospost.SOS
 	} else {
 		sosPost.Media = media.ViewListForSOSPost{}
 	}
-	if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
-		return nil, pnd.FromPostgresError(err)
+	if len(conditionsData) > 0 {
+		if err := json.Unmarshal(conditionsData, &sosPost.Conditions); err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+	} else {
+		sosPost.Conditions = soscondition.ViewListForSOSPost{}
 	}
 
 	return &sosPost, nil
@@ -488,7 +492,10 @@ func UpdateSOSPost(
 		care_type,
 		carer_gender,
 		reward_type,
-		thumbnail_id
+		thumbnail_id,
+		created_at,
+		updated_at
+		
 	`
 
 	if err := tx.QueryRowContext(ctx, query,
@@ -498,7 +505,7 @@ func UpdateSOSPost(
 		request.CareType,
 		request.CarerGender,
 		request.RewardType,
-		request.ImageIDs[0],
+		setThumbnailID(request.ImageIDs),
 		request.ID,
 	).Scan(
 		&sosPost.ID,
@@ -510,6 +517,8 @@ func UpdateSOSPost(
 		&sosPost.CarerGender,
 		&sosPost.RewardType,
 		&sosPost.ThumbnailID,
+		&sosPost.CreatedAt,
+		&sosPost.UpdatedAt,
 	); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
