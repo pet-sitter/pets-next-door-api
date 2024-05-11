@@ -44,3 +44,7 @@ firebase-credentials.json
 
 ## Binaries ##
 bin
+
+## Environment ##
+.direnv
+.envrc
