@@ -75,3 +75,11 @@ func (u *WithProfileImage) ToMyProfileView() *MyProfileView {
 		FirebaseProviderType: u.FirebaseProviderType,
 	}
 }
+
+func (u *WithProfileImage) ToWithoutPrivateInfo() *WithoutPrivateInfo {
+	return &WithoutPrivateInfo{
+		ID:              u.ID,
+		Nickname:        u.Nickname,
+		ProfileImageURL: u.ProfileImageURL,
+	}
+}

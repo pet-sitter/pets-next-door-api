@@ -107,6 +107,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		userAPIGroup.POST("/check/nickname", userHandler.CheckUserNickname)
 		userAPIGroup.POST("/status", userHandler.FindUserStatusByEmail)
 		userAPIGroup.GET("", userHandler.FindUsers)
+		userAPIGroup.GET("/:userID", userHandler.FindUserByID)
 		userAPIGroup.GET("/me", userHandler.FindMyProfile)
 		userAPIGroup.PUT("/me", userHandler.UpdateMyProfile)
 		userAPIGroup.DELETE("/me", userHandler.DeleteMyAccount)

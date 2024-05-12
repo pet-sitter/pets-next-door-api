@@ -128,6 +128,34 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// FindUserByID godoc
+// @Summary 단일 사용자 정보를 조회합니다.
+// @Description
+// @Tags users
+// @Produce  json
+// @Security FirebaseAuth
+// @Param userID path int true "사용자 ID"
+// @Success 200 {object} user.WithoutPrivateInfo
+// @Router /users/{userID} [get]
+func (h *UserHandler) FindUserByID(c echo.Context) error {
+	// _, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	// if err != nil {
+	// 	return c.JSON(err.StatusCode, err)
+	// }
+
+	userID, err := pnd.ParseIDFromPath(c, "userID")
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	res, err := h.userService.FindUser(c.Request().Context(), user.FindUserParams{ID: userID})
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
 // FindMyProfile godoc
 // @Summary 내 프로필 정보를 조회합니다.
 // @Description
