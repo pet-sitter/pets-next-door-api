@@ -30,6 +30,9 @@
 
             # https://github.com/golang-migrate/migrate
             go-migrate
+
+            # https://github.com/swaggo/swag
+            go-swag
           ];
         };
       });
