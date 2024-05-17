@@ -85,6 +85,26 @@ func (service *UserService) FindUser(
 	return user.ToWithProfileImage(row), nil
 }
 
+func (service *UserService) FindUserProfile(
+	ctx context.Context, params user.FindUserParams,
+) (*user.ProfileView, *pnd.AppError) {
+	row, err := databasegen.New(service.conn).FindUser(ctx, params.ToDBParams())
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	int64ID := int64(row.ID)
+	petParams := pet.FindPetsParams{
+		OwnerID: &int64ID,
+	}
+	pets, err2 := service.FindPets(ctx, petParams)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return user.NewProfileView(row, pets), nil
+}
+
 func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
 	existsByNickname, err := databasegen.New(service.conn).ExistsUserByNickname(ctx, nickname)
 	if err != nil {

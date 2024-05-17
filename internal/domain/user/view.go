@@ -3,6 +3,7 @@ package user
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
@@ -34,6 +35,25 @@ type MyProfileView struct {
 	Fullname             string               `json:"fullname"`
 	ProfileImageURL      *string              `json:"profileImageUrl"`
 	FirebaseProviderType FirebaseProviderType `json:"fbProviderType"`
+}
+
+type ProfileView struct {
+	ID              int64            `json:"id"`
+	Nickname        string           `json:"nickname"`
+	ProfileImageURL *string          `json:"profileImageUrl"`
+	Pets            []pet.DetailView `json:"pets"`
+}
+
+func NewProfileView(
+	user databasegen.FindUserRow,
+	pets *pet.ListView,
+) *ProfileView {
+	return &ProfileView{
+		ID:              int64(user.ID),
+		Nickname:        user.Nickname,
+		ProfileImageURL: utils.NullStrToStrPtr(user.ProfileImageUrl),
+		Pets:            pets.Pets,
+	}
 }
 
 type CheckNicknameView struct {
