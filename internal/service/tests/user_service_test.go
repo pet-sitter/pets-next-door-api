@@ -319,12 +319,12 @@ func TestUpdatePet(t *testing.T) {
 
 		// When
 		updatedPetProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_pet_profile_image.jpg")
-		birthData, _ := datatype.ParseDate("2021-01-01")
+		birthDate, _ := datatype.ParseDate("2021-01-01")
 		updatedPetRequest := pet.UpdatePetRequest{
 			Name:           "updated",
 			Neutered:       true,
 			Breed:          "updated",
-			BirthDate:      birthData,
+			BirthDate:      birthDate.String(),
 			WeightInKg:     decimal.NewFromFloat(10.0),
 			Remarks:        "updated",
 			ProfileImageID: &updatedPetProfileImage.ID,

@@ -38,7 +38,7 @@ func NewDummyAddPetRequest(
 		Sex:            gender,
 		Neutered:       true,
 		Breed:          breed,
-		BirthDate:      birthDate,
+		BirthDate:      birthDate.String(),
 		WeightInKg:     decimal.NewFromFloat(10.0),
 		ProfileImageID: profileImageID,
 	}

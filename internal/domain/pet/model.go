@@ -150,7 +150,7 @@ func (v *ViewForSOSPost) ToDetailView() *DetailView {
 		Sex:             v.Sex,
 		Neutered:        v.Neutered,
 		Breed:           v.Breed,
-		BirthDate:       v.BirthDate,
+		BirthDate:       v.BirthDate.String(),
 		WeightInKg:      v.WeightInKg,
 		Remarks:         v.Remarks,
 		ProfileImageURL: v.ProfileImageURL,
