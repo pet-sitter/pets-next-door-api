@@ -138,10 +138,10 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 // @Success 200 {object} user.ProfileView
 // @Router /users/{userID} [get]
 func (h *UserHandler) FindUserByID(c echo.Context) error {
-	// _, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
-	// if err != nil {
-	// 	return c.JSON(err.StatusCode, err)
-	// }
+	_, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
 
 	userID, err := pnd.ParseIDFromPath(c, "userID")
 	if err != nil {

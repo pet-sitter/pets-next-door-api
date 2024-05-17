@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -209,9 +209,9 @@ func (service *UserService) AddPetsToOwner(
 	// 사용자의 반려동물 추가
 	petIDs := make([]int32, 0, len(addPetsRequest.Pets))
 	for _, item := range addPetsRequest.Pets {
-		birthDate, err := time.Parse(time.DateOnly, item.BirthDate.String())
+		birthDate, err := datatype.ParseDateToTime(item.BirthDate)
 		if err != nil {
-			return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", item.BirthDate.String()))
+			return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", item.BirthDate))
 		}
 
 		petToCreate := databasegen.CreatePetParams{
@@ -276,9 +276,9 @@ func (service *UserService) UpdatePet(
 		return nil, err
 	}
 
-	birthDate, err2 := time.Parse(time.DateOnly, updatePetRequest.BirthDate.String())
+	birthDate, err2 := datatype.ParseDateToTime(updatePetRequest.BirthDate)
 	if err2 != nil {
-		return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", updatePetRequest.BirthDate.String()))
+		return nil, pnd.ErrInvalidBody(fmt.Errorf("잘못된 생년월일 형식입니다. %s", updatePetRequest.BirthDate))
 	}
 
 	if err := databasegen.New(service.conn).WithTx(tx.Tx).UpdatePet(ctx, databasegen.UpdatePetParams{

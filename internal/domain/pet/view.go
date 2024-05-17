@@ -1,7 +1,6 @@
 package pet
 
 import (
-	utils "github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 	"github.com/shopspring/decimal"
@@ -14,7 +13,7 @@ type LegacyView struct {
 	Sex             Gender           `json:"sex"`
 	Neutered        bool             `json:"neutered"`
 	Breed           string           `json:"breed"`
-	BirthDate       utils.Date       `json:"birthDate"`
+	BirthDate       string           `json:"birthDate"`
 	WeightInKg      decimal.Decimal  `json:"weightInKg"`
 	Remarks         string           `json:"remarks"`
 	ProfileImageURL *string          `json:"profileImageUrl"`
@@ -27,7 +26,7 @@ type DetailView struct {
 	Sex             Gender           `json:"sex"`
 	Neutered        bool             `json:"neutered"`
 	Breed           string           `json:"breed"`
-	BirthDate       utils.Date       `json:"birthDate"`
+	BirthDate       string           `json:"birthDate"`
 	WeightInKg      decimal.Decimal  `json:"weightInKg"`
 	Remarks         string           `json:"remarks"`
 	ProfileImageURL *string          `json:"profileImageUrl"`
@@ -41,7 +40,7 @@ func (pet *WithProfileImage) ToDetailView() *DetailView {
 		Sex:             pet.Sex,
 		Neutered:        pet.Neutered,
 		Breed:           pet.Breed,
-		BirthDate:       pet.BirthDate,
+		BirthDate:       pet.BirthDate.String(),
 		WeightInKg:      pet.WeightInKg,
 		Remarks:         pet.Remarks,
 		ProfileImageURL: pet.ProfileImageURL,

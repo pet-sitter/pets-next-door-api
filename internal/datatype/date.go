@@ -49,3 +49,8 @@ func ParseDate(s string) (Date, error) {
 func (date Date) String() string {
 	return civil.Date(date).String()
 }
+
+func ParseDateToTime(s string) (time.Time, error) {
+	c, err := civil.ParseDate(s)
+	return time.Date(c.Year, c.Month, c.Day, 0, 0, 0, 0, time.UTC), err
+}

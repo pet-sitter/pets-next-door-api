@@ -1,7 +1,6 @@
 package pet
 
 import (
-	utils "github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	"github.com/shopspring/decimal"
 )
@@ -16,7 +15,7 @@ type AddPetRequest struct {
 	Sex            Gender           `json:"sex" validate:"required,oneof=male female"`
 	Neutered       bool             `json:"neutered" validate:"required"`
 	Breed          string           `json:"breed" validate:"required"`
-	BirthDate      utils.Date       `json:"birthDate" validate:"required"`
+	BirthDate      string           `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal  `json:"weightInKg" validate:"required"`
 	Remarks        string           `json:"remarks"`
 	ProfileImageID *int64           `json:"profileImageId"`
@@ -26,7 +25,7 @@ type UpdatePetRequest struct {
 	Name           string          `json:"name" validate:"required"`
 	Neutered       bool            `json:"neutered" validate:"required"`
 	Breed          string          `json:"breed" validate:"required"`
-	BirthDate      utils.Date      `json:"birthDate" validate:"required"`
+	BirthDate      string          `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal `json:"weightInKg" validate:"required"`
 	Remarks        string          `json:"remarks"`
 	ProfileImageID *int64          `json:"profileImageId"`
