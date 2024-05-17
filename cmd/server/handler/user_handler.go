@@ -135,7 +135,7 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 // @Produce  json
 // @Security FirebaseAuth
 // @Param userID path int true "사용자 ID"
-// @Success 200 {object} user.WithoutPrivateInfo
+// @Success 200 {object} user.ProfileView
 // @Router /users/{userID} [get]
 func (h *UserHandler) FindUserByID(c echo.Context) error {
 	// _, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -148,7 +148,7 @@ func (h *UserHandler) FindUserByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.userService.FindUser(c.Request().Context(), user.FindUserParams{ID: userID})
+	res, err := h.userService.FindUserProfile(c.Request().Context(), user.FindUserParams{ID: userID})
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

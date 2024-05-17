@@ -83,3 +83,11 @@ func (u *WithProfileImage) ToWithoutPrivateInfo() *WithoutPrivateInfo {
 		ProfileImageURL: u.ProfileImageURL,
 	}
 }
+
+func (u *WithProfileImage) ToProfileView() *ProfileView {
+	return &ProfileView{
+		ID:              u.ID,
+		Nickname:        u.Nickname,
+		ProfileImageURL: u.ProfileImageURL,
+	}
+}

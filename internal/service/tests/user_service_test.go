@@ -178,6 +178,29 @@ func TestFindUser(t *testing.T) {
 	})
 }
 
+func TestFindUserProfile(t *testing.T) {
+	t.Run("사용자의 프로필을 조회한다", func(t *testing.T) {
+		db, tearDown := tests.SetUp(t)
+		defer tearDown(t)
+		ctx := context.Background()
+		mediaService := tests.NewMockMediaService(db)
+		userService := tests.NewMockUserService(db)
+
+		// Given
+		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
+
+		userRequest := tests.NewDummyRegisterUserRequest(&profileImage.ID)
+		created, _ := userService.RegisterUser(ctx, userRequest)
+
+		// When
+		found, _ := userService.FindUserProfile(ctx, user.FindUserParams{FbUID: &created.FirebaseUID})
+
+		// Then
+		assert.Equal(t, created.ID, found.ID)
+		assert.Equal(t, *created.ProfileImageURL, *found.ProfileImageURL)
+	})
+}
+
 func TestExistsByEmail(t *testing.T) {
 	t.Run("사용자의 닉네임이 존재하지 않을 경우 false를 반환한다", func(t *testing.T) {
 		db, tearDown := tests.SetUp(t)
