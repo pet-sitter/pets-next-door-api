@@ -1,31 +1,41 @@
-CREATE TABLE rooms (
+CREATE TABLE chat_rooms (
     id BIGINT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     room_type VARCHAR(255) NOT NULL,
-    group_id BIGINT NOT NULL,
-    created_at TYPE timestamptz USING created_at AT TIME ZONE 'UTC',
-    updated_at TYPE timestamptz USING updated_at AT TIME ZONE 'UTC',
-    deleted_at TYPE timestamptz USING deleted_at AT TIME ZONE 'UTC';
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
 );
 
-CREATE TABLE messages (
+CREATE TABLE chat_messages (
     id BIGINT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
     message_type VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    created_at TYPE timestamptz USING created_at AT TIME ZONE 'UTC',
-    updated_at TYPE timestamptz USING updated_at AT TIME ZONE 'UTC',
-    deleted_at TYPE timestamptz USING deleted_at AT TIME ZONE 'UTC',
-    FOREIGN KEY (RoomID) REFERENCES Rooms(ID);
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    FOREIGN KEY (room_id) REFERENCES chat_rooms(id)
+);
+
+CREATE TABLE user_chat_rooms (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    room_id BIGINT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    FOREIGN KEY (room_id) REFERENCES chat_rooms(id)
 );
 
 CREATE TABLE user_chat_messages (
     id BIGINT PRIMARY KEY,
     user_id BIGINT NOT NULL,
+    message_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
-    created_at TYPE timestamptz USING created_at AT TIME ZONE 'UTC',
-    updated_at TYPE timestamptz USING updated_at AT TIME ZONE 'UTC',
-    deleted_at TYPE timestamptz USING deleted_at AT TIME ZONE 'UTC',
-    FOREIGN KEY (RoomID) REFERENCES Rooms(ID);
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    FOREIGN KEY (message_id) REFERENCES chat_messages(id)
 );
