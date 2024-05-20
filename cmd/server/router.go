@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"net/http"
 	"os"
 
@@ -54,6 +55,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
+	chatService := service.NewChatService(db)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
@@ -62,6 +64,10 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
+
+	wsServer := chat.NewWebsocketServer()
+	go wsServer.Run()
+	chatHandler := handler.NewChatController(wsServer, authService, *chatService)
 
 	// Register middlewares
 	logger := zerolog.New(os.Stdout)
@@ -129,6 +135,13 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		postAPIGroup.GET("/sos", sosPostHandler.FindSOSPosts)
 		postAPIGroup.PUT("/sos", sosPostHandler.UpdateSOSPost)
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
+	}
+
+	chatAPIGroup := apiRouteGroup.Group("/chat")
+	{
+		chatAPIGroup.GET("/ws", func(c echo.Context) error {
+			return chatHandler.ServerWebsocket(c, wsServer, c.Response().Writer, c.Request())
+		})
 	}
 
 	return e, nil
