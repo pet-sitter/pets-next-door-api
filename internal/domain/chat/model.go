@@ -21,7 +21,6 @@ type Room struct {
 	ID        int64     `field:"id" json:"id"`
 	Name      string    `field:"name" json:"name"`
 	RoomType  RoomType  `field:"RoomType" json:"RoomType"`
-	GroupID   int64     `field:"GroupID" json:"GroupID"`
 	CreatedAt time.Time `field:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time `field:"updatedAt" json:"updatedAt"`
 	DeletedAt time.Time `field:"deletedAt" json:"deletedAt"`
