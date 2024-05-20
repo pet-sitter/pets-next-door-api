@@ -2,16 +2,19 @@ package chat
 
 import (
 	"encoding/json"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"log"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 )
 
-const SendMessageAction = "send-message"
-const JoinRoomAction = "join-room"
-const LeaveRoomAction = "leave-room"
-const UserJoinedAction = "user-join"
-const UserLeftAction = "user-left"
-const RoomJoinedAction = "room-joined"
+const (
+	SendMessageAction = "send-message"
+	JoinRoomAction    = "join-room"
+	LeaveRoomAction   = "leave-room"
+	UserJoinedAction  = "user-join"
+	UserLeftAction    = "user-left"
+	RoomJoinedAction  = "room-joined"
+)
 
 type Message struct {
 	Action      string           `json:"action"`
@@ -22,10 +25,10 @@ type Message struct {
 }
 
 func (message *Message) encode() []byte {
-	json, err := json.Marshal(message)
+	bytes, err := json.Marshal(message)
 	if err != nil {
 		log.Println(err)
 	}
 
-	return json
+	return bytes
 }
