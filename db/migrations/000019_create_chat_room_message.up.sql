@@ -1,5 +1,5 @@
 CREATE TABLE chat_rooms (
-    id BIGINT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     room_type VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8,7 +8,7 @@ CREATE TABLE chat_rooms (
 );
 
 CREATE TABLE chat_messages (
-    id BIGINT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
     message_type VARCHAR(255) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE chat_messages (
 );
 
 CREATE TABLE user_chat_rooms (
-    id BIGINT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -30,7 +30,7 @@ CREATE TABLE user_chat_rooms (
 );
 
 CREATE TABLE user_chat_messages (
-    id BIGINT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     message_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
