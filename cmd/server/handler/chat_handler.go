@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
-	"log"
-	"net/http"
 )
 
 type ChatHandler struct {
@@ -16,7 +17,9 @@ type ChatHandler struct {
 	chatService service.ChatService
 }
 
-func NewChatController(wsServer *chat.WsServer, authService service.AuthService, chatService service.ChatService) *ChatHandler {
+func NewChatController(
+	wsServer *chat.WsServer, authService service.AuthService, chatService service.ChatService,
+) *ChatHandler {
 	return &ChatHandler{
 		wsServer: wsServer,
 		upgrader: websocket.Upgrader{
@@ -37,14 +40,16 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 4096,
 }
 
-func (h *ChatHandler) ServerWebsocket(c echo.Context, wsServer *chat.WsServer, w http.ResponseWriter, r *http.Request) error {
+func (h *ChatHandler) ServerWebsocket(
+	c echo.Context, wsServer *chat.WsServer, w http.ResponseWriter, r *http.Request,
+) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
 	conn, err2 := upgrader.Upgrade(w, r, nil)
-	if err != nil {
+	if err2 != nil {
 		log.Println(err2)
 		return err2
 	}

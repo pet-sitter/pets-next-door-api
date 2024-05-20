@@ -1,9 +1,10 @@
 package chat
 
 import (
+	"log"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
-	"log"
 )
 
 type WsServer struct {
@@ -28,7 +29,6 @@ func (server *WsServer) Run() {
 	for {
 		// 해당하는 채널에 메시지가 들어올 때 작동
 		select {
-
 		case client := <-server.register:
 			server.registerClient(client)
 
@@ -89,11 +89,11 @@ func (server *WsServer) broadcastToClients(message []byte) {
 }
 
 // TODO: 메모리 조회 + DB 조회
-func (server *WsServer) findRoomByID(ID int64) *Room {
+func (server *WsServer) findRoomByID(roomID int64) *Room {
 	// 메모리 조회
 	var foundRoom *Room
 	for room := range server.rooms {
-		if room.GetId() == ID {
+		if room.GetID() == roomID {
 			foundRoom = room
 			break
 		}
@@ -110,16 +110,4 @@ func (server *WsServer) createRoom(name string, roomType chat.RoomType, roomServ
 	server.rooms[room] = true
 
 	return room
-}
-
-func (server *WsServer) findClientByID(ID string) *Client {
-	var foundClient *Client
-	for client := range server.clients {
-		if client.FbUID == ID {
-			foundClient = client
-			break
-		}
-	}
-
-	return foundClient
 }
