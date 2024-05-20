@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
@@ -35,7 +36,7 @@ func (s *ChatService) CreateRoom(
 
 // 채팅방 입장
 func (s *ChatService) JoinRoom(
-	ctx context.Context, roomId int64, fbUID string,
+	ctx context.Context, roomID int64, fbUID string,
 ) (*chat.JoinRoomView, error) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
@@ -45,7 +46,7 @@ func (s *ChatService) JoinRoom(
 	}
 
 	row, err2 := databasegen.New(s.conn).JoinRoom(ctx, databasegen.JoinRoomParams{
-		RoomID: roomId,
+		RoomID: roomID,
 		UserID: int64(userData.ID),
 	})
 
@@ -58,7 +59,7 @@ func (s *ChatService) JoinRoom(
 
 // 채팅방 떠나기
 func (s *ChatService) LeaveRoom(
-	ctx context.Context, roomId int64, fbUID string,
+	ctx context.Context, roomID int64, fbUID string,
 ) error {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
@@ -67,7 +68,7 @@ func (s *ChatService) LeaveRoom(
 		return err
 	}
 	err2 := databasegen.New(s.conn).LeaveRoom(ctx, databasegen.LeaveRoomParams{
-		RoomID: roomId,
+		RoomID: roomID,
 		UserID: int64(userData.ID),
 	})
 	if err2 != nil {
@@ -78,7 +79,7 @@ func (s *ChatService) LeaveRoom(
 
 // 채팅 메시지 저장
 func (s *ChatService) SaveMessage(
-	ctx context.Context, roomID int64, fbUID string, message string, messageType chat.MessageType,
+	ctx context.Context, roomID int64, fbUID, message string, messageType chat.MessageType,
 ) (*chat.Message, error) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
