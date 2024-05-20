@@ -3,9 +3,10 @@ package chat
 import (
 	"context"
 	"fmt"
-	chat "github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
-	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"log"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type Room struct {
@@ -41,7 +42,6 @@ func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatServi
 func (room *Room) RunRoom(roomService *service.ChatService) {
 	for {
 		select {
-
 		case client := <-room.register:
 			room.registerClientInRoom(client, room.ID, roomService)
 
@@ -51,7 +51,6 @@ func (room *Room) RunRoom(roomService *service.ChatService) {
 		case message := <-room.broadcast:
 			room.broadcastToClientsInRoom(message, roomService)
 		}
-
 	}
 }
 
@@ -71,9 +70,7 @@ func (room *Room) unregisterClientInRoom(client *Client, roomID int64, chatServi
 	if err != nil {
 		log.Println(err)
 	}
-	if _, ok := room.clients[client]; ok {
-		delete(room.clients, client)
-	}
+	delete(room.clients, client)
 }
 
 func (room *Room) broadcastToClientsInRoom(message *Message, chatService *service.ChatService) {
@@ -99,7 +96,7 @@ func (room *Room) notifyClientJoined(client *Client, chatService *service.ChatSe
 	room.broadcastToClientsInRoom(message, chatService)
 }
 
-func (room *Room) GetId() int64 {
+func (room *Room) GetID() int64 {
 	return room.ID
 }
 

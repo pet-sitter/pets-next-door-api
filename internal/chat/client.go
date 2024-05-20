@@ -2,10 +2,11 @@ package chat
 
 import (
 	"encoding/json"
-	"github.com/gorilla/websocket"
-	"github.com/pet-sitter/pets-next-door-api/internal/service"
 	"log"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 const (
@@ -15,10 +16,7 @@ const (
 	maxMessageSize = 10000
 )
 
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
-)
+var newline = []byte{'\n'}
 
 type Client struct {
 	conn     *websocket.Conn
@@ -29,13 +27,8 @@ type Client struct {
 	rooms    map[*Room]bool
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
-}
-
 // TODO: 이미 조인한 채팅방 조회해서 room에 추가하는 로직 추가
-func NewClient(conn *websocket.Conn, wsServer *WsServer, name string, fbUID string) *Client {
+func NewClient(conn *websocket.Conn, wsServer *WsServer, name, fbUID string) *Client {
 	return &Client{
 		FbUID:    fbUID,
 		Name:     name,
@@ -53,8 +46,18 @@ func (client *Client) ReadPump(chatService *service.ChatService) {
 	}()
 
 	client.conn.SetReadLimit(maxMessageSize)
-	client.conn.SetReadDeadline(time.Now().Add(pongWait))
-	client.conn.SetPongHandler(func(string) error { client.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	err := client.conn.SetReadDeadline(time.Now().Add(pongWait))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	client.conn.SetPongHandler(func(string) error {
+		err := client.conn.SetReadDeadline(time.Now().Add(pongWait))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
 	for {
 		_, jsonMessage, err := client.conn.ReadMessage()
@@ -67,7 +70,6 @@ func (client *Client) ReadPump(chatService *service.ChatService) {
 
 		client.handleNewMessage(jsonMessage, chatService)
 	}
-
 }
 
 // 채팅 쓰기
@@ -75,35 +77,65 @@ func (client *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		client.conn.Close()
+		err := client.conn.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}()
 	for {
 		select {
 		case message, ok := <-client.send:
-			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			err := client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			if !ok {
-				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if err2 := client.conn.WriteMessage(websocket.CloseMessage, []byte{}); err2 != nil {
+					log.Println(err2)
+					return
+				}
 				return
 			}
 
 			w, err := client.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
+				log.Println(err)
 				return
 			}
-			w.Write(message)
+
+			if _, err := w.Write(message); err != nil {
+				log.Println(err)
+				w.Close()
+				return
+			}
 
 			n := len(client.send)
 			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-client.send)
+				if _, err := w.Write(newline); err != nil {
+					log.Println(err)
+					w.Close()
+					return
+				}
+				if _, err := w.Write(<-client.send); err != nil {
+					log.Println(err)
+					w.Close()
+					return
+				}
 			}
 
 			if err := w.Close(); err != nil {
+				log.Println(err)
 				return
 			}
 		case <-ticker.C:
-			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			err := client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Println(err)
 				return
 			}
 		}
@@ -122,7 +154,6 @@ func (client *Client) disconnect() {
 
 // 클라이언트가 새로운 메시지를 보낼 때 호출되는 함수
 func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.ChatService) {
-
 	var message Message
 	if err := json.Unmarshal(jsonMessage, &message); err != nil {
 		log.Printf("Error on unmarshal JSON message %s", err)
@@ -131,7 +162,7 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 	message.Sender = client
 	switch message.Action {
 	case SendMessageAction:
-		roomID := message.Target.GetId()
+		roomID := message.Target.GetID()
 		if room := client.wsServer.findRoomByID(roomID); room != nil {
 			room.broadcast <- &message
 		}
@@ -140,9 +171,8 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 		client.handleJoinRoomMessage(message, chatService)
 
 	case LeaveRoomAction:
-		client.handleLeaveRoomMessage(message.Target.GetId())
+		client.handleLeaveRoomMessage(message.Target.GetID())
 	}
-
 }
 
 // 클라이언트가 방에 들어가거나 나갈 때 호출되는 함수
@@ -153,19 +183,15 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 // 클라이언트가 방을 나갈 때 호출되는 함수
 func (client *Client) handleLeaveRoomMessage(roomID int64) {
 	room := client.wsServer.findRoomByID(roomID)
-	if _, ok := client.rooms[room]; ok {
-		// 클라이언트의 rooms 맵에서 해당 방을 찾아 삭제
-		delete(client.rooms, room)
-	}
-
+	// 클라이언트의 rooms 맵에서 해당 방을 찾아 삭제
+	delete(client.rooms, room)
 	room.unregister <- client
 }
 
 func (client *Client) joinRoom(
 	message Message, chatService *service.ChatService,
 ) {
-
-	room := client.wsServer.findRoomByID(message.Target.GetId())
+	room := client.wsServer.findRoomByID(message.Target.GetID())
 	if room == nil {
 		room = client.wsServer.createRoom(message.Target.Name, message.Target.RoomType, chatService)
 	}
@@ -176,13 +202,11 @@ func (client *Client) joinRoom(
 	}
 
 	if !client.isInRoom(room) {
-
 		client.rooms[room] = true
 		room.register <- client
 
 		client.notifyRoomJoined(room, message.Sender)
 	}
-
 }
 
 func (client *Client) isInRoom(room *Room) bool {
