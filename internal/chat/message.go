@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	SendMessageAction = "send-message"
-	JoinRoomAction    = "join-room"
-	LeaveRoomAction   = "leave-room"
-	UserJoinedAction  = "user-join"
-	UserLeftAction    = "user-left"
-	RoomJoinedAction  = "room-joined"
+	SendMessageAction = "SEND_MESSAGE"
+	JoinRoomAction    = "JOIN_ROOM"
+	LeaveRoomAction   = "LEAVE_ROOM"
+	UserJoinedAction  = "USER_JOIN"
+	UserLeftAction    = "USER_LEFT"
+	RoomJoinedAction  = "ROOM_JOINED"
 )
 
 type Message struct {
