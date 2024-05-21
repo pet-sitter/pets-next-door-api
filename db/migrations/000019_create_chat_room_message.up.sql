@@ -28,14 +28,3 @@ CREATE TABLE user_chat_rooms (
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (room_id) REFERENCES chat_rooms(id)
 );
-
-CREATE TABLE user_chat_messages (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    message_id BIGINT NOT NULL,
-    room_id BIGINT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ,
-    FOREIGN KEY (message_id) REFERENCES chat_messages(id)
-);
