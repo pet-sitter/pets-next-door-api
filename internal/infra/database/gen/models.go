@@ -22,7 +22,7 @@ type Breed struct {
 }
 
 type ChatMessage struct {
-	ID          int64
+	ID          int32
 	UserID      int64
 	RoomID      int64
 	MessageType string
@@ -33,7 +33,7 @@ type ChatMessage struct {
 }
 
 type ChatRoom struct {
-	ID        int64
+	ID        int32
 	Name      string
 	RoomType  string
 	CreatedAt time.Time
@@ -151,23 +151,12 @@ type User struct {
 	ProfileImageID uuid.NullUUID
 }
 
-type UserChatMessage struct {
-	ID        int64
-	UserID    int64
-	MessageID int64
-	RoomID    int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-}
-
 type UserChatRoom struct {
-	ID        int64
-	UserID    int64
-	RoomID    int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
+	ID       int32
+	UserID   int64
+	RoomID   int64
+	JoinedAt time.Time
+	LeftAt   time.Time
 }
 
 type VCondition struct {

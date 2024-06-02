@@ -29,7 +29,7 @@ func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatServi
 	}
 
 	return &Room{
-		ID:         row.ID,
+		ID:         int64(row.ID),
 		Name:       row.Name,
 		RoomType:   row.RoomType,
 		clients:    make(map[*Client]bool),
