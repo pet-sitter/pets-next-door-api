@@ -27,7 +27,7 @@ type CreateRoomParams struct {
 }
 
 type CreateRoomRow struct {
-	ID        int64
+	ID        int32
 	Name      string
 	RoomType  string
 	CreatedAt time.Time
@@ -69,7 +69,7 @@ type FindMessageByRoomIDParams struct {
 }
 
 type FindMessageByRoomIDRow struct {
-	ID          int64
+	ID          int32
 	UserID      int64
 	RoomID      int64
 	MessageType string
@@ -120,14 +120,14 @@ WHERE
 `
 
 type FindRoomByIDRow struct {
-	ID        int64
+	ID        int32
 	Name      string
 	RoomType  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt64) (FindRoomByIDRow, error) {
+func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt32) (FindRoomByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, findRoomByID, id)
 	var i FindRoomByIDRow
 	err := row.Scan(
@@ -144,10 +144,9 @@ const joinRoom = `-- name: JoinRoom :one
 INSERT INTO user_chat_rooms
 (user_id, 
 room_id,
-created_at,
-updated_at) 
-VALUES ($1, $2, NOW(), NOW())
-RETURNING id, user_id, room_id, created_at, updated_at
+joined_at)
+VALUES ($1, $2, NOW())
+RETURNING id, user_id, room_id, joined_at
 `
 
 type JoinRoomParams struct {
@@ -156,11 +155,10 @@ type JoinRoomParams struct {
 }
 
 type JoinRoomRow struct {
-	ID        int64
-	UserID    int64
-	RoomID    int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID       int32
+	UserID   int64
+	RoomID   int64
+	JoinedAt time.Time
 }
 
 func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow, error) {
@@ -170,8 +168,7 @@ func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow
 		&i.ID,
 		&i.UserID,
 		&i.RoomID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.JoinedAt,
 	)
 	return i, err
 }
@@ -179,7 +176,7 @@ func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow
 const leaveRoom = `-- name: LeaveRoom :exec
 UPDATE 
     user_chat_rooms
-SET deleted_at = NOW()
+SET left_at = NOW()
 WHERE user_id = $1
 AND room_id = $2
 `
@@ -214,7 +211,7 @@ type WriteMessageParams struct {
 }
 
 type WriteMessageRow struct {
-	ID          int64
+	ID          int32
 	UserID      int64
 	RoomID      int64
 	MessageType string

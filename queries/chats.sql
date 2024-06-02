@@ -19,21 +19,19 @@ FROM
 WHERE
     (chat_rooms.id = sqlc.narg('id'))
     AND (chat_rooms.deleted_at IS NULL);
-;
 
 -- name: JoinRoom :one
 INSERT INTO user_chat_rooms
 (user_id, 
 room_id,
-created_at,
-updated_at) 
-VALUES ($1, $2, NOW(), NOW())
-RETURNING id, user_id, room_id, created_at, updated_at;
+joined_at)
+VALUES ($1, $2, NOW())
+RETURNING id, user_id, room_id, joined_at;
 
 -- name: LeaveRoom :exec
 UPDATE 
     user_chat_rooms
-SET deleted_at = NOW()
+SET left_at = NOW()
 WHERE user_id = $1
 AND room_id = $2;
 
