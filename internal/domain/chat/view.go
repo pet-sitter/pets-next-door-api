@@ -7,18 +7,16 @@ import (
 )
 
 type JoinRoomView struct {
-	UserID    int64
-	RoomID    int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	UserID   int64
+	RoomID   int64
+	JoinedAt time.Time
 }
 
 func ToJoinRoomView(row databasegen.JoinRoomRow) *JoinRoomView {
 	return &JoinRoomView{
-		UserID:    row.UserID,
-		RoomID:    row.RoomID,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		UserID:   row.UserID,
+		RoomID:   row.RoomID,
+		JoinedAt: row.JoinedAt,
 	}
 }
 
