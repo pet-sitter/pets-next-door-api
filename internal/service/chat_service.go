@@ -101,7 +101,7 @@ func (s *ChatService) SaveMessage(
 
 // 채팅방 목록 조회
 func (s *ChatService) FindRoomByID(ctx context.Context, roomID *int64) (*chat.Room, error) {
-	row, err := databasegen.New(s.conn).FindRoomByID(ctx, utils.Int64PtrToNullInt64(roomID))
+	row, err := databasegen.New(s.conn).FindRoomByID(ctx, utils.Int64PtrToNullInt32(roomID))
 	if err != nil {
 		return nil, err
 	}
