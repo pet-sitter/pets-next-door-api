@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/pet-sitter/pets-next-door-api/internal/chat"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
@@ -37,7 +38,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *ChatHandler) ServerWebsocket(
-	c echo.Context, wsServer *chat.WsServer, w http.ResponseWriter, r *http.Request,
+	c echo.Context, w http.ResponseWriter, r *http.Request,
 ) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
@@ -49,10 +50,22 @@ func (h *ChatHandler) ServerWebsocket(
 		log.Println(err2)
 		return err2
 	}
-	client := chat.NewClient(conn, wsServer, foundUser.Nickname, foundUser.FirebaseUID)
+
+	client := h.initializeOrUpdateClient(conn, foundUser)
 
 	go client.WritePump()
 	go client.ReadPump(&h.chatService)
 
 	return nil
+}
+
+func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *user.InternalView) *chat.Client {
+	client := h.wsServer.FindClientByUID(userData.FirebaseUID)
+	if client == nil {
+		client = chat.NewClient(conn, h.wsServer, userData.Nickname, userData.FirebaseUID)
+		h.wsServer.RegisterClient(client)
+	} else {
+		client.UpdateConn(conn)
+	}
+	return client
 }

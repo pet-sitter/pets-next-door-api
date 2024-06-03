@@ -164,7 +164,7 @@ type UserChatRoom struct {
 	UserID   int64
 	RoomID   int64
 	JoinedAt time.Time
-	LeftAt   time.Time
+	LeftAt   sql.NullTime
 }
 
 type VCondition struct {
