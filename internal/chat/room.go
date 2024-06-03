@@ -29,7 +29,7 @@ func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatServi
 	}
 
 	return &Room{
-		ID:         int64(row.ID),
+		ID:         row.ID,
 		Name:       row.Name,
 		RoomType:   row.RoomType,
 		clients:    make(map[*Client]bool),
@@ -37,6 +37,19 @@ func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatServi
 		unregister: make(chan *Client),
 		broadcast:  make(chan *Message),
 	}, nil
+}
+
+// 채팅방 초기화
+func (room *Room) InitRoom(roomID int64, name string, roomType chat.RoomType) *Room {
+	return &Room{
+		ID:         roomID,
+		Name:       name,
+		RoomType:   roomType,
+		clients:    make(map[*Client]bool),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		broadcast:  make(chan *Message),
+	}
 }
 
 func (room *Room) RunRoom(roomService *service.ChatService) {
