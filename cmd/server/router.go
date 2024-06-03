@@ -67,6 +67,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 
 	wsServer := chat.NewWebsocketServer()
 	go wsServer.Run()
+	chat.InitializeWebSocketServer(ctx, wsServer, chatService)
 	chatHandler := handler.NewChatController(wsServer, authService, *chatService)
 
 	// Register middlewares
@@ -140,7 +141,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	chatAPIGroup := apiRouteGroup.Group("/chat")
 	{
 		chatAPIGroup.GET("/ws", func(c echo.Context) error {
-			return chatHandler.ServerWebsocket(c, wsServer, c.Response().Writer, c.Request())
+			return chatHandler.ServerWebsocket(c, c.Response().Writer, c.Request())
 		})
 	}
 

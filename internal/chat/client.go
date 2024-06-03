@@ -27,7 +27,6 @@ type Client struct {
 	rooms    map[*Room]bool
 }
 
-// TODO: 이미 조인한 채팅방 조회해서 room에 추가하는 로직 추가
 func NewClient(conn *websocket.Conn, wsServer *WsServer, name, fbUID string) *Client {
 	return &Client{
 		FbUID:    fbUID,
@@ -37,6 +36,10 @@ func NewClient(conn *websocket.Conn, wsServer *WsServer, name, fbUID string) *Cl
 		send:     make(chan []byte, 256),
 		rooms:    make(map[*Room]bool),
 	}
+}
+
+func (client *Client) UpdateConn(conn *websocket.Conn) {
+	client.conn = conn
 }
 
 // 채팅 읽기
