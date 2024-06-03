@@ -38,6 +38,10 @@ func NewMockSOSPostService(db *database.DB) *service.SOSPostService {
 	return service.NewSOSPostService(db)
 }
 
+func NewMockChatService(db *database.DB) *service.ChatService {
+	return service.NewChatService(db)
+}
+
 func AddDummyPet(
 	t *testing.T,
 	ctx context.Context,
