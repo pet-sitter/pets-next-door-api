@@ -140,6 +140,98 @@ func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt32) (FindRoomB
 	return i, err
 }
 
+const findUserChatRooms = `-- name: FindUserChatRooms :many
+SELECT
+    user_chat_rooms.id,
+    user_chat_rooms.user_id,
+    user_chat_rooms.room_id,
+    user_chat_rooms.joined_at,
+    users.email,
+    users.nickname,
+    users.fullname,
+    media.url AS profile_image_url,
+    users.fb_provider_type,
+    users.fb_uid,
+    users.created_at,
+    users.updated_at,
+    chat_rooms.id AS chat_room_id,
+    chat_rooms.name AS chat_room_name,
+    chat_rooms.room_type AS chat_room_type,
+    chat_rooms.created_at AS chat_room_created_at,
+    chat_rooms.updated_at AS chat_room_updated_at
+FROM
+    user_chat_rooms
+    JOIN users
+        ON users.id = user_chat_rooms.user_id
+    JOIN chat_rooms
+        ON chat_rooms.id = user_chat_rooms.room_id
+    LEFT OUTER JOIN media
+        ON users.profile_image_id = media.id
+WHERE
+    user_chat_rooms.left_at IS NULL
+`
+
+type FindUserChatRoomsRow struct {
+	ID                int32
+	UserID            int64
+	RoomID            int64
+	JoinedAt          time.Time
+	Email             string
+	Nickname          string
+	Fullname          string
+	ProfileImageUrl   sql.NullString
+	FbProviderType    sql.NullString
+	FbUid             sql.NullString
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	ChatRoomID        int32
+	ChatRoomName      string
+	ChatRoomType      string
+	ChatRoomCreatedAt time.Time
+	ChatRoomUpdatedAt time.Time
+}
+
+func (q *Queries) FindUserChatRooms(ctx context.Context) ([]FindUserChatRoomsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findUserChatRooms)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindUserChatRoomsRow
+	for rows.Next() {
+		var i FindUserChatRoomsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.RoomID,
+			&i.JoinedAt,
+			&i.Email,
+			&i.Nickname,
+			&i.Fullname,
+			&i.ProfileImageUrl,
+			&i.FbProviderType,
+			&i.FbUid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ChatRoomID,
+			&i.ChatRoomName,
+			&i.ChatRoomType,
+			&i.ChatRoomCreatedAt,
+			&i.ChatRoomUpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const joinRoom = `-- name: JoinRoom :one
 INSERT INTO user_chat_rooms
 (user_id, 

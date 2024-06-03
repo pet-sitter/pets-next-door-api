@@ -18,7 +18,7 @@ const (
 )
 
 type Room struct {
-	ID        int32     `field:"id" json:"id"`
+	ID        int64     `field:"id" json:"id"`
 	Name      string    `field:"name" json:"name"`
 	RoomType  RoomType  `field:"RoomType" json:"RoomType"`
 	CreatedAt time.Time `field:"createdAt" json:"createdAt"`
@@ -27,7 +27,7 @@ type Room struct {
 }
 
 type Message struct {
-	ID          int32       `field:"id" json:"id"`
+	ID          int64       `field:"id" json:"id"`
 	UserID      int64       `field:"userID" json:"userID"`
 	RoomID      int64       `field:"roomID" json:"roomID"`
 	MessageType MessageType `field:"messageType" json:"messageType"`
@@ -38,9 +38,11 @@ type Message struct {
 }
 
 type UserChatRoom struct {
-	ID       int32     `field:"id" json:"id"`
+	ID       int64     `field:"id" json:"id"`
 	UserID   int64     `field:"userID" json:"userID"`
 	RoomID   int64     `field:"roomID" json:"roomID"`
 	JoinedAt time.Time `field:"joinedAt" json:"joinedAt"`
 	LeftAt   time.Time `field:"leftAt" json:"leftAt"`
 }
+
+type UserChatRoomList []*UserChatRoom
