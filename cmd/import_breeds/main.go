@@ -11,7 +11,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/breed"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 
-	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breedsimporterservice"
+	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breeds_importer_service"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	client, err := breedsimporterservice.NewBreedsImporterService(ctx, configs.GoogleSheetsAPIKey)
+	client, err := breeds_importer_service.NewBreedsImporterService(ctx, configs.GoogleSheetsAPIKey)
 	if err != nil {
 		log.Fatalf("error initializing google sheets client: %v\n", err)
 	}
@@ -92,7 +92,7 @@ func parseFlags() Flags {
 }
 
 func importBreed(
-	ctx context.Context, conn *database.DB, petType commonvo.PetType, row breedsimporterservice.Row,
+	ctx context.Context, conn *database.DB, petType commonvo.PetType, row breeds_importer_service.Row,
 ) (*breed.DetailView, *pnd.AppError) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
@@ -137,7 +137,7 @@ func importBreed(
 	}, nil
 }
 
-func importBreeds(ctx context.Context, conn *database.DB, petType commonvo.PetType, rows *[]breedsimporterservice.Row) {
+func importBreeds(ctx context.Context, conn *database.DB, petType commonvo.PetType, rows *[]breeds_importer_service.Row) {
 	for _, row := range *rows {
 		breedData, err := importBreed(ctx, conn, petType, row)
 		if err != nil {
