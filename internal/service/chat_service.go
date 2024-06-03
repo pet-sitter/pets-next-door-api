@@ -107,3 +107,12 @@ func (s *ChatService) FindRoomByID(ctx context.Context, roomID *int64) (*chat.Ro
 	}
 	return chat.ToRoom(row), nil
 }
+
+// 채팅방 참여 목록
+func (s *ChatService) FindUserChatRoom(ctx context.Context) (chat.UserChatRoomViewList, error) {
+	rows, err := databasegen.New(s.conn).FindUserChatRooms(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return chat.ToUserChatRoomFromRows(rows), nil
+}
