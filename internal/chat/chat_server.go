@@ -8,20 +8,22 @@ import (
 )
 
 type WsServer struct {
-	clients    map[*Client]bool
-	register   chan *Client
-	unregister chan *Client
-	broadcast  chan []byte
-	rooms      map[*Room]bool
+	clients          map[*Client]bool
+	clientUIDMapping map[string]*Client
+	register         chan *Client
+	unregister       chan *Client
+	broadcast        chan []byte
+	rooms            map[*Room]bool
 }
 
 func NewWebsocketServer() *WsServer {
 	return &WsServer{
-		clients:    make(map[*Client]bool),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan []byte),
-		rooms:      make(map[*Room]bool),
+		clients:          make(map[*Client]bool),
+		clientUIDMapping: make(map[string]*Client),
+		register:         make(chan *Client),
+		unregister:       make(chan *Client),
+		broadcast:        make(chan []byte),
+		rooms:            make(map[*Room]bool),
 	}
 }
 
@@ -30,7 +32,7 @@ func (server *WsServer) Run() {
 		// 해당하는 채널에 메시지가 들어올 때 작동
 		select {
 		case client := <-server.register:
-			server.registerClient(client)
+			server.RegisterClient(client)
 
 		case client := <-server.unregister:
 			server.unregisterClient(client)
@@ -41,10 +43,11 @@ func (server *WsServer) Run() {
 	}
 }
 
-func (server *WsServer) registerClient(client *Client) {
+func (server *WsServer) RegisterClient(client *Client) {
 	server.notifyClientJoined(client)
 	server.listOnlineClients(client)
 	server.clients[client] = true
+	server.clientUIDMapping[client.FbUID] = client
 }
 
 func (server *WsServer) unregisterClient(client *Client) {
@@ -52,6 +55,10 @@ func (server *WsServer) unregisterClient(client *Client) {
 		delete(server.clients, client)
 		server.notifyClientLeft(client)
 	}
+}
+
+func (server *WsServer) FindClientByUID(uid string) *Client {
+	return server.clientUIDMapping[uid]
 }
 
 func (server *WsServer) notifyClientJoined(client *Client) {
@@ -88,7 +95,6 @@ func (server *WsServer) broadcastToClients(message []byte) {
 	}
 }
 
-// TODO: 메모리 조회 + DB 조회
 func (server *WsServer) findRoomByID(roomID int64) *Room {
 	// 메모리 조회
 	var foundRoom *Room
