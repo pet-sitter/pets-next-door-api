@@ -9,6 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/rs/zerolog v1.32.0
 	github.com/shopspring/decimal v1.2.0
+	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.1
