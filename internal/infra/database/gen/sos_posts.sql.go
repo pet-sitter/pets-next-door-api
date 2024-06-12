@@ -14,6 +14,102 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const deleteSOSPostConditionBySOSPostID = `-- name: DeleteSOSPostConditionBySOSPostID :exec
+UPDATE
+    sos_posts_conditions
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1
+`
+
+func (q *Queries) DeleteSOSPostConditionBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteSOSPostConditionBySOSPostID, sosPostID)
+	return err
+}
+
+const deleteSOSPostDateBySOSPostID = `-- name: DeleteSOSPostDateBySOSPostID :exec
+UPDATE
+    sos_posts_dates
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1
+`
+
+func (q *Queries) DeleteSOSPostDateBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteSOSPostDateBySOSPostID, sosPostID)
+	return err
+}
+
+const deleteSOSPostPetBySOSPostID = `-- name: DeleteSOSPostPetBySOSPostID :exec
+UPDATE
+    sos_posts_pets
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1
+`
+
+func (q *Queries) DeleteSOSPostPetBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteSOSPostPetBySOSPostID, sosPostID)
+	return err
+}
+
+const findDatesBySOSPostID = `-- name: FindDatesBySOSPostID :many
+SELECT
+    sos_dates.id,
+    sos_dates.date_start_at,
+    sos_dates.date_end_at,
+    sos_dates.created_at,
+    sos_dates.updated_at
+FROM
+    sos_dates
+        INNER JOIN
+    sos_posts_dates
+    ON sos_dates.id = sos_posts_dates.sos_dates_id
+WHERE
+    sos_posts_dates.sos_post_id = $1 AND
+    sos_posts_dates.deleted_at IS NULL
+`
+
+type FindDatesBySOSPostIDRow struct {
+	ID          int32
+	DateStartAt sql.NullTime
+	DateEndAt   sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) FindDatesBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) ([]FindDatesBySOSPostIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findDatesBySOSPostID, sosPostID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindDatesBySOSPostIDRow
+	for rows.Next() {
+		var i FindDatesBySOSPostIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DateStartAt,
+			&i.DateEndAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findSOSPostByID = `-- name: FindSOSPostByID :one
 SELECT
     v_sos_posts.id,

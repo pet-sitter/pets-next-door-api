@@ -51,6 +51,20 @@ func (q *Queries) CreateResourceMedia(ctx context.Context, arg CreateResourceMed
 	return i, err
 }
 
+const deleteResourceMediaByResourceID = `-- name: DeleteResourceMediaByResourceID :exec
+UPDATE
+    resource_media
+SET
+    deleted_at = NOW()
+WHERE
+    resource_id = $1
+`
+
+func (q *Queries) DeleteResourceMediaByResourceID(ctx context.Context, resourceID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteResourceMediaByResourceID, resourceID)
+	return err
+}
+
 const findResourceMedia = `-- name: FindResourceMedia :many
 SELECT m.id AS media_id,
        m.media_type,
