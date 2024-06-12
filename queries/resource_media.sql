@@ -23,3 +23,11 @@ WHERE (rm.resource_id = sqlc.narg('resource_id') OR sqlc.narg('resource_id') IS 
   AND (rm.resource_type = sqlc.narg('resource_type') OR sqlc.narg('resource_type') IS NULL)
   AND (sqlc.arg('include_deleted')::BOOLEAN = TRUE OR
        (sqlc.arg('include_deleted')::BOOLEAN = FALSE AND rm.deleted_at IS NULL));
+
+-- name: DeleteResourceMediaByResourceID :exec
+UPDATE
+    resource_media
+SET
+    deleted_at = NOW()
+WHERE
+    resource_id = $1;

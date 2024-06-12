@@ -1,6 +1,10 @@
 package utils
 
-import "database/sql"
+import (
+	"database/sql"
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	"time"
+)
 
 func DerefOrEmpty[T any](val *T) T {
 	if val == nil {
@@ -93,4 +97,25 @@ func Int64PtrToNullInt32(val *int64) sql.NullInt32 {
 		Int32: int32(DerefOrEmpty(val)),
 		Valid: IsNotNil(val),
 	}
+}
+
+func StrToNullTime(val string) (sql.NullTime, *pnd.AppError) {
+	const timeLayout = "2006-01-02"
+	parsedTime, err := time.Parse(timeLayout, val)
+	if err != nil {
+		return sql.NullTime{
+			Valid: false,
+		}, pnd.FromPostgresError(err)
+	}
+	return sql.NullTime{
+		Time:  parsedTime,
+		Valid: true,
+	}, nil
+}
+
+func NullTimeToStr(val sql.NullTime) string {
+	if val.Valid {
+		return val.Time.Format("2006-01-02")
+	}
+	return ""
 }

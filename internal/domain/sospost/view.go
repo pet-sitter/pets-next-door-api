@@ -169,7 +169,7 @@ type UpdateSOSPostRequest struct {
 	CarerGender  commonvo.CarerGender `json:"carerGender" validate:"required,oneof=male female all"`
 	RewardType   commonvo.RewardType  `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
 	ConditionIDs []int                `json:"conditionIds" validate:"required"`
-	PetIDs       []int                `json:"petIds" validate:"required,gte=1"`
+	PetIDs       []int64              `json:"petIds" validate:"required,gte=1"`
 }
 
 type UpdateSOSPostView struct {
@@ -190,28 +190,29 @@ type UpdateSOSPostView struct {
 	UpdatedAt   string                `json:"updatedAt"`
 }
 
-func (p *SOSPost) ToUpdateSOSPostView(
+func ToUpdateSOSPostView(
+	updateSOSPost databasegen.UpdateSOSPostRow,
 	mediaList media.ListView,
 	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *UpdateSOSPostView {
 	return &UpdateSOSPostView{
-		ID:          p.ID,
-		AuthorID:    p.AuthorID,
-		Title:       p.Title,
-		Content:     p.Content,
+		ID:          int(updateSOSPost.ID),
+		AuthorID:    int(updateSOSPost.AuthorID.Int64),
+		Title:       utils.NullStrToStr(updateSOSPost.Title),
+		Content:     utils.NullStrToStr(updateSOSPost.Content),
 		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
-		Reward:      p.Reward,
+		Reward:      utils.NullStrToStr(updateSOSPost.Reward),
 		Dates:       sosDates,
-		CareType:    p.CareType,
-		CarerGender: p.CarerGender,
-		RewardType:  p.RewardType,
-		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
+		CareType:    commonvo.CareType(updateSOSPost.CareType.String),
+		CarerGender: commonvo.CarerGender(updateSOSPost.CarerGender.String),
+		RewardType:  commonvo.RewardType(updateSOSPost.RewardType.String),
+		ThumbnailID: &updateSOSPost.ThumbnailID.Int64,
+		CreatedAt:   utils.FormatDateTime(updateSOSPost.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(updateSOSPost.UpdatedAt),
 	}
 }
 
@@ -225,6 +226,18 @@ func (d *SOSDates) ToSOSDateView() SOSDateView {
 		DateStartAt: utils.FormatDate(d.DateStartAt),
 		DateEndAt:   utils.FormatDate(d.DateEndAt),
 	}
+}
+
+func ToListViewFromSOSDateRows(rows []databasegen.FindDatesBySOSPostIDRow) []SOSDateView {
+	sosDateViews := make([]SOSDateView, len(rows))
+	for i, row := range rows {
+		date := SOSDates{
+			DateStartAt: utils.NullTimeToStr(row.DateStartAt),
+			DateEndAt:   utils.NullTimeToStr(row.DateEndAt),
+		}
+		sosDateViews[i] = date.ToSOSDateView()
+	}
+	return sosDateViews
 }
 
 func (dl *SOSDatesList) ToSOSDateViewList() []SOSDateView {

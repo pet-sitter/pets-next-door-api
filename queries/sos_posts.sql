@@ -141,6 +141,22 @@ FROM
 WHERE
     v_sos_posts.id = $1;
 
+-- name: FindDatesBySOSPostID :many
+SELECT
+    sos_dates.id,
+    sos_dates.date_start_at,
+    sos_dates.date_end_at,
+    sos_dates.created_at,
+    sos_dates.updated_at
+FROM
+    sos_dates
+        INNER JOIN
+    sos_posts_dates
+    ON sos_dates.id = sos_posts_dates.sos_dates_id
+WHERE
+    sos_posts_dates.sos_post_id = $1 AND
+    sos_posts_dates.deleted_at IS NULL;
+
 -- name: UpdateSOSPost :one
 UPDATE
     sos_posts
@@ -157,3 +173,27 @@ WHERE
     id = $8
 RETURNING
     id, author_id, title, content, reward, care_type, carer_gender, reward_type, thumbnail_id, created_at, updated_at;
+
+-- name: DeleteSOSPostDateBySOSPostID :exec
+UPDATE
+    sos_posts_dates
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1;
+
+-- name: DeleteSOSPostConditionBySOSPostID :exec
+UPDATE
+    sos_posts_conditions
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1;
+
+-- name: DeleteSOSPostPetBySOSPostID :exec
+UPDATE
+    sos_posts_pets
+SET
+    deleted_at = NOW()
+WHERE
+    sos_post_id = $1;
