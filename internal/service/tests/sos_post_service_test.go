@@ -392,11 +392,11 @@ func TestUpdateSOSPost(t *testing.T) {
 				{"2024-04-10", "2024-04-20"},
 				{"2024-05-10", "2024-05-20"},
 			},
-			CareType:     sospost.CareTypeFoster,
-			CarerGender:  sospost.CarerGenderMale,
-			RewardType:   sospost.RewardTypeFee,
+			CareType:     commonvo.CareTypeFoster,
+			CarerGender:  commonvo.CarerGenderMale,
+			RewardType:   commonvo.RewardTypeFee,
 			ConditionIDs: []int{1, 2},
-			PetIDs:       []int{int(addPets.Pets[0].ID)},
+			PetIDs:       []int64{addPets.Pets[0].ID},
 		}
 		updated, _ := sosPostService.UpdateSOSPost(ctx, updateRequest)
 

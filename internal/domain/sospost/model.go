@@ -2,6 +2,7 @@ package sospost
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	"time"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
@@ -12,42 +13,19 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
-type (
-	CareType    string
-	CarerGender string
-	RewardType  string
-)
-
-const (
-	CareTypeFoster   CareType = "foster"
-	CareTypeVisiting CareType = "visiting"
-)
-
-const (
-	CarerGenderMale   CarerGender = "male"
-	CarerGenderFemale CarerGender = "female"
-	CarerGenderAll    CarerGender = "all"
-)
-
-const (
-	RewardTypeFee        RewardType = "fee"
-	RewardTypeGifticon   RewardType = "gifticon"
-	RewardTypeNegotiable RewardType = "negotiable"
-)
-
 type SOSPost struct {
-	ID          int         `field:"id"`
-	AuthorID    int         `field:"author_id"`
-	Title       string      `field:"title"`
-	Content     string      `field:"content"`
-	Reward      string      `field:"reward"`
-	CareType    CareType    `field:"care_type"`
-	CarerGender CarerGender `field:"carer_gender"`
-	RewardType  RewardType  `field:"reward_type"`
-	ThumbnailID *int64      `field:"thumbnail_id"`
-	CreatedAt   time.Time   `field:"created_at"`
-	UpdatedAt   time.Time   `field:"updated_at"`
-	DeletedAt   time.Time   `field:"deleted_at"`
+	ID          int                  `field:"id"`
+	AuthorID    int                  `field:"author_id"`
+	Title       string               `field:"title"`
+	Content     string               `field:"content"`
+	Reward      string               `field:"reward"`
+	CareType    commonvo.CareType    `field:"care_type"`
+	CarerGender commonvo.CarerGender `field:"carer_gender"`
+	RewardType  commonvo.RewardType  `field:"reward_type"`
+	ThumbnailID *int64               `field:"thumbnail_id"`
+	CreatedAt   time.Time            `field:"created_at"`
+	UpdatedAt   time.Time            `field:"updated_at"`
+	DeletedAt   time.Time            `field:"deleted_at"`
 }
 
 type SOSPostList struct {
@@ -64,9 +42,9 @@ type SOSPostInfo struct {
 	Pets        pet.ViewListForSOSPost          `field:"pets" json:"pets"`
 	Reward      string                          `field:"reward" json:"reward"`
 	Dates       SOSDatesList                    `field:"dates" json:"dates"`
-	CareType    CareType                        `field:"careType" json:"careType"`
-	CarerGender CarerGender                     `field:"carerGender" json:"carerGender"`
-	RewardType  RewardType                      `field:"rewardType" json:"rewardType"`
+	CareType    commonvo.CareType               `field:"careType" json:"careType"`
+	CarerGender commonvo.CarerGender            `field:"carerGender" json:"carerGender"`
+	RewardType  commonvo.RewardType             `field:"rewardType" json:"rewardType"`
 	ThumbnailID *int64                          `field:"thumbnailId" json:"thumbnailId"`
 	CreatedAt   time.Time                       `field:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time                       `field:"updatedAt" json:"updatedAt"`

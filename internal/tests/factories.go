@@ -54,9 +54,9 @@ func NewDummyWriteSOSPostRequest(imageID, petIDs []int64, sosPostCnt int) *sospo
 			{DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-04-2%d", sosPostCnt)},
 			{DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-05-2%d", sosPostCnt)},
 		},
-		CareType:     sospost.CareTypeFoster,
-		CarerGender:  sospost.CarerGenderMale,
-		RewardType:   sospost.RewardTypeFee,
+		CareType:     commonvo.CareTypeFoster,
+		CarerGender:  commonvo.CarerGenderMale,
+		RewardType:   commonvo.RewardTypeFee,
 		ConditionIDs: []int{1, 2},
 		PetIDs:       petIDs,
 	}
