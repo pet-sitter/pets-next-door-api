@@ -3,23 +3,25 @@ package sospost
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type WriteSOSPostRequest struct {
-	Title        string        `json:"title" validate:"required"`
-	Content      string        `json:"content" validate:"required"`
-	ImageIDs     []int64       `json:"imageIds" validate:"required"`
-	Reward       string        `json:"reward" validate:"required"`
-	Dates        []SOSDateView `json:"dates" validate:"required,gte=1"`
-	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
-	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
-	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds" validate:"required"`
-	PetIDs       []int64       `json:"petIds" validate:"required,gte=1"`
+	Title        string               `json:"title" validate:"required"`
+	Content      string               `json:"content" validate:"required"`
+	ImageIDs     []int64              `json:"imageIds" validate:"required"`
+	Reward       string               `json:"reward" validate:"required"`
+	Dates        []SOSDateView        `json:"dates" validate:"required,gte=1"`
+	CareType     commonvo.CareType    `json:"careType" validate:"required,oneof=foster visiting"`
+	CarerGender  commonvo.CarerGender `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardType   commonvo.RewardType  `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
+	ConditionIDs []int                `json:"conditionIds" validate:"required"`
+	PetIDs       []int64              `json:"petIds" validate:"required,gte=1"`
 }
 
 type WriteSOSPostView struct {
@@ -32,36 +34,37 @@ type WriteSOSPostView struct {
 	Pets        []pet.DetailView      `json:"pets"`
 	Reward      string                `json:"reward"`
 	Dates       []SOSDateView         `json:"dates"`
-	CareType    CareType              `json:"careType"`
-	CarerGender CarerGender           `json:"carerGender"`
-	RewardType  RewardType            `json:"rewardType"`
+	CareType    commonvo.CareType     `json:"careType"`
+	CarerGender commonvo.CarerGender  `json:"carerGender"`
+	RewardType  commonvo.RewardType   `json:"rewardType"`
 	ThumbnailID *int64                `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
 }
 
-func (p *SOSPost) ToWriteSOSPostView(
+func ToWriteSOSPostView(
+	sosPost databasegen.WriteSOSPostRow,
 	mediaList media.ListView,
 	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
 ) *WriteSOSPostView {
 	return &WriteSOSPostView{
-		ID:          p.ID,
-		AuthorID:    p.AuthorID,
-		Title:       p.Title,
-		Content:     p.Content,
+		ID:          int(sosPost.ID),
+		AuthorID:    int(sosPost.AuthorID.Int64),
+		Title:       utils.NullStrToStr(sosPost.Title),
+		Content:     utils.NullStrToStr(sosPost.Content),
 		Media:       mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
-		Reward:      p.Reward,
+		Reward:      utils.NullStrToStr(sosPost.Reward),
 		Dates:       sosDates,
-		CareType:    p.CareType,
-		CarerGender: p.CarerGender,
-		RewardType:  p.RewardType,
-		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
+		CareType:    commonvo.CareType(sosPost.CareType.String),
+		CarerGender: commonvo.CarerGender(sosPost.CarerGender.String),
+		RewardType:  commonvo.RewardType(sosPost.RewardType.String),
+		ThumbnailID: &sosPost.ThumbnailID.Int64,
+		CreatedAt:   utils.FormatDateTime(sosPost.CreatedAt),
+		UpdatedAt:   utils.FormatDateTime(sosPost.UpdatedAt),
 	}
 }
 
@@ -75,9 +78,9 @@ type FindSOSPostView struct {
 	Pets        []pet.DetailView         `json:"pets"`
 	Reward      string                   `json:"reward"`
 	Dates       []SOSDateView            `json:"dates"`
-	CareType    CareType                 `json:"careType"`
-	CarerGender CarerGender              `json:"carerGender"`
-	RewardType  RewardType               `json:"rewardType"`
+	CareType    commonvo.CareType        `json:"careType"`
+	CarerGender commonvo.CarerGender     `json:"carerGender"`
+	RewardType  commonvo.RewardType      `json:"rewardType"`
 	ThumbnailID *int64                   `json:"thumbnailId"`
 	CreatedAt   string                   `json:"createdAt"`
 	UpdatedAt   string                   `json:"updatedAt"`
@@ -156,17 +159,17 @@ func (p *SOSPostInfo) ToFindSOSPostInfoView(
 }
 
 type UpdateSOSPostRequest struct {
-	ID           int           `json:"id" validate:"required"`
-	Title        string        `json:"title" validate:"required"`
-	Content      string        `json:"content" validate:"required"`
-	ImageIDs     []int64       `json:"imageIds" validate:"required"`
-	Dates        []SOSDateView `json:"dates" validate:"required,gte=1"`
-	Reward       string        `json:"reward" validate:"required"`
-	CareType     CareType      `json:"careType" validate:"required,oneof=foster visiting"`
-	CarerGender  CarerGender   `json:"carerGender" validate:"required,oneof=male female all"`
-	RewardType   RewardType    `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int         `json:"conditionIds" validate:"required"`
-	PetIDs       []int         `json:"petIds" validate:"required,gte=1"`
+	ID           int                  `json:"id" validate:"required"`
+	Title        string               `json:"title" validate:"required"`
+	Content      string               `json:"content" validate:"required"`
+	ImageIDs     []int64              `json:"imageIds" validate:"required"`
+	Dates        []SOSDateView        `json:"dates" validate:"required,gte=1"`
+	Reward       string               `json:"reward" validate:"required"`
+	CareType     commonvo.CareType    `json:"careType" validate:"required,oneof=foster visiting"`
+	CarerGender  commonvo.CarerGender `json:"carerGender" validate:"required,oneof=male female all"`
+	RewardType   commonvo.RewardType  `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
+	ConditionIDs []int                `json:"conditionIds" validate:"required"`
+	PetIDs       []int                `json:"petIds" validate:"required,gte=1"`
 }
 
 type UpdateSOSPostView struct {
@@ -179,9 +182,9 @@ type UpdateSOSPostView struct {
 	Pets        []pet.DetailView      `json:"pets"`
 	Reward      string                `json:"reward"`
 	Dates       []SOSDateView         `json:"dates"`
-	CareType    CareType              `json:"careType"`
-	CarerGender CarerGender           `json:"carerGender"`
-	RewardType  RewardType            `json:"rewardType"`
+	CareType    commonvo.CareType     `json:"careType"`
+	CarerGender commonvo.CarerGender  `json:"carerGender"`
+	RewardType  commonvo.RewardType   `json:"rewardType"`
 	ThumbnailID *int64                `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
