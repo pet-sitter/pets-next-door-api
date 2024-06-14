@@ -31,7 +31,7 @@ func NewSOSPostHandler(sosPostService service.SOSPostService, authService servic
 // @Produce  json
 // @Param request body sospost.WriteSOSPostRequest true "돌봄급구 게시글 업로드 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} sospost.WriteSOSPostView
+// @Success 201 {object} sospost.DetailView
 // @Router /posts/sos [post]
 func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))

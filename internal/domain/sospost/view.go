@@ -11,20 +11,43 @@ import (
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
-type WriteSOSPostRequest struct {
-	Title        string               `json:"title" validate:"required"`
-	Content      string               `json:"content" validate:"required"`
-	ImageIDs     []int64              `json:"imageIds" validate:"required"`
-	Reward       string               `json:"reward" validate:"required"`
-	Dates        []SOSDateView        `json:"dates" validate:"required,gte=1"`
-	CareType     commonvo.CareType    `json:"careType" validate:"required,oneof=foster visiting"`
-	CarerGender  commonvo.CarerGender `json:"carerGender" validate:"required,oneof=male female all"`
-	RewardType   commonvo.RewardType  `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int                `json:"conditionIds" validate:"required"`
-	PetIDs       []int64              `json:"petIds" validate:"required,gte=1"`
+type ViewParams struct {
+	ID          int
+	AuthorID    int
+	Title       string
+	Content     string
+	MediaList   media.ListView
+	Conditions  soscondition.ListView
+	Pets        []pet.DetailView
+	Reward      string
+	SOSDates    []SOSDateView
+	CareType    commonvo.CareType
+	CarerGender commonvo.CarerGender
+	RewardType  commonvo.RewardType
+	ThumbnailID *int64
+	CreatedAt   string
+	UpdatedAt   string
 }
 
-type WriteSOSPostView struct {
+type ViewParamsInput struct {
+	ID          int64
+	AuthorID    int64
+	Title       string
+	Content     string
+	MediaList   media.ListView
+	Conditions  soscondition.ListView
+	Pets        []pet.DetailView
+	Reward      string
+	SOSDates    []SOSDateView
+	CareType    string
+	CarerGender string
+	RewardType  string
+	ThumbnailID *int64
+	CreatedAt   string
+	UpdatedAt   string
+}
+
+type DetailView struct {
 	ID          int                   `json:"id"`
 	AuthorID    int                   `json:"authorId"`
 	Title       string                `json:"title"`
@@ -42,30 +65,72 @@ type WriteSOSPostView struct {
 	UpdatedAt   string                `json:"updatedAt"`
 }
 
-func ToWriteSOSPostView(
+func ToDetailView(params ViewParams) *DetailView {
+	return &DetailView{
+		ID:          params.ID,
+		AuthorID:    params.AuthorID,
+		Title:       params.Title,
+		Content:     params.Content,
+		Media:       params.MediaList,
+		Conditions:  params.Conditions,
+		Pets:        params.Pets,
+		Reward:      params.Reward,
+		Dates:       params.SOSDates,
+		CareType:    params.CareType,
+		CarerGender: params.CarerGender,
+		RewardType:  params.RewardType,
+		ThumbnailID: params.ThumbnailID,
+		CreatedAt:   params.CreatedAt,
+		UpdatedAt:   params.UpdatedAt,
+	}
+}
+
+func CreateViewParams(input ViewParamsInput) ViewParams {
+	return ViewParams{
+		ID:          int(input.ID),
+		AuthorID:    int(input.AuthorID),
+		Title:       input.Title,
+		Content:     input.Content,
+		MediaList:   input.MediaList,
+		Conditions:  input.Conditions,
+		Pets:        input.Pets,
+		Reward:      input.Reward,
+		SOSDates:    input.SOSDates,
+		CareType:    commonvo.CareType(input.CareType),
+		CarerGender: commonvo.CarerGender(input.CarerGender),
+		RewardType:  commonvo.RewardType(input.RewardType),
+		ThumbnailID: input.ThumbnailID,
+		CreatedAt:   input.CreatedAt,
+		UpdatedAt:   input.UpdatedAt,
+	}
+}
+
+func CreateDetailView(
 	sosPost databasegen.WriteSOSPostRow,
 	mediaList media.ListView,
 	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
-) *WriteSOSPostView {
-	return &WriteSOSPostView{
-		ID:          int(sosPost.ID),
-		AuthorID:    int(sosPost.AuthorID.Int64),
+) *DetailView {
+	input := ViewParamsInput{
+		ID:          int64(sosPost.ID),
+		AuthorID:    sosPost.AuthorID.Int64,
 		Title:       utils.NullStrToStr(sosPost.Title),
 		Content:     utils.NullStrToStr(sosPost.Content),
-		Media:       mediaList,
+		MediaList:   mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
 		Reward:      utils.NullStrToStr(sosPost.Reward),
-		Dates:       sosDates,
-		CareType:    commonvo.CareType(sosPost.CareType.String),
-		CarerGender: commonvo.CarerGender(sosPost.CarerGender.String),
-		RewardType:  commonvo.RewardType(sosPost.RewardType.String),
+		SOSDates:    sosDates,
+		CareType:    sosPost.CareType.String,
+		CarerGender: sosPost.CarerGender.String,
+		RewardType:  sosPost.RewardType.String,
 		ThumbnailID: &sosPost.ThumbnailID.Int64,
-		CreatedAt:   utils.FormatDateTime(sosPost.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(sosPost.UpdatedAt),
+		CreatedAt:   utils.FormatTimeFromTime(sosPost.CreatedAt),
+		UpdatedAt:   utils.FormatTimeFromTime(sosPost.UpdatedAt),
 	}
+	params := CreateViewParams(input)
+	return ToDetailView(params)
 }
 
 type FindSOSPostView struct {
@@ -107,8 +172,8 @@ func (p *SOSPost) ToFindSOSPostView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
+		CreatedAt:   utils.FormatDateTimeFromTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTimeFromTime(p.UpdatedAt),
 	}
 }
 
@@ -153,67 +218,36 @@ func (p *SOSPostInfo) ToFindSOSPostInfoView(
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
 		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(p.UpdatedAt),
+		CreatedAt:   utils.FormatDateTimeFromTime(p.CreatedAt),
+		UpdatedAt:   utils.FormatDateTimeFromTime(p.UpdatedAt),
 	}
 }
 
-type UpdateSOSPostRequest struct {
-	ID           int                  `json:"id" validate:"required"`
-	Title        string               `json:"title" validate:"required"`
-	Content      string               `json:"content" validate:"required"`
-	ImageIDs     []int64              `json:"imageIds" validate:"required"`
-	Dates        []SOSDateView        `json:"dates" validate:"required,gte=1"`
-	Reward       string               `json:"reward" validate:"required"`
-	CareType     commonvo.CareType    `json:"careType" validate:"required,oneof=foster visiting"`
-	CarerGender  commonvo.CarerGender `json:"carerGender" validate:"required,oneof=male female all"`
-	RewardType   commonvo.RewardType  `json:"rewardType" validate:"required,oneof=fee gifticon negotiable"`
-	ConditionIDs []int                `json:"conditionIds" validate:"required"`
-	PetIDs       []int64              `json:"petIds" validate:"required,gte=1"`
-}
-
-type UpdateSOSPostView struct {
-	ID          int                   `json:"id"`
-	AuthorID    int                   `json:"authorId"`
-	Title       string                `json:"title"`
-	Content     string                `json:"content"`
-	Media       media.ListView        `json:"media"`
-	Conditions  soscondition.ListView `json:"conditions"`
-	Pets        []pet.DetailView      `json:"pets"`
-	Reward      string                `json:"reward"`
-	Dates       []SOSDateView         `json:"dates"`
-	CareType    commonvo.CareType     `json:"careType"`
-	CarerGender commonvo.CarerGender  `json:"carerGender"`
-	RewardType  commonvo.RewardType   `json:"rewardType"`
-	ThumbnailID *int64                `json:"thumbnailId"`
-	CreatedAt   string                `json:"createdAt"`
-	UpdatedAt   string                `json:"updatedAt"`
-}
-
-func ToUpdateSOSPostView(
-	updateSOSPost databasegen.UpdateSOSPostRow,
+func UpdateDetailView(
+	sosPost databasegen.UpdateSOSPostRow,
 	mediaList media.ListView,
 	conditions soscondition.ListView,
 	pets []pet.DetailView,
 	sosDates []SOSDateView,
-) *UpdateSOSPostView {
-	return &UpdateSOSPostView{
-		ID:          int(updateSOSPost.ID),
-		AuthorID:    int(updateSOSPost.AuthorID.Int64),
-		Title:       utils.NullStrToStr(updateSOSPost.Title),
-		Content:     utils.NullStrToStr(updateSOSPost.Content),
-		Media:       mediaList,
+) *DetailView {
+	params := ViewParams{
+		ID:          int(sosPost.ID),
+		AuthorID:    int(sosPost.AuthorID.Int64),
+		Title:       utils.NullStrToStr(sosPost.Title),
+		Content:     utils.NullStrToStr(sosPost.Content),
+		MediaList:   mediaList,
 		Conditions:  conditions,
 		Pets:        pets,
-		Reward:      utils.NullStrToStr(updateSOSPost.Reward),
-		Dates:       sosDates,
-		CareType:    commonvo.CareType(updateSOSPost.CareType.String),
-		CarerGender: commonvo.CarerGender(updateSOSPost.CarerGender.String),
-		RewardType:  commonvo.RewardType(updateSOSPost.RewardType.String),
-		ThumbnailID: &updateSOSPost.ThumbnailID.Int64,
-		CreatedAt:   utils.FormatDateTime(updateSOSPost.CreatedAt),
-		UpdatedAt:   utils.FormatDateTime(updateSOSPost.UpdatedAt),
+		Reward:      utils.NullStrToStr(sosPost.Reward),
+		SOSDates:    sosDates,
+		CareType:    commonvo.CareType(sosPost.CareType.String),
+		CarerGender: commonvo.CarerGender(sosPost.CarerGender.String),
+		RewardType:  commonvo.RewardType(sosPost.RewardType.String),
+		ThumbnailID: &sosPost.ThumbnailID.Int64,
+		CreatedAt:   utils.FormatDateTimeFromTime(sosPost.CreatedAt),
+		UpdatedAt:   utils.FormatDateTimeFromTime(sosPost.UpdatedAt),
 	}
+	return ToDetailView(params)
 }
 
 type SOSDateView struct {
@@ -223,8 +257,8 @@ type SOSDateView struct {
 
 func (d *SOSDates) ToSOSDateView() SOSDateView {
 	return SOSDateView{
-		DateStartAt: utils.FormatDate(d.DateStartAt),
-		DateEndAt:   utils.FormatDate(d.DateEndAt),
+		DateStartAt: utils.FormatDateString(d.DateStartAt),
+		DateEndAt:   utils.FormatDateString(d.DateEndAt),
 	}
 }
 

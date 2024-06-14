@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 
@@ -14,7 +15,6 @@ import (
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
-	"github.com/pet-sitter/pets-next-door-api/internal/postgres"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -33,7 +33,7 @@ func NewSOSPostService(conn *database.DB) *SOSPostService {
 
 func (service *SOSPostService) WriteSOSPost(
 	ctx context.Context, fbUID string, request *sospost.WriteSOSPostRequest,
-) (*sospost.WriteSOSPostView, *pnd.AppError) {
+) (*sospost.DetailView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -49,62 +49,13 @@ func (service *SOSPostService) WriteSOSPost(
 	}
 
 	thumbnailID := setThumbnailID(request.ImageIDs)
-
-	// SOSPost 저장
-	sosPost := databasegen.WriteSOSPostRow{}
-	var err3 error
-	if thumbnailID == nil {
-		sosPost, err3 = q.WriteSOSPost(ctx, databasegen.WriteSOSPostParams{
-			AuthorID:    utils.IntToNullInt64(int(userData.ID)),
-			Title:       utils.StrToNullStr(request.Title),
-			Content:     utils.StrToNullStr(request.Content),
-			Reward:      utils.StrToNullStr(request.Reward),
-			CareType:    utils.StrToNullStr(string(request.CareType)),
-			CarerGender: utils.StrToNullStr(request.CarerGender.String()),
-			RewardType:  utils.StrToNullStr(request.RewardType.String()),
-		})
-		if err3 != nil {
-			return nil, pnd.FromPostgresError(err3)
-		}
-	}
-	if thumbnailID != nil {
-		sosPost, err3 = q.WriteSOSPost(ctx, databasegen.WriteSOSPostParams{
-			AuthorID:    utils.IntToNullInt64(int(userData.ID)),
-			Title:       utils.StrToNullStr(request.Title),
-			Content:     utils.StrToNullStr(request.Content),
-			Reward:      utils.StrToNullStr(request.Reward),
-			CareType:    utils.StrToNullStr(string(request.CareType)),
-			CarerGender: utils.StrToNullStr(request.CarerGender.String()),
-			RewardType:  utils.StrToNullStr(request.RewardType.String()),
-			ThumbnailID: utils.IntToNullInt64(int(*thumbnailID)),
-		})
-		if err3 != nil {
-			return nil, pnd.FromPostgresError(err3)
-		}
+	sosPost, err := service.createSOSPost(ctx, q, int64(userData.ID), request, thumbnailID)
+	if err != nil {
+		return nil, err
 	}
 
-	// 날짜 리스트 저장
-	err4 := service.SaveSOSDates(ctx, q, request.Dates, int(sosPost.ID))
-	if err4 != nil {
-		return nil, err4
-	}
-
-	// 이미지와 SOSPost 다대다 저장
-	err5 := service.SaveLinkSOSPostImage(ctx, q, request.ImageIDs, int(sosPost.ID))
-	if err5 != nil {
-		return nil, err5
-	}
-
-	// 조건과 SOSPost 다대다 저장
-	err6 := service.SaveLinkConditions(ctx, q, request.ConditionIDs, int(sosPost.ID))
-	if err6 != nil {
-		return nil, err6
-	}
-
-	// 펫과 SOSPost 다대다 저장
-	err7 := service.SaveLinkPets(ctx, q, request.PetIDs, int(sosPost.ID))
-	if err7 != nil {
-		return nil, err7
+	if err := service.saveAllLinks(ctx, q, request, int(sosPost.ID)); err != nil {
+		return nil, err
 	}
 
 	mediaData, err2 := q.FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
@@ -127,22 +78,62 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, pnd.FromPostgresError(err2)
 	}
 
-	dates, err3 := q.FindDatesBySOSPostID(ctx, utils.IntToNullInt64(int(sosPost.ID)))
-	if err3 != nil {
-		return nil, pnd.FromPostgresError(err3)
+	dates, err2 := q.FindDatesBySOSPostID(ctx, utils.IntToNullInt64(int(sosPost.ID)))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	return sospost.ToWriteSOSPostView(
+	return sospost.CreateDetailView(
 		sosPost,
 		media.ToListViewFromResourceMediaRows(mediaData),
 		soscondition.ToListViewFromSOSPostConditions(conditionList),
 		pet.ToDetailViewList(petRows),
 		sospost.ToListViewFromSOSDateRows(dates),
 	), nil
+}
+
+func (service *SOSPostService) createSOSPost(
+	ctx context.Context, q *databasegen.Queries, authorID int64, request *sospost.WriteSOSPostRequest, thumbnailID *int64,
+) (databasegen.WriteSOSPostRow, *pnd.AppError) {
+	params := databasegen.WriteSOSPostParams{
+		AuthorID:    utils.IntToNullInt64(int(authorID)),
+		Title:       utils.StrToNullStr(request.Title),
+		Content:     utils.StrToNullStr(request.Content),
+		Reward:      utils.StrToNullStr(request.Reward),
+		CareType:    utils.StrToNullStr(string(request.CareType)),
+		CarerGender: utils.StrToNullStr(request.CarerGender.String()),
+		RewardType:  utils.StrToNullStr(request.RewardType.String()),
+	}
+
+	if thumbnailID != nil {
+		params.ThumbnailID = utils.IntToNullInt64(int(*thumbnailID))
+	}
+
+	sosPost, err := q.WriteSOSPost(ctx, params)
+	if err != nil {
+		return databasegen.WriteSOSPostRow{}, pnd.FromPostgresError(err)
+	}
+
+	return sosPost, nil
+}
+
+func (service *SOSPostService) saveAllLinks(
+	ctx context.Context, q *databasegen.Queries, request *sospost.WriteSOSPostRequest, sosPostID int,
+) *pnd.AppError {
+	if err := service.SaveSOSDates(ctx, q, request.Dates, sosPostID); err != nil {
+		return err
+	}
+	if err := service.SaveLinkSOSPostImage(ctx, q, request.ImageIDs, sosPostID); err != nil {
+		return err
+	}
+	if err := service.SaveLinkConditions(ctx, q, request.ConditionIDs, sosPostID); err != nil {
+		return err
+	}
+	return service.SaveLinkPets(ctx, q, request.PetIDs, sosPostID)
 }
 
 func (service *SOSPostService) FindSOSPosts(
@@ -154,14 +145,21 @@ func (service *SOSPostService) FindSOSPosts(
 		return nil, err
 	}
 
-	sosPosts, err := postgres.FindSOSPosts(ctx, tx, page, size, sortBy, filterType)
-	if err != nil {
-		return nil, err
+	sosPosts, err2 := databasegen.New(tx).FindSOSPosts(ctx, databasegen.FindSOSPostsParams{
+		EarliestDateStartAt: utils.FormatDateString(time.Now().String()),
+		PetType:             utils.StrToNullStr(filterType),
+		SortBy:              utils.StrToNullStr(sortBy),
+		Limit:               utils.IntToNullInt32(size + 1),
+		Offset:              utils.IntToNullInt32((page - 1) * size),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
-	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
+	sosPostInfoList := sospost.ToInfoListFromFindRow(sosPosts, page, size)
+	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPostInfoList)
 
-	for _, sosPost := range sosPosts.Items {
+	for _, sosPost := range sosPostInfoList.Items {
 		author, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
 			ID:             utils.IntToNullInt32(sosPost.AuthorID),
 			IncludeDeleted: true,
@@ -169,7 +167,6 @@ func (service *SOSPostService) FindSOSPosts(
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
-
 		sosPostView := sosPost.ToFindSOSPostInfoView(
 			&user.WithoutPrivateInfo{
 				ID:              int64(author.ID),
@@ -181,7 +178,6 @@ func (service *SOSPostService) FindSOSPosts(
 			sosPost.Pets.ToDetailViewList(),
 			sosPost.Dates.ToSOSDateViewList(),
 		)
-
 		sosPostViews.Items = append(sosPostViews.Items, *sosPostView)
 	}
 
@@ -197,13 +193,22 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 		return nil, err
 	}
 
-	sosPosts, err := postgres.FindSOSPostsByAuthorID(ctx, tx, authorID, page, size, sortBy, filterType)
-	if err != nil {
-		return nil, err
+	sosPosts, err2 := databasegen.New(tx).FindSOSPostsByAuthorID(ctx, databasegen.FindSOSPostsByAuthorIDParams{
+		EarliestDateStartAt: utils.FormatDateString(time.Now().String()),
+		PetType:             utils.StrToNullStr(filterType),
+		AuthorID:            utils.IntToNullInt64(authorID),
+		SortBy:              utils.StrToNullStr(sortBy),
+		Limit:               utils.IntToNullInt32(size + 1),
+		Offset:              utils.IntToNullInt32((page - 1) * size),
+	})
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
-	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPosts)
 
-	for _, sosPost := range sosPosts.Items {
+	sosPostInfoList := sospost.ToInfoListFromFindAuthorIDRow(sosPosts, page, size)
+	sosPostViews := sospost.FromEmptySOSPostInfoList(sosPostInfoList)
+
+	for _, sosPost := range sosPostInfoList.Items {
 		author, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
 			ID:             utils.IntToNullInt32(sosPost.AuthorID),
 			IncludeDeleted: true,
@@ -236,13 +241,14 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	sosPost, err := postgres.FindSOSPostByID(ctx, tx, id)
-	if err != nil {
-		return nil, err
+	sosPost, err2 := databasegen.New(tx).FindSOSPostByID(ctx, utils.IntToNullInt32(id))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
+	sosPostInfo := sospost.ToInfoFromFindByIDRow(sosPost)
 
 	author, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
-		ID:             utils.IntToNullInt32(sosPost.AuthorID),
+		ID:             utils.IntToNullInt32(sosPostInfo.AuthorID),
 		IncludeDeleted: true,
 	})
 	if err2 != nil {
@@ -253,143 +259,130 @@ func (service *SOSPostService) FindSOSPostByID(ctx context.Context, id int) (*so
 		return nil, err
 	}
 
-	return sosPost.ToFindSOSPostInfoView(
+	return sosPostInfo.ToFindSOSPostInfoView(
 		&user.WithoutPrivateInfo{
 			ID:              int64(author.ID),
 			Nickname:        author.Nickname,
 			ProfileImageURL: utils.NullStrToStrPtr(author.ProfileImageUrl),
 		},
-		media.ToListViewFromViewListForSOSPost(sosPost.Media),
-		soscondition.ToListViewFromViewForSOSPost(sosPost.Conditions),
-		sosPost.Pets.ToDetailViewList(),
-		sosPost.Dates.ToSOSDateViewList(),
+		media.ToListViewFromViewListForSOSPost(sosPostInfo.Media),
+		soscondition.ToListViewFromViewForSOSPost(sosPostInfo.Conditions),
+		sosPostInfo.Pets.ToDetailViewList(),
+		sosPostInfo.Dates.ToSOSDateViewList(),
 	), nil
 }
 
 func (service *SOSPostService) UpdateSOSPost(
 	ctx context.Context, request *sospost.UpdateSOSPostRequest,
-) (*sospost.UpdateSOSPostView, *pnd.AppError) {
+) (*sospost.DetailView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 	q := databasegen.New(tx)
-	// 날짜 업데이트
-	// 날짜 삭제
-	err2 := service.DeleteLinkSOSPostDates(ctx, q, request.ID)
-	if err2 != nil {
+
+	if err2 := service.updateAllLinks(ctx, q, request); err2 != nil {
 		return nil, err2
 	}
-	// 날짜 저장
-	err3 := service.SaveSOSDates(ctx, q, request.Dates, request.ID)
-	if err3 != nil {
-		return nil, err3
-	}
-	// 이미지 업데이트
-	// 이미지 삭제
-	err4 := service.DeleteLinkSOSPostImages(ctx, q, request.ID)
-	if err4 != nil {
-		return nil, err4
-	}
-	// 이미지 저장
-	err5 := service.SaveLinkSOSPostImage(ctx, q, request.ImageIDs, request.ID)
-	if err5 != nil {
-		return nil, err5
-	}
-	// 조건 업데이트
-	// 조건 삭제
-	err6 := service.DeleteLinkSOSPostConditions(ctx, q, request.ID)
-	if err6 != nil {
-		return nil, err6
-	}
-	// 조건 저장
-	err7 := service.SaveLinkConditions(ctx, q, request.ConditionIDs, request.ID)
-	if err7 != nil {
-		return nil, err7
-	}
-	// 펫 업데이트
-	// 펫 삭제
-	err8 := service.DeleteLinkSOSPostPets(ctx, q, request.ID)
-	if err8 != nil {
-		return nil, err8
-	}
-	// 펫 저장
-	err9 := service.SaveLinkPets(ctx, q, request.PetIDs, request.ID)
-	if err9 != nil {
-		return nil, err9
-	}
 
-	// SOSPost 업데이트
 	thumbnailID := setThumbnailID(request.ImageIDs)
-	updateSOSPost := databasegen.UpdateSOSPostRow{}
-	var err10 error
-	if thumbnailID == nil {
-		updateSOSPost, err10 = q.UpdateSOSPost(ctx, databasegen.UpdateSOSPostParams{
-			ID:          int32(request.ID),
-			Title:       utils.StrToNullStr(request.Title),
-			Content:     utils.StrToNullStr(request.Content),
-			Reward:      utils.StrToNullStr(request.Reward),
-			CareType:    utils.StrToNullStr(string(request.CareType)),
-			CarerGender: utils.StrToNullStr(request.CarerGender.String()),
-			RewardType:  utils.StrToNullStr(request.RewardType.String()),
-		})
-		if err10 != nil {
-			return nil, pnd.FromPostgresError(err10)
-		}
-	}
-	if thumbnailID != nil {
-		updateSOSPost, err10 = q.UpdateSOSPost(ctx, databasegen.UpdateSOSPostParams{
-			ID:          int32(request.ID),
-			Title:       utils.StrToNullStr(request.Title),
-			Content:     utils.StrToNullStr(request.Content),
-			Reward:      utils.StrToNullStr(request.Reward),
-			CareType:    utils.StrToNullStr(string(request.CareType)),
-			CarerGender: utils.StrToNullStr(request.CarerGender.String()),
-			RewardType:  utils.StrToNullStr(request.RewardType.String()),
-			ThumbnailID: utils.IntToNullInt64(int(*thumbnailID)),
-		})
-		if err10 != nil {
-			return nil, pnd.FromPostgresError(err10)
-		}
+	updateSOSPost, err := service.updateSOSPost(ctx, q, request, thumbnailID)
+	if err != nil {
+		return nil, err
 	}
 
-	mediaData, err11 := databasegen.New(tx).FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
+	mediaData, err2 := databasegen.New(tx).FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
 		ResourceID:   utils.IntToNullInt64(int(updateSOSPost.ID)),
 		ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
 	})
 	if err2 != nil {
-		return nil, pnd.FromPostgresError(err11)
+		return nil, pnd.FromPostgresError(err2)
 	}
 
-	conditionList, err11 := databasegen.New(tx).FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
+	conditionList, err2 := databasegen.New(tx).FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
 		SosPostID: utils.IntToNullInt64(int(updateSOSPost.ID)),
 	})
-	if err11 != nil {
-		return nil, pnd.FromPostgresError(err11)
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
-	petRows, err12 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(int(updateSOSPost.ID)))
-	if err12 != nil {
-		return nil, pnd.FromPostgresError(err12)
+	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, utils.IntToNullInt64(int(updateSOSPost.ID)))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
-	dates, err13 := q.FindDatesBySOSPostID(ctx, utils.IntToNullInt64(request.ID))
-	if err3 != nil {
-		return nil, pnd.FromPostgresError(err13)
+	dates, err2 := q.FindDatesBySOSPostID(ctx, utils.IntToNullInt64(request.ID))
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
 	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	return sospost.ToUpdateSOSPostView(
+	return sospost.UpdateDetailView(
 		updateSOSPost,
 		media.ToListViewFromResourceMediaRows(mediaData),
 		soscondition.ToListViewFromSOSPostConditions(conditionList),
 		pet.ToDetailViewList(petRows),
 		sospost.ToListViewFromSOSDateRows(dates),
 	), nil
+}
+
+func (service *SOSPostService) updateSOSPost(
+	ctx context.Context, q *databasegen.Queries, request *sospost.UpdateSOSPostRequest, thumbnailID *int64,
+) (databasegen.UpdateSOSPostRow, *pnd.AppError) {
+	params := databasegen.UpdateSOSPostParams{
+		ID:          int32(request.ID),
+		Title:       utils.StrToNullStr(request.Title),
+		Content:     utils.StrToNullStr(request.Content),
+		Reward:      utils.StrToNullStr(request.Reward),
+		CareType:    utils.StrToNullStr(string(request.CareType)),
+		CarerGender: utils.StrToNullStr(request.CarerGender.String()),
+		RewardType:  utils.StrToNullStr(request.RewardType.String()),
+	}
+
+	if thumbnailID != nil {
+		params.ThumbnailID = utils.IntToNullInt64(int(*thumbnailID))
+	}
+
+	updateSOSPost, err := q.UpdateSOSPost(ctx, params)
+	if err != nil {
+		return databasegen.UpdateSOSPostRow{}, pnd.FromPostgresError(err)
+	}
+
+	return updateSOSPost, nil
+}
+
+func (service *SOSPostService) updateAllLinks(
+	ctx context.Context, q *databasegen.Queries, request *sospost.UpdateSOSPostRequest,
+) *pnd.AppError {
+	if err := service.DeleteLinkSOSPostDates(ctx, q, request.ID); err != nil {
+		return err
+	}
+	if err := service.SaveSOSDates(ctx, q, request.Dates, request.ID); err != nil {
+		return err
+	}
+
+	if err := service.DeleteLinkSOSPostImages(ctx, q, request.ID); err != nil {
+		return err
+	}
+	if err := service.SaveLinkSOSPostImage(ctx, q, request.ImageIDs, request.ID); err != nil {
+		return err
+	}
+
+	if err := service.DeleteLinkSOSPostConditions(ctx, q, request.ID); err != nil {
+		return err
+	}
+	if err := service.SaveLinkConditions(ctx, q, request.ConditionIDs, request.ID); err != nil {
+		return err
+	}
+
+	if err := service.DeleteLinkSOSPostPets(ctx, q, request.ID); err != nil {
+		return err
+	}
+	return service.SaveLinkPets(ctx, q, request.PetIDs, request.ID)
 }
 
 func (service *SOSPostService) CheckUpdatePermission(
@@ -408,22 +401,23 @@ func (service *SOSPostService) CheckUpdatePermission(
 		return false, pnd.FromPostgresError(err2)
 	}
 
-	sosPost, err := postgres.FindSOSPostByID(ctx, tx, sosPostID)
-	if err != nil {
-		return false, err
+	sosPost, err2 := databasegen.New(tx).FindSOSPostByID(ctx, utils.IntToNullInt32(sosPostID))
+	if err2 != nil {
+		return false, pnd.FromPostgresError(err2)
 	}
+	sosPostInfo := sospost.ToInfoFromFindByIDRow(sosPost)
 
 	if err := tx.Commit(); err != nil {
 		return false, err
 	}
 
-	return int(userData.ID) == sosPost.AuthorID, nil
+	return int(userData.ID) == sosPostInfo.AuthorID, nil
 }
 
 func (service *SOSPostService) SaveSOSDates(
-	ctx context.Context, tx *databasegen.Queries, Dates []sospost.SOSDateView, sosPostID int,
+	ctx context.Context, tx *databasegen.Queries, dates []sospost.SOSDateView, sosPostID int,
 ) *pnd.AppError {
-	for _, date := range Dates {
+	for _, date := range dates {
 		dateStartAt, err := utils.StrToNullTime(date.DateStartAt)
 		if err != nil {
 			return err
@@ -441,7 +435,6 @@ func (service *SOSPostService) SaveSOSDates(
 			return pnd.FromPostgresError(err2)
 		}
 
-		// 날짜와 SOSPost 다대다 저장
 		err3 := tx.LinkSOSPostDate(ctx, databasegen.LinkSOSPostDateParams{
 			SosPostID:  utils.IntToNullInt64(sosPostID),
 			SosDatesID: utils.IntToNullInt64(int(d.ID)),
@@ -454,9 +447,9 @@ func (service *SOSPostService) SaveSOSDates(
 }
 
 func (service *SOSPostService) SaveLinkSOSPostImage(
-	ctx context.Context, tx *databasegen.Queries, ImageIDs []int64, sosPostID int,
+	ctx context.Context, tx *databasegen.Queries, imageIDs []int64, sosPostID int,
 ) *pnd.AppError {
-	for _, mediaID := range ImageIDs {
+	for _, mediaID := range imageIDs {
 		err := tx.LinkResourceMedia(ctx, databasegen.LinkResourceMediaParams{
 			MediaID:      utils.IntToNullInt64(int(mediaID)),
 			ResourceID:   utils.IntToNullInt64(sosPostID),
@@ -470,9 +463,9 @@ func (service *SOSPostService) SaveLinkSOSPostImage(
 }
 
 func (service *SOSPostService) SaveLinkConditions(
-	ctx context.Context, tx *databasegen.Queries, ConditionIDs []int, sosPostID int,
+	ctx context.Context, tx *databasegen.Queries, conditionIDs []int, sosPostID int,
 ) *pnd.AppError {
-	for _, conditionID := range ConditionIDs {
+	for _, conditionID := range conditionIDs {
 		err := tx.LinkSOSPostCondition(ctx, databasegen.LinkSOSPostConditionParams{
 			SosPostID:      utils.IntToNullInt64(sosPostID),
 			SosConditionID: utils.IntToNullInt64(conditionID),
@@ -485,9 +478,9 @@ func (service *SOSPostService) SaveLinkConditions(
 }
 
 func (service *SOSPostService) SaveLinkPets(
-	ctx context.Context, tx *databasegen.Queries, PetIDs []int64, sosPostID int,
+	ctx context.Context, tx *databasegen.Queries, petIDs []int64, sosPostID int,
 ) *pnd.AppError {
-	for _, petID := range PetIDs {
+	for _, petID := range petIDs {
 		err := tx.LinkSOSPostPet(ctx, databasegen.LinkSOSPostPetParams{
 			SosPostID: utils.IntToNullInt64(sosPostID),
 			PetID:     utils.IntToNullInt64(int(petID)),

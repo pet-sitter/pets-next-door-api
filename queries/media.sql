@@ -17,3 +17,4 @@ FROM media
 WHERE (id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
   AND (sqlc.arg('include_deleted')::BOOLEAN = TRUE OR
        (sqlc.arg('include_deleted')::BOOLEAN = FALSE AND deleted_at IS NULL));
+

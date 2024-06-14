@@ -78,12 +78,17 @@ FROM
         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 WHERE
-    v_sos_posts.earliest_date_start_at >= $1
-    AND ($2)
+    v_sos_posts.earliest_date_start_at >= sqlc.narg('earliest_date_start_at')
+  AND (sqlc.narg('pet_type') = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> sqlc.narg('pet_type')))
 ORDER BY
-    $3
-LIMIT $4
-    OFFSET $5;
+    CASE WHEN sqlc.narg('sort_by') = 'newest' THEN v_sos_posts.created_at END DESC,
+    CASE WHEN sqlc.narg('sort_by') = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT sqlc.narg('limit')
+    OFFSET sqlc.narg('offset');
+
 
 -- name: FindSOSPostsByAuthorID :many
 SELECT
@@ -108,13 +113,17 @@ FROM
         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 WHERE
-    v_sos_posts.earliest_date_start_at >= $1
-  AND v_sos_posts.author_id = $2
-  AND ($3)
+    v_sos_posts.earliest_date_start_at >= sqlc.narg('earliest_date_start_at')
+  AND v_sos_posts.author_id = sqlc.narg('author_id')
+  AND (sqlc.narg('pet_type') = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> sqlc.narg('pet_type')))
 ORDER BY
-    $4
-LIMIT $5
-    OFFSET $6;
+    CASE WHEN sqlc.narg('sort_by') = 'newest' THEN v_sos_posts.created_at END DESC,
+    CASE WHEN sqlc.narg('sort_by') = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT sqlc.narg('limit')
+    OFFSET sqlc.narg('offset');
 
 -- name: FindSOSPostByID :one
 SELECT
@@ -139,7 +148,7 @@ FROM
         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 WHERE
-    v_sos_posts.id = $1;
+    v_sos_posts.id = sqlc.narg('id');
 
 -- name: FindDatesBySOSPostID :many
 SELECT
@@ -154,7 +163,7 @@ FROM
     sos_posts_dates
     ON sos_dates.id = sos_posts_dates.sos_dates_id
 WHERE
-    sos_posts_dates.sos_post_id = $1 AND
+    sos_posts_dates.sos_post_id = sqlc.narg('id') AND
     sos_posts_dates.deleted_at IS NULL;
 
 -- name: UpdateSOSPost :one

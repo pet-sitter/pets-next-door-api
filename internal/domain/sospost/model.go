@@ -2,8 +2,14 @@ package sospost
 
 import (
 	"context"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
+	"encoding/json"
+	"log"
 	"time"
+
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 
@@ -55,6 +61,85 @@ type SOSPostInfoList struct {
 	*pnd.PaginatedView[SOSPostInfo]
 }
 
+func ToInfoFromFindRow(row databasegen.FindSOSPostsRow) *SOSPostInfo {
+	return &SOSPostInfo{
+		ID:          int(row.ID),
+		AuthorID:    int(*utils.NullInt64ToInt64Ptr(row.AuthorID)),
+		Title:       utils.NullStrToStr(row.Title),
+		Content:     utils.NullStrToStr(row.Content),
+		Media:       ParseMediaList(row.MediaInfo.RawMessage),
+		Conditions:  ParseConditionsList(row.ConditionsInfo.RawMessage),
+		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
+		Reward:      utils.NullStrToStr(row.Reward),
+		Dates:       ParseSOSDatesList(row.Dates),
+		CareType:    commonvo.CareType(row.CareType.String),
+		CarerGender: commonvo.CarerGender(row.CarerGender.String),
+		RewardType:  commonvo.RewardType(row.RewardType.String),
+		ThumbnailID: &row.ThumbnailID.Int64,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}
+
+func ToInfoListFromFindRow(rows []databasegen.FindSOSPostsRow, page, size int) *SOSPostInfoList {
+	sl := NewSOSPostInfoList(page, size)
+	for _, row := range rows {
+		sl.Items = append(sl.Items, *ToInfoFromFindRow(row))
+	}
+	sl.CalcLastPage()
+	return sl
+}
+
+func ToInfoFromFindAuthorIDRow(row databasegen.FindSOSPostsByAuthorIDRow) *SOSPostInfo {
+	return &SOSPostInfo{
+		ID:          int(row.ID),
+		AuthorID:    int(*utils.NullInt64ToInt64Ptr(row.AuthorID)),
+		Title:       utils.NullStrToStr(row.Title),
+		Content:     utils.NullStrToStr(row.Content),
+		Media:       ParseMediaList(row.MediaInfo.RawMessage),
+		Conditions:  ParseConditionsList(row.ConditionsInfo.RawMessage),
+		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
+		Reward:      utils.NullStrToStr(row.Reward),
+		Dates:       ParseSOSDatesList(row.Dates),
+		CareType:    commonvo.CareType(row.CareType.String),
+		CarerGender: commonvo.CarerGender(row.CarerGender.String),
+		RewardType:  commonvo.RewardType(row.RewardType.String),
+		ThumbnailID: &row.ThumbnailID.Int64,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}
+
+func ToInfoListFromFindAuthorIDRow(rows []databasegen.FindSOSPostsByAuthorIDRow, page, size int) *SOSPostInfoList {
+	sl := NewSOSPostInfoList(page, size)
+	for _, row := range rows {
+		sl.Items = append(sl.Items, *ToInfoFromFindAuthorIDRow(row))
+	}
+
+	sl.CalcLastPage()
+	return sl
+}
+
+func ToInfoFromFindByIDRow(row databasegen.FindSOSPostByIDRow) *SOSPostInfo {
+	return &SOSPostInfo{
+		ID:          int(row.ID),
+		AuthorID:    int(*utils.NullInt64ToInt64Ptr(row.AuthorID)),
+		Title:       utils.NullStrToStr(row.Title),
+		Content:     utils.NullStrToStr(row.Content),
+		Media:       ParseMediaList(row.MediaInfo.RawMessage),
+		Conditions:  ParseConditionsList(row.ConditionsInfo.RawMessage),
+		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
+		Reward:      utils.NullStrToStr(row.Reward),
+		Dates:       ParseSOSDatesList(row.Dates),
+		CareType:    commonvo.CareType(row.CareType.String),
+		CarerGender: commonvo.CarerGender(row.CarerGender.String),
+		RewardType:  commonvo.RewardType(row.RewardType.String),
+		ThumbnailID: &row.ThumbnailID.Int64,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}
+
 func NewSOSPostList(page, size int) *SOSPostList {
 	return &SOSPostList{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]SOSPost, 0),
@@ -65,6 +150,67 @@ func NewSOSPostInfoList(page, size int) *SOSPostInfoList {
 	return &SOSPostInfoList{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]SOSPostInfo, 0),
 	)}
+}
+
+const (
+	JSONNullString = "null"
+	JSONEmptyArray = "[]"
+)
+
+func ParseMediaList(rows json.RawMessage) media.ViewListForSOSPost {
+	var mediaList media.ViewListForSOSPost
+	if len(rows) == 0 || string(rows) == JSONNullString || string(rows) == JSONEmptyArray {
+		return mediaList
+	}
+
+	if err := json.Unmarshal(rows, &mediaList); err != nil {
+		log.Println("Error unmarshalling media:", err)
+		return mediaList
+	}
+
+	return mediaList
+}
+
+func ParseConditionsList(rows json.RawMessage) soscondition.ViewListForSOSPost {
+	var conditionsList soscondition.ViewListForSOSPost
+	if len(rows) == 0 || string(rows) == JSONNullString || string(rows) == JSONEmptyArray {
+		return conditionsList
+	}
+
+	if err := json.Unmarshal(rows, &conditionsList); err != nil {
+		log.Println("Error unmarshalling conditions:", err)
+		return conditionsList
+	}
+	return conditionsList
+}
+
+func ParsePetsList(rows json.RawMessage) pet.ViewListForSOSPost {
+	var petList pet.ViewListForSOSPost
+
+	if len(rows) == 0 || string(rows) == JSONNullString || string(rows) == JSONEmptyArray {
+		return petList
+	}
+
+	if err := json.Unmarshal(rows, &petList); err != nil {
+		log.Println("Error unmarshalling pets:", err)
+		return petList
+	}
+
+	return petList
+}
+
+func ParseSOSDatesList(rows json.RawMessage) SOSDatesList {
+	var sosDatesList SOSDatesList
+
+	if len(rows) == 0 || string(rows) == JSONNullString || string(rows) == JSONEmptyArray {
+		return sosDatesList
+	}
+	if err := json.Unmarshal(rows, &sosDatesList); err != nil {
+		log.Println("Error unmarshalling sosDates:", err)
+		return sosDatesList
+	}
+
+	return sosDatesList
 }
 
 type SOSDates struct {
