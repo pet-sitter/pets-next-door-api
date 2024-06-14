@@ -9,8 +9,6 @@ import (
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
-
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -19,19 +17,59 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
+type (
+	CareType    string
+	CarerGender string
+	RewardType  string
+)
+
+const (
+	CareTypeFoster   CareType = "foster"
+	CareTypeVisiting CareType = "visiting"
+)
+
+const (
+	CarerGenderMale   CarerGender = "male"
+	CarerGenderFemale CarerGender = "female"
+	CarerGenderAll    CarerGender = "all"
+)
+
+const (
+	RewardTypeFee        RewardType = "fee"
+	RewardTypeGifticon   RewardType = "gifticon"
+	RewardTypeNegotiable RewardType = "negotiable"
+)
+
+const (
+	JSONNullString = "null"
+	JSONEmptyArray = "[]"
+)
+
+func (c *CareType) String() string {
+	return string(*c)
+}
+
+func (c *CarerGender) String() string {
+	return string(*c)
+}
+
+func (r *RewardType) String() string {
+	return string(*r)
+}
+
 type SOSPost struct {
-	ID          int                  `field:"id"`
-	AuthorID    int                  `field:"author_id"`
-	Title       string               `field:"title"`
-	Content     string               `field:"content"`
-	Reward      string               `field:"reward"`
-	CareType    commonvo.CareType    `field:"care_type"`
-	CarerGender commonvo.CarerGender `field:"carer_gender"`
-	RewardType  commonvo.RewardType  `field:"reward_type"`
-	ThumbnailID *int64               `field:"thumbnail_id"`
-	CreatedAt   time.Time            `field:"created_at"`
-	UpdatedAt   time.Time            `field:"updated_at"`
-	DeletedAt   time.Time            `field:"deleted_at"`
+	ID          int         `field:"id"`
+	AuthorID    int         `field:"author_id"`
+	Title       string      `field:"title"`
+	Content     string      `field:"content"`
+	Reward      string      `field:"reward"`
+	CareType    CareType    `field:"care_type"`
+	CarerGender CarerGender `field:"carer_gender"`
+	RewardType  RewardType  `field:"reward_type"`
+	ThumbnailID *int64      `field:"thumbnail_id"`
+	CreatedAt   time.Time   `field:"created_at"`
+	UpdatedAt   time.Time   `field:"updated_at"`
+	DeletedAt   time.Time   `field:"deleted_at"`
 }
 
 type SOSPostList struct {
@@ -48,9 +86,9 @@ type SOSPostInfo struct {
 	Pets        pet.ViewListForSOSPost          `field:"pets" json:"pets"`
 	Reward      string                          `field:"reward" json:"reward"`
 	Dates       SOSDatesList                    `field:"dates" json:"dates"`
-	CareType    commonvo.CareType               `field:"careType" json:"careType"`
-	CarerGender commonvo.CarerGender            `field:"carerGender" json:"carerGender"`
-	RewardType  commonvo.RewardType             `field:"rewardType" json:"rewardType"`
+	CareType    CareType                        `field:"careType" json:"careType"`
+	CarerGender CarerGender                     `field:"carerGender" json:"carerGender"`
+	RewardType  RewardType                      `field:"rewardType" json:"rewardType"`
 	ThumbnailID *int64                          `field:"thumbnailId" json:"thumbnailId"`
 	CreatedAt   time.Time                       `field:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time                       `field:"updatedAt" json:"updatedAt"`
@@ -72,9 +110,9 @@ func ToInfoFromFindRow(row databasegen.FindSOSPostsRow) *SOSPostInfo {
 		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
 		Reward:      utils.NullStrToStr(row.Reward),
 		Dates:       ParseSOSDatesList(row.Dates),
-		CareType:    commonvo.CareType(row.CareType.String),
-		CarerGender: commonvo.CarerGender(row.CarerGender.String),
-		RewardType:  commonvo.RewardType(row.RewardType.String),
+		CareType:    CareType(row.CareType.String),
+		CarerGender: CarerGender(row.CarerGender.String),
+		RewardType:  RewardType(row.RewardType.String),
 		ThumbnailID: &row.ThumbnailID.Int64,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
@@ -101,9 +139,9 @@ func ToInfoFromFindAuthorIDRow(row databasegen.FindSOSPostsByAuthorIDRow) *SOSPo
 		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
 		Reward:      utils.NullStrToStr(row.Reward),
 		Dates:       ParseSOSDatesList(row.Dates),
-		CareType:    commonvo.CareType(row.CareType.String),
-		CarerGender: commonvo.CarerGender(row.CarerGender.String),
-		RewardType:  commonvo.RewardType(row.RewardType.String),
+		CareType:    CareType(row.CareType.String),
+		CarerGender: CarerGender(row.CarerGender.String),
+		RewardType:  RewardType(row.RewardType.String),
 		ThumbnailID: &row.ThumbnailID.Int64,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
@@ -131,9 +169,9 @@ func ToInfoFromFindByIDRow(row databasegen.FindSOSPostByIDRow) *SOSPostInfo {
 		Pets:        ParsePetsList(row.PetsInfo.RawMessage),
 		Reward:      utils.NullStrToStr(row.Reward),
 		Dates:       ParseSOSDatesList(row.Dates),
-		CareType:    commonvo.CareType(row.CareType.String),
-		CarerGender: commonvo.CarerGender(row.CarerGender.String),
-		RewardType:  commonvo.RewardType(row.RewardType.String),
+		CareType:    CareType(row.CareType.String),
+		CarerGender: CarerGender(row.CarerGender.String),
+		RewardType:  RewardType(row.RewardType.String),
 		ThumbnailID: &row.ThumbnailID.Int64,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
@@ -151,11 +189,6 @@ func NewSOSPostInfoList(page, size int) *SOSPostInfoList {
 		page, size, false, make([]SOSPostInfo, 0),
 	)}
 }
-
-const (
-	JSONNullString = "null"
-	JSONEmptyArray = "[]"
-)
 
 func ParseMediaList(rows json.RawMessage) media.ViewListForSOSPost {
 	var mediaList media.ViewListForSOSPost

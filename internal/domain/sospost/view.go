@@ -3,7 +3,6 @@ package sospost
 import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
@@ -21,9 +20,9 @@ type ViewParams struct {
 	Pets        []pet.DetailView
 	Reward      string
 	SOSDates    []SOSDateView
-	CareType    commonvo.CareType
-	CarerGender commonvo.CarerGender
-	RewardType  commonvo.RewardType
+	CareType    CareType
+	CarerGender CarerGender
+	RewardType  RewardType
 	ThumbnailID *int64
 	CreatedAt   string
 	UpdatedAt   string
@@ -57,9 +56,9 @@ type DetailView struct {
 	Pets        []pet.DetailView      `json:"pets"`
 	Reward      string                `json:"reward"`
 	Dates       []SOSDateView         `json:"dates"`
-	CareType    commonvo.CareType     `json:"careType"`
-	CarerGender commonvo.CarerGender  `json:"carerGender"`
-	RewardType  commonvo.RewardType   `json:"rewardType"`
+	CareType    CareType              `json:"careType"`
+	CarerGender CarerGender           `json:"carerGender"`
+	RewardType  RewardType            `json:"rewardType"`
 	ThumbnailID *int64                `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
@@ -96,9 +95,9 @@ func CreateViewParams(input ViewParamsInput) ViewParams {
 		Pets:        input.Pets,
 		Reward:      input.Reward,
 		SOSDates:    input.SOSDates,
-		CareType:    commonvo.CareType(input.CareType),
-		CarerGender: commonvo.CarerGender(input.CarerGender),
-		RewardType:  commonvo.RewardType(input.RewardType),
+		CareType:    CareType(input.CareType),
+		CarerGender: CarerGender(input.CarerGender),
+		RewardType:  RewardType(input.RewardType),
 		ThumbnailID: input.ThumbnailID,
 		CreatedAt:   input.CreatedAt,
 		UpdatedAt:   input.UpdatedAt,
@@ -143,9 +142,9 @@ type FindSOSPostView struct {
 	Pets        []pet.DetailView         `json:"pets"`
 	Reward      string                   `json:"reward"`
 	Dates       []SOSDateView            `json:"dates"`
-	CareType    commonvo.CareType        `json:"careType"`
-	CarerGender commonvo.CarerGender     `json:"carerGender"`
-	RewardType  commonvo.RewardType      `json:"rewardType"`
+	CareType    CareType                 `json:"careType"`
+	CarerGender CarerGender              `json:"carerGender"`
+	RewardType  RewardType               `json:"rewardType"`
 	ThumbnailID *int64                   `json:"thumbnailId"`
 	CreatedAt   string                   `json:"createdAt"`
 	UpdatedAt   string                   `json:"updatedAt"`
@@ -240,9 +239,9 @@ func UpdateDetailView(
 		Pets:        pets,
 		Reward:      utils.NullStrToStr(sosPost.Reward),
 		SOSDates:    sosDates,
-		CareType:    commonvo.CareType(sosPost.CareType.String),
-		CarerGender: commonvo.CarerGender(sosPost.CarerGender.String),
-		RewardType:  commonvo.RewardType(sosPost.RewardType.String),
+		CareType:    CareType(sosPost.CareType.String),
+		CarerGender: CarerGender(sosPost.CarerGender.String),
+		RewardType:  RewardType(sosPost.RewardType.String),
 		ThumbnailID: &sosPost.ThumbnailID.Int64,
 		CreatedAt:   utils.FormatDateTimeFromTime(sosPost.CreatedAt),
 		UpdatedAt:   utils.FormatDateTimeFromTime(sosPost.UpdatedAt),
