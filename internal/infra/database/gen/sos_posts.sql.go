@@ -81,8 +81,8 @@ type FindDatesBySOSPostIDRow struct {
 	UpdatedAt   sql.NullTime
 }
 
-func (q *Queries) FindDatesBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) ([]FindDatesBySOSPostIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, findDatesBySOSPostID, sosPostID)
+func (q *Queries) FindDatesBySOSPostID(ctx context.Context, id sql.NullInt64) ([]FindDatesBySOSPostIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findDatesBySOSPostID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ type FindSOSPostByIDRow struct {
 	ConditionsInfo pqtype.NullRawMessage
 }
 
-func (q *Queries) FindSOSPostByID(ctx context.Context, id int32) (FindSOSPostByIDRow, error) {
+func (q *Queries) FindSOSPostByID(ctx context.Context, id sql.NullInt32) (FindSOSPostByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, findSOSPostByID, id)
 	var i FindSOSPostByIDRow
 	err := row.Scan(
@@ -201,19 +201,23 @@ FROM
         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
 WHERE
     v_sos_posts.earliest_date_start_at >= $1
-    AND ($2)
+  AND ($2 = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> $2))
 ORDER BY
-    $3
-LIMIT $4
-    OFFSET $5
+    CASE WHEN $3 = 'newest' THEN v_sos_posts.created_at END DESC,
+    CASE WHEN $3 = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT $5
+    OFFSET $4
 `
 
 type FindSOSPostsParams struct {
 	EarliestDateStartAt interface{}
-	Column2             interface{}
-	Column3             interface{}
-	Limit               int32
-	Offset              int32
+	PetType             interface{}
+	SortBy              interface{}
+	Offset              sql.NullInt32
+	Limit               sql.NullInt32
 }
 
 type FindSOSPostsRow struct {
@@ -237,10 +241,10 @@ type FindSOSPostsRow struct {
 func (q *Queries) FindSOSPosts(ctx context.Context, arg FindSOSPostsParams) ([]FindSOSPostsRow, error) {
 	rows, err := q.db.QueryContext(ctx, findSOSPosts,
 		arg.EarliestDateStartAt,
-		arg.Column2,
-		arg.Column3,
-		arg.Limit,
+		arg.PetType,
+		arg.SortBy,
 		arg.Offset,
+		arg.Limit,
 	)
 	if err != nil {
 		return nil, err
@@ -304,20 +308,24 @@ FROM
 WHERE
     v_sos_posts.earliest_date_start_at >= $1
   AND v_sos_posts.author_id = $2
-  AND ($3)
+  AND ($3 = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> $3))
 ORDER BY
-    $4
-LIMIT $5
-    OFFSET $6
+    CASE WHEN $4 = 'newest' THEN v_sos_posts.created_at END DESC,
+    CASE WHEN $4 = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT $6
+    OFFSET $5
 `
 
 type FindSOSPostsByAuthorIDParams struct {
 	EarliestDateStartAt interface{}
 	AuthorID            sql.NullInt64
-	Column3             interface{}
-	Column4             interface{}
-	Limit               int32
-	Offset              int32
+	PetType             interface{}
+	SortBy              interface{}
+	Offset              sql.NullInt32
+	Limit               sql.NullInt32
 }
 
 type FindSOSPostsByAuthorIDRow struct {
@@ -342,10 +350,10 @@ func (q *Queries) FindSOSPostsByAuthorID(ctx context.Context, arg FindSOSPostsBy
 	rows, err := q.db.QueryContext(ctx, findSOSPostsByAuthorID,
 		arg.EarliestDateStartAt,
 		arg.AuthorID,
-		arg.Column3,
-		arg.Column4,
-		arg.Limit,
+		arg.PetType,
+		arg.SortBy,
 		arg.Offset,
+		arg.Limit,
 	)
 	if err != nil {
 		return nil, err

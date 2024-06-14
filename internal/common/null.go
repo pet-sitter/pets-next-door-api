@@ -2,8 +2,9 @@ package utils
 
 import (
 	"database/sql"
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"time"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
 func DerefOrEmpty[T any](val *T) T {

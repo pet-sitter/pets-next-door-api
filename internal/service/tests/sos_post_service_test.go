@@ -107,7 +107,7 @@ func TestFindSOSPosts(t *testing.T) {
 		conditionIDs := []int{1, 2}
 
 		sosPostRequests := make([]sospost.WriteSOSPostRequest, 0)
-		var sosPosts []sospost.WriteSOSPostView
+		var sosPosts []sospost.DetailView
 		for i := 1; i < 4; i++ {
 			request := tests.NewDummyWriteSOSPostRequest(imageIDs, petIDs, i)
 			sosPost, _ := sosPostService.WriteSOSPost(
