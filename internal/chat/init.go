@@ -7,6 +7,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
+// 서버가 시작되거나 재시작될 때, 채널 상태 롤백
 func InitializeWebSocketServer(ctx context.Context, wsServer *WsServer, chatService *service.ChatService) {
 	rows, err := chatService.FindUserChatRoom(ctx)
 	if err != nil {
