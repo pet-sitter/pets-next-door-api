@@ -18,23 +18,21 @@ type ChatHandler struct {
 	chatService service.ChatService
 }
 
+var upgrader = websocket.Upgrader{
+	// TODO: 버퍼 사이즈의 근거
+	ReadBufferSize:  4096, // 웹소켓 읽기 버퍼 크기
+	WriteBufferSize: 4096, // 웹소켓 쓰기 버퍼 크기
+}
+
 func NewChatController(
 	wsServer *chat.WsServer, authService service.AuthService, chatService service.ChatService,
 ) *ChatHandler {
 	return &ChatHandler{
-		wsServer: wsServer,
-		upgrader: websocket.Upgrader{
-			ReadBufferSize:  4096,
-			WriteBufferSize: 4096,
-		},
+		wsServer:    wsServer,
+		upgrader:    upgrader,
 		authService: authService,
 		chatService: chatService,
 	}
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
 }
 
 func (h *ChatHandler) ServerWebsocket(
@@ -53,18 +51,23 @@ func (h *ChatHandler) ServerWebsocket(
 
 	client := h.initializeOrUpdateClient(conn, foundUser)
 
-	go client.WritePump()
-	go client.ReadPump(&h.chatService)
+	// 클라이언트의 메시지를 읽고 쓰는 데 사용되는 고루틴을 시작
+	go client.HandleWrite()
+	go client.HandleRead(&h.chatService)
 
 	return nil
 }
 
+// 클라이언트를 초기화하거나 기존 클라이언트를 업데이트하는 함수
 func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *user.InternalView) *chat.Client {
 	client := h.wsServer.FindClientByUID(userData.FirebaseUID)
 	if client == nil {
+		// 클라이언트를 찾지 못한 경우 새로운 클라이언트를 생성
 		client = chat.NewClient(conn, h.wsServer, userData.Nickname, userData.FirebaseUID)
+		// 새 클라이언트를 웹소켓 서버에 등록
 		h.wsServer.RegisterClient(client)
 	} else {
+		// 기존 클라이언트가 있는 경우 연결을 업데이트
 		client.UpdateConn(conn)
 	}
 	return client
