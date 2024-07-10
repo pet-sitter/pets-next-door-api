@@ -12,7 +12,7 @@ import (
 )
 
 type ChatHandler struct {
-	wsServer    *chat.WsServer
+	wsServer    *chat.WebSocketServer
 	upgrader    websocket.Upgrader
 	authService service.AuthService
 	chatService service.ChatService
@@ -25,7 +25,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func NewChatController(
-	wsServer *chat.WsServer, authService service.AuthService, chatService service.ChatService,
+	wsServer *chat.WebSocketServer, authService service.AuthService, chatService service.ChatService,
 ) *ChatHandler {
 	return &ChatHandler{
 		wsServer:    wsServer,
