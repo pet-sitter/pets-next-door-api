@@ -11,10 +11,10 @@ import (
 )
 
 type Room struct {
-	ID       int64              `json:"id"`       // 방 ID
-	Name     string             `json:"name"`     // 방 이름
-	RoomType chat.RoomType      `json:"roomType"` // 방 유형
-	clients  map[string]*Client // 방에 있는 유저 목록
+	ID       int64         `json:"id"`
+	Name     string        `json:"name"`
+	RoomType chat.RoomType `json:"roomType"`
+	clients  map[string]*Client
 
 	register   chan *Client  // 클라이언트 등록 채널
 	unregister chan *Client  // 클라이언트 해제 채널
@@ -103,7 +103,7 @@ func (room *Room) broadcastToClientsInRoom(message *Message, chatService *servic
 func (room *Room) notifyClientJoined(client *Client, chatService *service.ChatService) *pnd.AppError {
 	message := &Message{
 		Action:      SendMessageAction,
-		Target:      room,
+		Room:        room,
 		Message:     fmt.Sprintf(welcomeMessage, client.GetName()),
 		MessageType: chat.MessageTypeNormal,
 		Sender:      client,

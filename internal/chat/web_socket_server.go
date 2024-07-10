@@ -38,14 +38,12 @@ func (server *WebSocketServer) Run() {
 	}
 }
 
-// 새로운 클라이언트 등록
 func (server *WebSocketServer) RegisterClient(client *Client) {
 	server.notifyClientJoined(client)
 	server.listOnlineClients(client)
 	server.clients[client.FbUID] = client
 }
 
-// 클라이언트 해제
 func (server *WebSocketServer) unregisterClient(client *Client) {
 	if _, ok := server.clients[client.FbUID]; ok {
 		delete(server.clients, client.FbUID)
@@ -53,12 +51,10 @@ func (server *WebSocketServer) unregisterClient(client *Client) {
 	}
 }
 
-// UID로 클라이언트 찾음
 func (server *WebSocketServer) FindClientByUID(uid string) *Client {
 	return server.clients[uid]
 }
 
-// 클라이언트가 접속했음을 모든 클라이언트에게 알림
 func (server *WebSocketServer) notifyClientJoined(client *Client) *pnd.AppError {
 	message := &Message{
 		Action: UserJoinedAction,
@@ -72,7 +68,6 @@ func (server *WebSocketServer) notifyClientJoined(client *Client) *pnd.AppError 
 	return nil
 }
 
-// 클라이언트가 떠났음을 모든 클라이언트에게 알림
 func (server *WebSocketServer) notifyClientLeft(client *Client) *pnd.AppError {
 	message := &Message{
 		Action: UserLeftAction,
@@ -86,7 +81,6 @@ func (server *WebSocketServer) notifyClientLeft(client *Client) *pnd.AppError {
 	return nil
 }
 
-// 현재 온라인 상태인 클라이언트들을 새 클라이언트에게 전송
 func (server *WebSocketServer) listOnlineClients(newClient *Client) *pnd.AppError {
 	for _, client := range server.clients {
 		message := &Message{
