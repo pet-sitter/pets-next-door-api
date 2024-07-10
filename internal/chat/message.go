@@ -2,8 +2,9 @@ package chat
 
 import (
 	"encoding/json"
-	"log"
+	"net/http"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 )
 
@@ -24,11 +25,10 @@ type Message struct {
 	Sender      *Client          `json:"sender"`
 }
 
-func (message *Message) encode() []byte {
+func (message *Message) encode() ([]byte, *pnd.AppError) {
 	bytes, err := json.Marshal(message)
 	if err != nil {
-		log.Println(err)
+		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeMessageEncodingFailed, "메시지 인코딩에 실패했습니다")
 	}
-
-	return bytes
+	return bytes, nil
 }

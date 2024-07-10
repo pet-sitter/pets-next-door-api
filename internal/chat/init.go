@@ -2,17 +2,19 @@ package chat
 
 import (
 	"context"
-	"log"
+	"net/http"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 // 서버가 시작되거나 재시작될 때, 채널 상태 롤백
-func InitializeWebSocketServer(ctx context.Context, wsServer *WsServer, chatService *service.ChatService) {
+func InitializeWebSocketServer(
+	ctx context.Context, wsServer *WebSocketServer, chatService *service.ChatService,
+) *pnd.AppError {
 	rows, err := chatService.FindUserChatRoom(ctx)
 	if err != nil {
-		log.Println("Error finding user chat rooms:", err)
-		return
+		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방 정보를 불러오는 데 실패했습니다.")
 	}
 
 	// 클라이언트를 중복 생성하지 않도록 관리하는 맵
@@ -31,7 +33,7 @@ func InitializeWebSocketServer(ctx context.Context, wsServer *WsServer, chatServ
 		room := wsServer.findRoomByID(row.RoomInfo.ID)
 		if room == nil {
 			room = room.InitRoom(row.RoomInfo.ID, row.RoomInfo.Name, row.RoomInfo.RoomType)
-			wsServer.rooms[room] = true
+			wsServer.rooms[room.ID] = room
 			go room.RunRoom(chatService)
 		}
 
@@ -41,4 +43,6 @@ func InitializeWebSocketServer(ctx context.Context, wsServer *WsServer, chatServ
 			room.register <- client
 		}
 	}
+
+	return nil
 }
