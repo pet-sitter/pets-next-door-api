@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -45,8 +44,9 @@ func (h *ChatHandler) ServerWebsocket(
 
 	conn, err2 := upgrader.Upgrade(w, r, nil)
 	if err2 != nil {
-		log.Println(err2)
-		return err2
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": err2.Error(),
+		})
 	}
 
 	client := h.initializeOrUpdateClient(conn, foundUser)

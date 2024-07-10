@@ -21,14 +21,14 @@ type Message struct {
 	Action      string           `json:"action"`
 	Message     string           `json:"message"`
 	MessageType chat.MessageType `json:"messageType"`
-	Target      *Room            `json:"target"`
+	Room        *Room            `json:"room"`
 	Sender      *Client          `json:"sender"`
 }
 
 func (message *Message) encode() ([]byte, *pnd.AppError) {
 	bytes, err := json.Marshal(message)
 	if err != nil {
-		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeMessageEncodingFailed, "메시지 인코딩에 실패했습니다")
+		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeMessageEncodingFailed, "메시지 인코딩에 실패했습니다.")
 	}
 	return bytes, nil
 }

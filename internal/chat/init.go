@@ -39,7 +39,7 @@ func InitializeWebSocketServer(
 
 		// 클라이언트를 방에 등록
 		if !client.isInRoom(room) {
-			client.rooms[room] = true
+			client.rooms[room.ID] = room
 			room.register <- client
 		}
 	}
