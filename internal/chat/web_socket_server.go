@@ -49,9 +49,9 @@ func (server *WebSocketServer) FindClientByUID(uid string) *Client {
 }
 
 func (server *WebSocketServer) CreateRoom(
-	name string, roomType chat.RoomType, roomService *service.ChatService,
+	name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
 ) (*Room, *pnd.AppError) {
-	return server.StateManager.CreateRoom(name, roomType, roomService)
+	return server.StateManager.CreateRoom(name, roomType, roomService, stateManager)
 }
 
 func (server *WebSocketServer) BroadcastToClients(message []byte) {

@@ -23,26 +23,23 @@ const (
 	maxMessageSize = 10000
 )
 
-// 각 메시지의 끝을 나타내기 위해 사용
 var newline = []byte{'\n'}
 
 type Client struct {
-	Conn            *websocket.Conn  `json:"-"`
-	WebSocketServer *WebSocketServer `json:"-"`
-	MessageSender   chan []byte      `json:"-"`
-	FbUID           string           `json:"id"`
-	Name            string           `json:"name"`
-	Rooms           map[int64]*Room  `json:"-"`
+	Conn          *websocket.Conn `json:"-"`
+	StateManager  StateManager    `json:"-"`
+	MessageSender chan []byte     `json:"-"`
+	FbUID         string          `json:"id"`
+	Name          string          `json:"name"`
 }
 
-func NewClient(conn *websocket.Conn, wsServer *WebSocketServer, name, fbUID string) *Client {
+func NewClient(conn *websocket.Conn, stateManager StateManager, name, fbUID string) *Client {
 	return &Client{
-		FbUID:           fbUID,
-		Name:            name,
-		Conn:            conn,
-		WebSocketServer: wsServer,
-		MessageSender:   make(chan []byte, 256),
-		Rooms:           make(map[int64]*Room),
+		FbUID:         fbUID,
+		Name:          name,
+		Conn:          conn,
+		StateManager:  stateManager,
+		MessageSender: make(chan []byte, 256),
 	}
 }
 
@@ -151,10 +148,9 @@ func (client *Client) sendPing() *pnd.AppError {
 }
 
 func (client *Client) disconnect() *pnd.AppError {
-	client.WebSocketServer.UnregisterChan <- client
-	for roomID := range client.Rooms {
-		room := client.Rooms[roomID]
-		room.UnregisterChan <- client
+	client.StateManager.UnregisterClient(client)
+	for roomID := range client.StateManager.GetClientRooms(client.FbUID) {
+		client.StateManager.LeaveRoom(roomID, client.FbUID)
 	}
 	close(client.MessageSender)
 	if err := client.Conn.Close(); err != nil {
@@ -172,7 +168,7 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 	switch message.Action {
 	case SendMessageAction:
 		roomID := message.Room.GetID()
-		if room := client.WebSocketServer.StateManager.FindRoomByID(roomID); room != nil {
+		if room := client.StateManager.FindRoomByID(roomID); room != nil {
 			room.BroadcastChan <- &message
 		}
 	case JoinRoomAction:
@@ -184,9 +180,6 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 }
 
 func (client *Client) handleJoinRoomMessage(message Message, chatService *service.ChatService) *pnd.AppError {
-	if client.WebSocketServer == nil {
-		return pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "WebSocket 서버가 nil입니다.")
-	}
 	if message.Room == nil {
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "채팅방 정보가 nil입니다.")
 	}
@@ -200,12 +193,12 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "보낸 사람이 nil입니다.")
 	}
 
-	if _, ok := client.Rooms[message.Room.GetID()]; !ok {
+	if !client.StateManager.IsClientInRoom(client.FbUID, message.Room.GetID()) {
 		if room.RegisterChan == nil {
 			return pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "방 등록 채널이 nil입니다.")
 		}
 
-		client.Rooms[message.Room.GetID()] = room
+		client.StateManager.JoinRoom(room.ID, client.FbUID)
 		room.RegisterChan <- client
 		err := client.notifyRoomJoined(room, message.Sender)
 		if err != nil {
@@ -217,28 +210,27 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 }
 
 func (client *Client) CreateRoomIfNotExists(message Message, chatService *service.ChatService) (*Room, *pnd.AppError) {
-	room := client.WebSocketServer.StateManager.FindRoomByID(message.Room.GetID())
+	if client.StateManager == nil {
+		return nil, pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "StateManager가 nil입니다.")
+	}
+	room := client.StateManager.FindRoomByID(message.Room.GetID())
 	if room == nil {
 		log.Info().Msgf("ID %d의 방을 찾을 수 없어 새 방을 생성합니다.", message.Room.GetID())
 		var err *pnd.AppError
-		room, err = client.WebSocketServer.StateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService)
+		room, err = client.StateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService, client.StateManager)
 		if err != nil {
 			log.Error().Err(err.Err).Msg("방 생성에 실패했습니다.")
 			return nil, err
 		}
+		return room, nil
 	}
 	return room, nil
 }
 
 func (client *Client) handleLeaveRoomMessage(roomID int64) {
-	room := client.WebSocketServer.StateManager.FindRoomByID(roomID)
-	delete(client.Rooms, room.GetID())
+	client.StateManager.LeaveRoom(roomID, client.FbUID)
+	room := client.StateManager.FindRoomByID(roomID)
 	room.UnregisterChan <- client
-}
-
-func (client *Client) isInRoom(room *Room) bool {
-	_, ok := client.Rooms[room.GetID()]
-	return ok
 }
 
 func (client *Client) notifyRoomJoined(room *Room, sender *Client) *pnd.AppError {
