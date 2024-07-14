@@ -11,7 +11,14 @@ type StateManager interface {
 	UnregisterClient(client *Client) *pnd.AppError
 	FindClientByUID(uid string) (*Client, *pnd.AppError)
 	FindRoomByID(roomID int64) *Room
-	CreateRoom(name string, roomType chat.RoomType, roomService *service.ChatService) (*Room, *pnd.AppError)
+	CreateRoom(
+		name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
+	) (*Room, *pnd.AppError)
 	BroadcastToClients(message []byte) *pnd.AppError
+	JoinRoom(roomID int64, clientID string) *pnd.AppError
+	LeaveRoom(roomID int64, clientID string) *pnd.AppError
+	IsClientInRoom(clientID string, roomID int64) bool
+	GetClientRooms(clientID string) map[int64]struct{}
+	GetRoomClients(roomID int64) map[string]*Client
 	SetRoom(room *Room) *pnd.AppError
 }
