@@ -7,117 +7,58 @@ import (
 )
 
 type WebSocketServer struct {
-	clients    map[string]*Client
-	register   chan *Client
-	unregister chan *Client
-	broadcast  chan []byte
-	rooms      map[int64]*Room
+	StateManager   StateManager
+	RegisterChan   chan *Client
+	UnregisterChan chan *Client
+	BroadcastChan  chan []byte
 }
 
-func NewWebsocketServer() *WebSocketServer {
+func NewWebSocketServer(stateManager StateManager) *WebSocketServer {
 	return &WebSocketServer{
-		clients:    make(map[string]*Client),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan []byte),
-		rooms:      make(map[int64]*Room),
+		StateManager:   stateManager,
+		RegisterChan:   make(chan *Client),
+		UnregisterChan: make(chan *Client),
+		BroadcastChan:  make(chan []byte),
 	}
 }
 
 func (server *WebSocketServer) Run() {
 	for {
-		// 해당하는 채널에 메시지가 들어올 때 작동
 		select {
-		case client := <-server.register:
-			server.RegisterClient(client)
-		case client := <-server.unregister:
-			server.unregisterClient(client)
-		case message := <-server.broadcast:
-			server.broadcastToClients(message)
+		case client := <-server.RegisterChan:
+			server.StateManager.RegisterClient(client)
+		case client := <-server.UnregisterChan:
+			server.StateManager.UnregisterClient(client)
+		case message := <-server.BroadcastChan:
+			server.StateManager.BroadcastToClients(message)
 		}
 	}
 }
 
 func (server *WebSocketServer) RegisterClient(client *Client) {
-	server.notifyClientJoined(client)
-	server.listOnlineClients(client)
-	server.clients[client.FbUID] = client
+	server.StateManager.RegisterClient(client)
 }
 
-func (server *WebSocketServer) unregisterClient(client *Client) {
-	if _, ok := server.clients[client.FbUID]; ok {
-		delete(server.clients, client.FbUID)
-		server.notifyClientLeft(client)
-	}
+func (server *WebSocketServer) UnregisterClient(client *Client) {
+	server.StateManager.UnregisterClient(client)
 }
 
 func (server *WebSocketServer) FindClientByUID(uid string) *Client {
-	return server.clients[uid]
+	client, _ := server.StateManager.FindClientByUID(uid)
+	return client
 }
 
-func (server *WebSocketServer) notifyClientJoined(client *Client) *pnd.AppError {
-	message := &Message{
-		Action: UserJoinedAction,
-		Sender: client,
-	}
-	messageText, err := message.encode()
-	if err != nil {
-		return err
-	}
-	server.broadcastToClients(messageText)
-	return nil
-}
-
-func (server *WebSocketServer) notifyClientLeft(client *Client) *pnd.AppError {
-	message := &Message{
-		Action: UserLeftAction,
-		Sender: client,
-	}
-	messageText, err := message.encode()
-	if err != nil {
-		return err
-	}
-	server.broadcastToClients(messageText)
-	return nil
-}
-
-func (server *WebSocketServer) listOnlineClients(newClient *Client) *pnd.AppError {
-	for _, client := range server.clients {
-		message := &Message{
-			Action: UserJoinedAction,
-			Sender: client,
-		}
-		encodedMessage, err := message.encode()
-		if err != nil {
-			return err
-		}
-		newClient.messageSender <- encodedMessage
-	}
-	return nil
-}
-
-func (server *WebSocketServer) broadcastToClients(message []byte) {
-	for _, client := range server.clients {
-		client.messageSender <- message
-	}
-}
-
-func (server *WebSocketServer) findRoomByID(roomID int64) *Room {
-	if room, ok := server.rooms[roomID]; ok {
-		return room
-	}
-	return nil
-}
-
-func (server *WebSocketServer) createRoom(
+func (server *WebSocketServer) CreateRoom(
 	name string, roomType chat.RoomType, roomService *service.ChatService,
 ) (*Room, *pnd.AppError) {
-	room, err := NewRoom(name, roomType, roomService)
-	if err != nil {
-		return nil, err
-	}
-	go room.RunRoom(roomService)
-	server.rooms[room.GetID()] = room
+	return server.StateManager.CreateRoom(name, roomType, roomService)
+}
 
-	return room, nil
+func (server *WebSocketServer) BroadcastToClients(message []byte) {
+	server.StateManager.BroadcastToClients(message)
+}
+
+func (server *WebSocketServer) FindRoomByID(roomID int64) *Room {
+	room := server.StateManager.FindRoomByID(roomID)
+	return room
 }
