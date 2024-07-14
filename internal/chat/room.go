@@ -11,14 +11,13 @@ import (
 )
 
 type Room struct {
-	ID       int64         `json:"id"`
-	Name     string        `json:"name"`
-	RoomType chat.RoomType `json:"roomType"`
-	clients  map[string]*Client
-
-	register   chan *Client  // 클라이언트 등록 채널
-	unregister chan *Client  // 클라이언트 해제 채널
-	broadcast  chan *Message // 메시지 브로드캐스트 채널
+	ID             int64              `json:"id"`
+	Name           string             `json:"name"`
+	RoomType       chat.RoomType      `json:"roomType"`
+	Clients        map[string]*Client `json:"-"`
+	RegisterChan   chan *Client       `json:"-"`
+	UnregisterChan chan *Client       `json:"-"`
+	BroadcastChan  chan *Message      `json:"-"`
 }
 
 const welcomeMessage = "%s 이 참여하셨습니다."
@@ -31,36 +30,36 @@ func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatServi
 	}
 
 	return &Room{
-		ID:         row.ID,
-		Name:       row.Name,
-		RoomType:   row.RoomType,
-		clients:    make(map[string]*Client),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan *Message),
+		ID:             row.ID,
+		Name:           row.Name,
+		RoomType:       row.RoomType,
+		Clients:        make(map[string]*Client),
+		RegisterChan:   make(chan *Client),
+		UnregisterChan: make(chan *Client),
+		BroadcastChan:  make(chan *Message),
 	}, nil
 }
 
 func (room *Room) InitRoom(roomID int64, name string, roomType chat.RoomType) *Room {
 	return &Room{
-		ID:         roomID,
-		Name:       name,
-		RoomType:   roomType,
-		clients:    make(map[string]*Client),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan *Message),
+		ID:             roomID,
+		Name:           name,
+		RoomType:       roomType,
+		Clients:        make(map[string]*Client),
+		RegisterChan:   make(chan *Client),
+		UnregisterChan: make(chan *Client),
+		BroadcastChan:  make(chan *Message),
 	}
 }
 
 func (room *Room) RunRoom(roomService *service.ChatService) {
 	for {
 		select {
-		case client := <-room.register:
+		case client := <-room.RegisterChan:
 			room.registerClientInRoom(client, room.ID, roomService)
-		case client := <-room.unregister:
+		case client := <-room.UnregisterChan:
 			room.unregisterClientInRoom(client, room.ID, roomService)
-		case message := <-room.broadcast:
+		case message := <-room.BroadcastChan:
 			room.broadcastToClientsInRoom(message, roomService)
 		}
 	}
@@ -73,7 +72,7 @@ func (room *Room) registerClientInRoom(client *Client, roomID int64, chatService
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에 클라이언트를 등록하는 데 실패했습니다.")
 	}
 	room.notifyClientJoined(client, chatService)
-	room.clients[client.FbUID] = client
+	room.Clients[client.FbUID] = client
 	return nil
 }
 
@@ -84,7 +83,7 @@ func (room *Room) unregisterClientInRoom(client *Client, roomID int64, chatServi
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에서 클라이언트를 해제하는 데 실패했습니다.")
 	}
 
-	delete(room.clients, client.FbUID)
+	delete(room.Clients, client.FbUID)
 	return nil
 }
 
@@ -94,8 +93,8 @@ func (room *Room) broadcastToClientsInRoom(message *Message, chatService *servic
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "메시지를 저장하는 데 실패했습니다.")
 	}
-	for _, client := range room.clients {
-		client.messageSender <- []byte(row.Content)
+	for _, client := range room.Clients {
+		client.MessageSender <- []byte(row.Content)
 	}
 	return nil
 }
