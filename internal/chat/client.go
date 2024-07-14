@@ -27,22 +27,22 @@ const (
 var newline = []byte{'\n'}
 
 type Client struct {
-	conn          *websocket.Conn
-	wsServer      *WebSocketServer
-	messageSender chan []byte
-	FbUID         string `json:"id"`
-	Name          string `json:"name"`
-	rooms         map[int64]*Room
+	Conn            *websocket.Conn  `json:"-"`
+	WebSocketServer *WebSocketServer `json:"-"`
+	MessageSender   chan []byte      `json:"-"`
+	FbUID           string           `json:"id"`
+	Name            string           `json:"name"`
+	Rooms           map[int64]*Room  `json:"-"`
 }
 
 func NewClient(conn *websocket.Conn, wsServer *WebSocketServer, name, fbUID string) *Client {
 	return &Client{
-		FbUID:         fbUID,
-		Name:          name,
-		conn:          conn,
-		wsServer:      wsServer,
-		messageSender: make(chan []byte, 256),
-		rooms:         make(map[int64]*Room),
+		FbUID:           fbUID,
+		Name:            name,
+		Conn:            conn,
+		WebSocketServer: wsServer,
+		MessageSender:   make(chan []byte, 256),
+		Rooms:           make(map[int64]*Room),
 	}
 }
 
@@ -51,7 +51,7 @@ func (client *Client) HandleRead(chatService *service.ChatService) *pnd.AppError
 	client.setupConnection()
 
 	for {
-		_, jsonMessage, err := client.conn.ReadMessage()
+		_, jsonMessage, err := client.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "예상치 못한 연결 종료 오류가 발생했습니다.")
@@ -67,12 +67,12 @@ func (client *Client) HandleWrite() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		client.conn.Close()
+		client.Conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-client.messageSender:
+		case message, ok := <-client.MessageSender:
 			if !ok {
 				client.writeCloseMessage()
 				return
@@ -86,14 +86,14 @@ func (client *Client) HandleWrite() {
 }
 
 func (client *Client) setupConnection() *pnd.AppError {
-	client.conn.SetReadLimit(maxMessageSize)
-	err := client.conn.SetReadDeadline(time.Now().Add(pongWait))
+	client.Conn.SetReadLimit(maxMessageSize)
+	err := client.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "읽기 제한 시간 설정에 실패했습니다.")
 	}
 
-	client.conn.SetPongHandler(func(string) error {
-		err := client.conn.SetReadDeadline(time.Now().Add(pongWait))
+	client.Conn.SetPongHandler(func(string) error {
+		err := client.Conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
 			return err
 		}
@@ -103,10 +103,10 @@ func (client *Client) setupConnection() *pnd.AppError {
 }
 
 func (client *Client) writeMessage(message []byte) *pnd.AppError {
-	if err := client.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+	if err := client.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "쓰기 제한 시간 설정에 실패했습니다.")
 	}
-	w, err := client.conn.NextWriter(websocket.TextMessage)
+	w, err := client.Conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "다음 작성자 설정에 실패했습니다.")
 	}
@@ -116,12 +116,12 @@ func (client *Client) writeMessage(message []byte) *pnd.AppError {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "메시지 쓰기에 실패했습니다.")
 	}
 
-	n := len(client.messageSender)
+	n := len(client.MessageSender)
 	for i := 0; i < n; i++ {
 		if _, err := w.Write(newline); err != nil {
 			return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "개행 문자 쓰기에 실패했습니다.")
 		}
-		if _, err := w.Write(<-client.messageSender); err != nil {
+		if _, err := w.Write(<-client.MessageSender); err != nil {
 			return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채널에서 메시지 읽기에 실패했습니다.")
 		}
 	}
@@ -129,11 +129,11 @@ func (client *Client) writeMessage(message []byte) *pnd.AppError {
 }
 
 func (client *Client) writeCloseMessage() *pnd.AppError {
-	err := client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	err := client.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "종료 메시지의 쓰기 제한 시간 설정에 실패했습니다.")
 	}
-	err = client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+	err = client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "종료 메시지 쓰기에 실패했습니다.")
 	}
@@ -141,23 +141,23 @@ func (client *Client) writeCloseMessage() *pnd.AppError {
 }
 
 func (client *Client) sendPing() *pnd.AppError {
-	if err := client.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+	if err := client.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "핑 메시지의 쓰기 제한 시간 설정에 실패했습니다.")
 	}
-	if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+	if err := client.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "핑 메시지 쓰기에 실패했습니다.")
 	}
 	return nil
 }
 
 func (client *Client) disconnect() *pnd.AppError {
-	client.wsServer.unregister <- client
-	for roomID := range client.rooms {
-		room := client.rooms[roomID]
-		room.unregister <- client
+	client.WebSocketServer.UnregisterChan <- client
+	for roomID := range client.Rooms {
+		room := client.Rooms[roomID]
+		room.UnregisterChan <- client
 	}
-	close(client.messageSender)
-	if err := client.conn.Close(); err != nil {
+	close(client.MessageSender)
+	if err := client.Conn.Close(); err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "연결 종료에 실패했습니다.")
 	}
 	return nil
@@ -172,8 +172,8 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 	switch message.Action {
 	case SendMessageAction:
 		roomID := message.Room.GetID()
-		if room := client.wsServer.findRoomByID(roomID); room != nil {
-			room.broadcast <- &message
+		if room := client.WebSocketServer.StateManager.FindRoomByID(roomID); room != nil {
+			room.BroadcastChan <- &message
 		}
 	case JoinRoomAction:
 		client.handleJoinRoomMessage(message, chatService)
@@ -184,36 +184,29 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 }
 
 func (client *Client) handleJoinRoomMessage(message Message, chatService *service.ChatService) *pnd.AppError {
-	if client.wsServer == nil {
+	if client.WebSocketServer == nil {
 		return pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "WebSocket 서버가 nil입니다.")
 	}
-
 	if message.Room == nil {
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "채팅방 정보가 nil입니다.")
 	}
 
-	room := client.wsServer.findRoomByID(message.Room.GetID())
-	if room == nil {
-		log.Info().Msgf("ID %d의 방을 찾을 수 없어 새 방을 생성합니다.", message.Room.GetID())
-		var err *pnd.AppError
-		room, err = client.wsServer.createRoom(message.Room.Name, message.Room.RoomType, chatService)
-		if err != nil {
-			log.Error().Err(err.Err).Msg("방 생성에 실패했습니다.")
-			return err
-		}
+	room, err := client.CreateRoomIfNotExists(message, chatService)
+	if err != nil {
+		return err
 	}
 
 	if message.Sender == nil {
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "보낸 사람이 nil입니다.")
 	}
 
-	if _, ok := client.rooms[message.Room.GetID()]; !ok {
-		if room.register == nil {
+	if _, ok := client.Rooms[message.Room.GetID()]; !ok {
+		if room.RegisterChan == nil {
 			return pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "방 등록 채널이 nil입니다.")
 		}
 
-		client.rooms[message.Room.GetID()] = room
-		room.register <- client
+		client.Rooms[message.Room.GetID()] = room
+		room.RegisterChan <- client
 		err := client.notifyRoomJoined(room, message.Sender)
 		if err != nil {
 			return err
@@ -223,14 +216,28 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 	return nil
 }
 
+func (client *Client) CreateRoomIfNotExists(message Message, chatService *service.ChatService) (*Room, *pnd.AppError) {
+	room := client.WebSocketServer.StateManager.FindRoomByID(message.Room.GetID())
+	if room == nil {
+		log.Info().Msgf("ID %d의 방을 찾을 수 없어 새 방을 생성합니다.", message.Room.GetID())
+		var err *pnd.AppError
+		room, err = client.WebSocketServer.StateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService)
+		if err != nil {
+			log.Error().Err(err.Err).Msg("방 생성에 실패했습니다.")
+			return nil, err
+		}
+	}
+	return room, nil
+}
+
 func (client *Client) handleLeaveRoomMessage(roomID int64) {
-	room := client.wsServer.findRoomByID(roomID)
-	delete(client.rooms, room.ID)
-	room.unregister <- client
+	room := client.WebSocketServer.StateManager.FindRoomByID(roomID)
+	delete(client.Rooms, room.GetID())
+	room.UnregisterChan <- client
 }
 
 func (client *Client) isInRoom(room *Room) bool {
-	_, ok := client.rooms[room.ID]
+	_, ok := client.Rooms[room.GetID()]
 	return ok
 }
 
@@ -245,12 +252,12 @@ func (client *Client) notifyRoomJoined(room *Room, sender *Client) *pnd.AppError
 	if err != nil {
 		return err
 	}
-	client.messageSender <- encodedMessage
+	client.MessageSender <- encodedMessage
 	return nil
 }
 
 func (client *Client) UpdateConn(conn *websocket.Conn) {
-	client.conn = conn
+	client.Conn = conn
 }
 
 func (client *Client) GetName() string {

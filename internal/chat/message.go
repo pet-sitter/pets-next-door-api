@@ -12,8 +12,6 @@ const (
 	SendMessageAction = "SEND_MESSAGE" // 클라이언트가 메시지를 보낼 때
 	JoinRoomAction    = "JOIN_ROOM"    // 클라이언트가 방에 참여할 때
 	LeaveRoomAction   = "LEAVE_ROOM"   // 클라이언트가 방을 떠날 때
-	UserJoinedAction  = "USER_JOIN"    // 다른 사용자가 방에 참여했음을 알릴 때
-	UserLeftAction    = "USER_LEFT"    // 다른 사용자가 방을 떠났음을 알릴 때
 	RoomJoinedAction  = "ROOM_JOINED"  // 클라이언트가 방에 성공적으로 참여했음을 알릴 때
 )
 
