@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
 	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
@@ -65,12 +66,13 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
 
-	wsServer := chat.NewWebsocketServer()
+	stateManager := chat.NewInMemoryStateManager()
+	wsServer := chat.NewWebSocketServer(stateManager)
 	go wsServer.Run()
 	chat.InitializeWebSocketServer(ctx, wsServer, chatService)
 	chatHandler := handler.NewChatController(wsServer, authService, *chatService)
 
-	// Register middlewares
+	// RegisterChan middlewares
 	logger := zerolog.New(os.Stdout)
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
@@ -86,7 +88,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	}))
 	e.Use(pndmiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
 
-	// Register routes
+	// RegisterChan routes
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
