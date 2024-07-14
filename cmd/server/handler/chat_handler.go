@@ -12,10 +12,11 @@ import (
 )
 
 type ChatHandler struct {
-	wsServer    *chat.WebSocketServer
-	upgrader    websocket.Upgrader
-	authService service.AuthService
-	chatService service.ChatService
+	wsServer     *chat.WebSocketServer
+	upgrader     websocket.Upgrader
+	stateManager *chat.StateManager
+	authService  service.AuthService
+	chatService  service.ChatService
 }
 
 var upgrader = websocket.Upgrader{
@@ -25,13 +26,17 @@ var upgrader = websocket.Upgrader{
 }
 
 func NewChatController(
-	wsServer *chat.WebSocketServer, authService service.AuthService, chatService service.ChatService,
+	wsServer *chat.WebSocketServer,
+	stateManager chat.StateManager,
+	authService service.AuthService,
+	chatService service.ChatService,
 ) *ChatHandler {
 	return &ChatHandler{
-		wsServer:    wsServer,
-		upgrader:    upgrader,
-		authService: authService,
-		chatService: chatService,
+		wsServer:     wsServer,
+		upgrader:     upgrader,
+		stateManager: &stateManager,
+		authService:  authService,
+		chatService:  chatService,
 	}
 }
 
@@ -64,7 +69,7 @@ func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *u
 	client := h.wsServer.FindClientByUID(userData.FirebaseUID)
 	if client == nil {
 		// 클라이언트를 찾지 못한 경우 새로운 클라이언트를 생성
-		client = chat.NewClient(conn, h.wsServer, userData.Nickname, userData.FirebaseUID)
+		client = chat.NewClient(conn, *h.stateManager, userData.Nickname, userData.FirebaseUID)
 		// 새 클라이언트를 웹소켓 서버에 등록
 		h.wsServer.RegisterClient(client)
 	} else {

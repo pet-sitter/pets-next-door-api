@@ -11,56 +11,38 @@ import (
 )
 
 type Room struct {
-	ID             int64              `json:"id"`
-	Name           string             `json:"name"`
-	RoomType       chat.RoomType      `json:"roomType"`
-	Clients        map[string]*Client `json:"-"`
-	RegisterChan   chan *Client       `json:"-"`
-	UnregisterChan chan *Client       `json:"-"`
-	BroadcastChan  chan *Message      `json:"-"`
+	ID             int64         `json:"id"`
+	Name           string        `json:"name"`
+	RoomType       chat.RoomType `json:"roomType"`
+	StateManager   StateManager  `json:"-"`
+	RegisterChan   chan *Client  `json:"-"`
+	UnregisterChan chan *Client  `json:"-"`
+	BroadcastChan  chan *Message `json:"-"`
 }
 
 const welcomeMessage = "%s 이 참여하셨습니다."
 
-func NewRoom(name string, roomType chat.RoomType, roomService *service.ChatService) (*Room, *pnd.AppError) {
-	ctx := context.Background()
-	row, err := roomService.CreateRoom(ctx, name, roomType)
-	if err != nil {
-		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeRoomCreationFailed, "채팅방 생성에 실패했습니다.")
-	}
-
+func NewRoom(id int64, name string, roomType chat.RoomType, stateManager StateManager) *Room {
 	return &Room{
-		ID:             row.ID,
-		Name:           row.Name,
-		RoomType:       row.RoomType,
-		Clients:        make(map[string]*Client),
-		RegisterChan:   make(chan *Client),
-		UnregisterChan: make(chan *Client),
-		BroadcastChan:  make(chan *Message),
-	}, nil
-}
-
-func (room *Room) InitRoom(roomID int64, name string, roomType chat.RoomType) *Room {
-	return &Room{
-		ID:             roomID,
+		ID:             id,
 		Name:           name,
 		RoomType:       roomType,
-		Clients:        make(map[string]*Client),
+		StateManager:   stateManager,
 		RegisterChan:   make(chan *Client),
 		UnregisterChan: make(chan *Client),
 		BroadcastChan:  make(chan *Message),
 	}
 }
 
-func (room *Room) RunRoom(roomService *service.ChatService) {
+func (room *Room) RunRoom(chatService *service.ChatService) {
 	for {
 		select {
 		case client := <-room.RegisterChan:
-			room.registerClientInRoom(client, room.ID, roomService)
+			room.registerClientInRoom(client, room.ID, chatService)
 		case client := <-room.UnregisterChan:
-			room.unregisterClientInRoom(client, room.ID, roomService)
+			room.unregisterClientInRoom(client, room.ID, chatService)
 		case message := <-room.BroadcastChan:
-			room.broadcastToClientsInRoom(message, roomService)
+			room.broadcastToClientsInRoom(message, chatService)
 		}
 	}
 }
@@ -72,7 +54,6 @@ func (room *Room) registerClientInRoom(client *Client, roomID int64, chatService
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에 클라이언트를 등록하는 데 실패했습니다.")
 	}
 	room.notifyClientJoined(client, chatService)
-	room.Clients[client.FbUID] = client
 	return nil
 }
 
@@ -82,8 +63,6 @@ func (room *Room) unregisterClientInRoom(client *Client, roomID int64, chatServi
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에서 클라이언트를 해제하는 데 실패했습니다.")
 	}
-
-	delete(room.Clients, client.FbUID)
 	return nil
 }
 
@@ -93,7 +72,9 @@ func (room *Room) broadcastToClientsInRoom(message *Message, chatService *servic
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "메시지를 저장하는 데 실패했습니다.")
 	}
-	for _, client := range room.Clients {
+	clients := room.StateManager.GetRoomClients(room.ID)
+
+	for _, client := range clients {
 		client.MessageSender <- []byte(row.Content)
 	}
 	return nil

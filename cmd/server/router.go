@@ -70,7 +70,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	wsServer := chat.NewWebSocketServer(stateManager)
 	go wsServer.Run()
 	chat.InitializeWebSocketServer(ctx, wsServer, chatService)
-	chatHandler := handler.NewChatController(wsServer, authService, *chatService)
+	chatHandler := handler.NewChatController(wsServer, stateManager, authService, *chatService)
 
 	// RegisterChan middlewares
 	logger := zerolog.New(os.Stdout)
