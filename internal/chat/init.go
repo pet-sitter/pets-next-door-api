@@ -23,24 +23,22 @@ func InitializeWebSocketServer(
 		// 클라이언트를 생성하거나 기존 클라이언트를 재사용
 		client, exists := clientMap[row.UserInfo.FirebaseUID]
 		if !exists {
-			client = NewClient(nil, wsServer, row.UserInfo.Nickname, row.UserInfo.FirebaseUID)
+			client = NewClient(nil, wsServer.StateManager, row.UserInfo.Nickname, row.UserInfo.FirebaseUID)
 			wsServer.RegisterClient(client)
 			clientMap[row.UserInfo.FirebaseUID] = client
 		}
 
 		// 방을 생성하거나 기존 방을 불러옴
 		room := wsServer.StateManager.FindRoomByID(row.RoomInfo.ID)
-
 		if room == nil {
-			room = room.InitRoom(row.RoomInfo.ID, row.RoomInfo.Name, row.RoomInfo.RoomType)
+			room = NewRoom(row.RoomInfo.ID, row.RoomInfo.Name, row.RoomInfo.RoomType, wsServer.StateManager)
 			wsServer.StateManager.SetRoom(room)
 			go room.RunRoom(chatService)
 		}
 
 		// 클라이언트를 방에 등록
-		if !client.isInRoom(room) {
-			client.Rooms[room.ID] = room
-			room.RegisterChan <- client
+		if !wsServer.StateManager.IsClientInRoom(client.FbUID, room.ID) {
+			wsServer.StateManager.JoinRoom(room.ID, client.FbUID)
 		}
 	}
 	return nil

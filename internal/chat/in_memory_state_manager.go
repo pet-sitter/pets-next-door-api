@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"net/http"
 	"sync"
 
@@ -10,15 +11,19 @@ import (
 )
 
 type InMemoryStateManager struct {
-	clients map[string]*Client
-	rooms   map[int64]*Room
-	mutex   sync.RWMutex
+	clients     map[string]*Client
+	rooms       map[int64]*Room
+	clientRooms map[string]map[int64]struct{}
+	roomClients map[int64]map[string]*Client
+	mutex       sync.RWMutex
 }
 
 func NewInMemoryStateManager() *InMemoryStateManager {
 	return &InMemoryStateManager{
-		clients: make(map[string]*Client),
-		rooms:   make(map[int64]*Room),
+		clients:     make(map[string]*Client),
+		rooms:       make(map[int64]*Room),
+		clientRooms: make(map[string]map[int64]struct{}),
+		roomClients: make(map[int64]map[string]*Client),
 	}
 }
 
@@ -57,14 +62,16 @@ func (m *InMemoryStateManager) FindRoomByID(roomID int64) *Room {
 }
 
 func (m *InMemoryStateManager) CreateRoom(
-	name string, roomType chat.RoomType, roomService *service.ChatService,
+	name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
 ) (*Room, *pnd.AppError) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	room, err := NewRoom(name, roomType, roomService)
+	ctx := context.Background()
+	row, err := roomService.CreateRoom(ctx, name, roomType)
 	if err != nil {
-		return nil, err
+		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeRoomCreationFailed, "채팅방 생성에 실패했습니다.")
 	}
+	room := NewRoom(row.ID, row.Name, row.RoomType, stateManager)
 	go room.RunRoom(roomService)
 	m.rooms[room.GetID()] = room
 	return room, nil
@@ -77,6 +84,47 @@ func (m *InMemoryStateManager) BroadcastToClients(message []byte) *pnd.AppError 
 		client.MessageSender <- message
 	}
 	return nil
+}
+
+func (m *InMemoryStateManager) JoinRoom(roomID int64, clientID string) *pnd.AppError {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if _, ok := m.clientRooms[clientID]; !ok {
+		m.clientRooms[clientID] = make(map[int64]struct{})
+	}
+	m.clientRooms[clientID][roomID] = struct{}{}
+	if _, ok := m.roomClients[roomID]; !ok {
+		m.roomClients[roomID] = make(map[string]*Client)
+	}
+	m.roomClients[roomID][clientID] = m.clients[clientID]
+	return nil
+}
+
+func (m *InMemoryStateManager) LeaveRoom(roomID int64, clientID string) *pnd.AppError {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	delete(m.clientRooms[clientID], roomID)
+	delete(m.roomClients[roomID], clientID)
+	return nil
+}
+
+func (m *InMemoryStateManager) IsClientInRoom(clientID string, roomID int64) bool {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	_, ok := m.clientRooms[clientID][roomID]
+	return ok
+}
+
+func (m *InMemoryStateManager) GetClientRooms(clientID string) map[int64]struct{} {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.clientRooms[clientID]
+}
+
+func (m *InMemoryStateManager) GetRoomClients(roomID int64) map[string]*Client {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.roomClients[roomID]
 }
 
 func (m *InMemoryStateManager) SetRoom(room *Room) *pnd.AppError {
