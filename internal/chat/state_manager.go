@@ -9,7 +9,7 @@ import (
 type StateManager interface {
 	RegisterClient(client *Client) *pnd.AppError
 	UnregisterClient(client *Client) *pnd.AppError
-	FindClientByUID(uid string) (*Client, *pnd.AppError)
+	FindClientByUID(uid string) *Client
 	FindRoomByID(roomID int64) *Room
 	CreateRoom(
 		name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
