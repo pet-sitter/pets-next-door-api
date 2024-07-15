@@ -89,3 +89,10 @@ FROM
         ON users.profile_image_id = media.id
 WHERE
     user_chat_rooms.left_at IS NULL;
+
+-- name: ExistsUserInRoom :one
+SELECT EXISTS (
+    SELECT 1
+    FROM user_chat_rooms
+    WHERE room_id = $1 AND user_id = $2
+) AS is_in_room;

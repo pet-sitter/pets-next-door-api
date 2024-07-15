@@ -2,8 +2,6 @@ package chat
 
 import (
 	"context"
-	"net/http"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
@@ -14,7 +12,7 @@ func InitializeWebSocketServer(
 ) *pnd.AppError {
 	rows, err := chatService.FindUserChatRoom(ctx)
 	if err != nil {
-		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방 정보를 불러오는 데 실패했습니다.")
+		return err
 	}
 
 	// 클라이언트를 중복 생성하지 않도록 관리하는 맵
@@ -24,7 +22,7 @@ func InitializeWebSocketServer(
 		client, exists := clientMap[row.UserInfo.FirebaseUID]
 		if !exists {
 			client = NewClient(nil, wsServer.StateManager, row.UserInfo.Nickname, row.UserInfo.FirebaseUID)
-			wsServer.RegisterClient(client)
+			wsServer.StateManager.RegisterClient(client)
 			clientMap[row.UserInfo.FirebaseUID] = client
 		}
 
