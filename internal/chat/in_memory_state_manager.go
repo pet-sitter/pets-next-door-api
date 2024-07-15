@@ -11,9 +11,14 @@ import (
 )
 
 type InMemoryStateManager struct {
-	clients     map[string]*Client
-	rooms       map[int64]*Room
+	clients map[string]*Client
+	rooms   map[int64]*Room
+	// 클라이언트의 고유 식별자(FbUID)를 키로 사용하고, 클라이언트가 참여한 방의 ID를 값으로 갖는 또 다른 맵을 값으로 가집니다.
+	// 값이 struct{}인 이유는 이중 맵에서 값의 실제 데이터가 필요 없기 때문입니다. struct{}는 메모리를 거의 차지하지 않으므로 효율적입니다.
 	clientRooms map[string]map[int64]struct{}
+	// 방의 고유 식별자(roomID)를 키로 사용하고, 방 객체(*Room)를 값으로 갖습니다.
+	// 방의 고유 식별자(roomID)를 키로 사용하고, 해당 방에 참여한 클라이언트의 고유 식별자를 키로 갖는 또 다른 맵을 값으로 가집니다.
+	// 이 내부 맵은 클라이언트 객체(*Client)를 값으로 갖습니다.
 	roomClients map[int64]map[string]*Client
 	mutex       sync.RWMutex
 }
@@ -69,7 +74,7 @@ func (m *InMemoryStateManager) CreateRoom(
 	ctx := context.Background()
 	row, err := roomService.CreateRoom(ctx, name, roomType)
 	if err != nil {
-		return nil, pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeRoomCreationFailed, "채팅방 생성에 실패했습니다.")
+		return nil, err
 	}
 	room := NewRoom(row.ID, row.Name, row.RoomType, stateManager)
 	go room.RunRoom(roomService)
@@ -80,6 +85,7 @@ func (m *InMemoryStateManager) CreateRoom(
 func (m *InMemoryStateManager) BroadcastToClients(message []byte) *pnd.AppError {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
+
 	for _, client := range m.clients {
 		client.MessageSender <- message
 	}

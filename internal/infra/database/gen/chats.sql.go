@@ -47,6 +47,26 @@ func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (CreateR
 	return i, err
 }
 
+const existsUserInRoom = `-- name: ExistsUserInRoom :one
+SELECT EXISTS (
+    SELECT 1
+    FROM user_chat_rooms
+    WHERE room_id = $1 AND user_id = $2
+) AS is_in_room
+`
+
+type ExistsUserInRoomParams struct {
+	RoomID int64
+	UserID int64
+}
+
+func (q *Queries) ExistsUserInRoom(ctx context.Context, arg ExistsUserInRoomParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, existsUserInRoom, arg.RoomID, arg.UserID)
+	var is_in_room bool
+	err := row.Scan(&is_in_room)
+	return is_in_room, err
+}
+
 const findMessageByRoomID = `-- name: FindMessageByRoomID :many
 SELECT
     id,
