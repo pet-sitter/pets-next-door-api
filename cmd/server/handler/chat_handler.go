@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -59,10 +58,7 @@ func (h *ChatHandler) ServerWebsocket(
 		})
 	}
 
-	client, err := h.initializeOrUpdateClient(conn, foundUser)
-	if err != nil {
-		return err.Err
-	}
+	client := h.initializeOrUpdateClient(conn, foundUser)
 
 	// 클라이언트의 메시지를 읽고 쓰는 데 사용되는 고루틴을 시작 (비동기)
 	go client.HandleWrite()
@@ -74,11 +70,8 @@ func (h *ChatHandler) ServerWebsocket(
 // 클라이언트를 초기화하거나 기존 클라이언트를 업데이트하는 함수
 func (h *ChatHandler) initializeOrUpdateClient(
 	conn *websocket.Conn, userData *user.InternalView,
-) (*chat.Client, *pnd.AppError) {
-	client, err := h.wsServer.StateManager.FindClientByUID(userData.FirebaseUID)
-	if err != nil {
-		return nil, err
-	}
+) *chat.Client {
+	client := h.wsServer.StateManager.FindClientByUID(userData.FirebaseUID)
 	if client == nil {
 		client = chat.NewClient(conn, *h.stateManager, userData.Nickname, userData.FirebaseUID)
 		h.wsServer.StateManager.RegisterClient(client)
@@ -86,5 +79,5 @@ func (h *ChatHandler) initializeOrUpdateClient(
 		// 기존 클라이언트가 있는 경우 연결을 업데이트
 		client.UpdateConn(conn)
 	}
-	return client, nil
+	return client
 }
