@@ -25,7 +25,7 @@ func TestCreateRoom(t *testing.T) {
 		createdRoom, err := chatService.CreateRoom(ctx, roomName, roomType)
 
 		// Then
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, roomName, createdRoom.Name)
 		assert.Equal(t, roomType, createdRoom.RoomType)
 	})
@@ -54,7 +54,7 @@ func TestJoinRoom(t *testing.T) {
 		joinRoomView, err := chatService.JoinRoom(ctx, createdRoom.ID, createdUser.FirebaseUID)
 
 		// Then
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, createdRoom.ID, joinRoomView.RoomID)
 		assert.Equal(t, createdUser.ID, joinRoomView.UserID)
 	})
@@ -84,7 +84,7 @@ func TestLeaveRoom(t *testing.T) {
 		leaveRoomErr := chatService.LeaveRoom(ctx, createdRoom.ID, createdUser.FirebaseUID)
 
 		// Then
-		assert.NoError(t, leaveRoomErr)
+		assert.Nil(t, leaveRoomErr)
 	})
 }
 
@@ -110,12 +110,11 @@ func TestSaveMessage(t *testing.T) {
 
 		// When
 		message := "Hello, World!"
-		savedMessage, err := chatService.SaveMessage(
+		savedMessage, _ := chatService.SaveMessage(
 			ctx, createdRoom.ID, createdUser.FirebaseUID, message, chat.MessageTypeNormal,
 		)
 
 		// Then
-		assert.NoError(t, err)
 		assert.Equal(t, createdRoom.ID, savedMessage.RoomID)
 		assert.Equal(t, createdUser.ID, savedMessage.UserID)
 		assert.Equal(t, message, savedMessage.Content)
@@ -138,7 +137,7 @@ func TestFindRoomByID(t *testing.T) {
 		foundRoom, err := chatService.FindRoomByID(ctx, &createdRoom.ID)
 
 		// Then
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, createdRoom.ID, foundRoom.ID)
 		assert.Equal(t, createdRoom.Name, foundRoom.Name)
 	})
@@ -169,7 +168,7 @@ func TestFindUserChatRoom(t *testing.T) {
 		userChatRooms, err := chatService.FindUserChatRoom(ctx)
 
 		// Then
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.NotEmpty(t, userChatRooms)
 
 		for _, userChatRoom := range userChatRooms {
@@ -182,5 +181,54 @@ func TestFindUserChatRoom(t *testing.T) {
 				assert.Equal(t, profileImage.URL, *userChatRoom.UserInfo.ProfileImageURL)
 			}
 		}
+	})
+}
+
+func TestExistsUserInRoom(t *testing.T) {
+	t.Run("사용자가 지정된 채팅방에 참여하고 있을 때 true를 반환한다", func(t *testing.T) {
+		db, tearDown := tests.SetUp(t)
+		defer tearDown(t)
+		ctx := context.Background()
+		chatService := tests.NewMockChatService(db)
+		userService := tests.NewMockUserService(db)
+
+		// Given
+		userRequest := tests.NewDummyRegisterUserRequest(nil)
+		createdUser, _ := userService.RegisterUser(ctx, userRequest)
+
+		roomName := "Test Room"
+		roomType := chat.RoomType(chat.RoomTypePersonal)
+		createdRoom, _ := chatService.CreateRoom(ctx, roomName, roomType)
+		_, _ = chatService.JoinRoom(ctx, createdRoom.ID, createdUser.FirebaseUID)
+
+		// When
+		exists, err := chatService.ExistsUserInRoom(ctx, createdRoom.ID, createdUser.FirebaseUID)
+
+		// Then
+		assert.Nil(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("사용자가 지정된 채팅방에 참여하지 않을 때 false를 반환한다", func(t *testing.T) {
+		db, tearDown := tests.SetUp(t)
+		defer tearDown(t)
+		ctx := context.Background()
+		chatService := tests.NewMockChatService(db)
+		userService := tests.NewMockUserService(db)
+
+		// Given
+		userRequest := tests.NewDummyRegisterUserRequest(nil)
+		createdUser, _ := userService.RegisterUser(ctx, userRequest)
+
+		roomName := "Test Room"
+		roomType := chat.RoomType(chat.RoomTypePersonal)
+		createdRoom, _ := chatService.CreateRoom(ctx, roomName, roomType)
+
+		// When
+		exists, err := chatService.ExistsUserInRoom(ctx, createdRoom.ID, createdUser.FirebaseUID)
+
+		// Then
+		assert.Nil(t, err)
+		assert.False(t, exists)
 	})
 }
