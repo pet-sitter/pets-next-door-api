@@ -3,8 +3,6 @@ package chat
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -49,9 +47,16 @@ func (room *Room) RunRoom(chatService *service.ChatService) {
 
 func (room *Room) registerClientInRoom(client *Client, roomID int64, chatService *service.ChatService) *pnd.AppError {
 	ctx := context.Background()
-	_, err := chatService.JoinRoom(ctx, roomID, client.FbUID)
+	exists, err := chatService.ExistsUserInRoom(ctx, roomID, client.FbUID)
+	if exists {
+		return nil
+	}
 	if err != nil {
-		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에 클라이언트를 등록하는 데 실패했습니다.")
+		return err
+	}
+	_, err = chatService.JoinRoom(ctx, roomID, client.FbUID)
+	if err != nil {
+		return err
 	}
 	room.notifyClientJoined(client, chatService)
 	return nil
@@ -61,7 +66,7 @@ func (room *Room) unregisterClientInRoom(client *Client, roomID int64, chatServi
 	ctx := context.Background()
 	err := chatService.LeaveRoom(ctx, roomID, client.FbUID)
 	if err != nil {
-		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채팅방에서 클라이언트를 해제하는 데 실패했습니다.")
+		return err
 	}
 	return nil
 }
@@ -70,7 +75,7 @@ func (room *Room) broadcastToClientsInRoom(message *Message, chatService *servic
 	ctx := context.Background()
 	row, err := chatService.SaveMessage(ctx, room.ID, message.Sender.FbUID, message.Message, message.MessageType)
 	if err != nil {
-		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "메시지를 저장하는 데 실패했습니다.")
+		return err
 	}
 	clients := room.StateManager.GetRoomClients(room.ID)
 
