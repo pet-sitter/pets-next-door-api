@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 

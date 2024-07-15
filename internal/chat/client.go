@@ -57,7 +57,10 @@ func (client *Client) HandleRead(chatService *service.ChatService) *pnd.AppError
 		}
 		if len(jsonMessage) > maxMessageSize {
 			errMsg := fmt.Sprintf("메시지 크기가 최대 크기(%d 바이트)를 초과합니다.", maxMessageSize)
-			client.Conn.WriteMessage(websocket.TextMessage, []byte(errMsg))
+			err := client.Conn.WriteMessage(websocket.TextMessage, []byte(errMsg))
+			if err != nil {
+				return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "메시지 크기 초과 오류 메시지를 전송하는 데 실패했습니다.")
+			}
 			continue
 		}
 		client.handleNewMessage(jsonMessage, chatService)
