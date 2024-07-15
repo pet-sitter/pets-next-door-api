@@ -1,6 +1,7 @@
 package handler
 
 import (
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -20,9 +21,12 @@ type ChatHandler struct {
 }
 
 var upgrader = websocket.Upgrader{
-	// TODO: 버퍼 사이즈의 근거
-	ReadBufferSize:  4096, // 웹소켓 읽기 버퍼 크기
-	WriteBufferSize: 4096, // 웹소켓 쓰기 버퍼 크기
+	// 사이즈 단위: byte
+	// 영어 기준: 2048 글자
+	// 한국어(글자당 3바이트) 기준: 약 682 글자
+	// 영어 + 한국어 기준(글자당 2바이트로 가정): 약 1024 글자
+	ReadBufferSize:  2048,
+	WriteBufferSize: 2048,
 }
 
 func NewChatController(
@@ -55,9 +59,12 @@ func (h *ChatHandler) ServerWebsocket(
 		})
 	}
 
-	client := h.initializeOrUpdateClient(conn, foundUser)
+	client, err := h.initializeOrUpdateClient(conn, foundUser)
+	if err != nil {
+		return err.Err
+	}
 
-	// 클라이언트의 메시지를 읽고 쓰는 데 사용되는 고루틴을 시작
+	// 클라이언트의 메시지를 읽고 쓰는 데 사용되는 고루틴을 시작 (비동기)
 	go client.HandleWrite()
 	go client.HandleRead(&h.chatService)
 
@@ -65,16 +72,17 @@ func (h *ChatHandler) ServerWebsocket(
 }
 
 // 클라이언트를 초기화하거나 기존 클라이언트를 업데이트하는 함수
-func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *user.InternalView) *chat.Client {
-	client := h.wsServer.FindClientByUID(userData.FirebaseUID)
+func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *user.InternalView) (*chat.Client, *pnd.AppError) {
+	client, err := h.wsServer.StateManager.FindClientByUID(userData.FirebaseUID)
+	if err != nil {
+		return nil, err
+	}
 	if client == nil {
-		// 클라이언트를 찾지 못한 경우 새로운 클라이언트를 생성
 		client = chat.NewClient(conn, *h.stateManager, userData.Nickname, userData.FirebaseUID)
-		// 새 클라이언트를 웹소켓 서버에 등록
-		h.wsServer.RegisterClient(client)
+		h.wsServer.StateManager.RegisterClient(client)
 	} else {
 		// 기존 클라이언트가 있는 경우 연결을 업데이트
 		client.UpdateConn(conn)
 	}
-	return client
+	return client, nil
 }
