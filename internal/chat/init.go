@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )

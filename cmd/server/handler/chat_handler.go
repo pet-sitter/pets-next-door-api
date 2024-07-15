@@ -1,12 +1,12 @@
 package handler
 
 import (
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -72,7 +72,9 @@ func (h *ChatHandler) ServerWebsocket(
 }
 
 // 클라이언트를 초기화하거나 기존 클라이언트를 업데이트하는 함수
-func (h *ChatHandler) initializeOrUpdateClient(conn *websocket.Conn, userData *user.InternalView) (*chat.Client, *pnd.AppError) {
+func (h *ChatHandler) initializeOrUpdateClient(
+	conn *websocket.Conn, userData *user.InternalView,
+) (*chat.Client, *pnd.AppError) {
 	client, err := h.wsServer.StateManager.FindClientByUID(userData.FirebaseUID)
 	if err != nil {
 		return nil, err
