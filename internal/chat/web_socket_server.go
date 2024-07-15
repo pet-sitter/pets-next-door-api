@@ -1,11 +1,5 @@
 package chat
 
-import (
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
-	"github.com/pet-sitter/pets-next-door-api/internal/service"
-)
-
 type WebSocketServer struct {
 	StateManager   StateManager
 	RegisterChan   chan *Client
@@ -33,32 +27,4 @@ func (server *WebSocketServer) Run() {
 			server.StateManager.BroadcastToClients(message)
 		}
 	}
-}
-
-func (server *WebSocketServer) RegisterClient(client *Client) {
-	server.StateManager.RegisterClient(client)
-}
-
-func (server *WebSocketServer) UnregisterClient(client *Client) {
-	server.StateManager.UnregisterClient(client)
-}
-
-func (server *WebSocketServer) FindClientByUID(uid string) *Client {
-	client, _ := server.StateManager.FindClientByUID(uid)
-	return client
-}
-
-func (server *WebSocketServer) CreateRoom(
-	name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
-) (*Room, *pnd.AppError) {
-	return server.StateManager.CreateRoom(name, roomType, roomService, stateManager)
-}
-
-func (server *WebSocketServer) BroadcastToClients(message []byte) {
-	server.StateManager.BroadcastToClients(message)
-}
-
-func (server *WebSocketServer) FindRoomByID(roomID int64) *Room {
-	room := server.StateManager.FindRoomByID(roomID)
-	return room
 }
