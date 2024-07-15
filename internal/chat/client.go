@@ -2,6 +2,7 @@ package chat
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,9 +19,8 @@ const (
 	// WebSocket 연결에서 마지막으로 받은 메시지 이후로 60초를 기다림
 	pongWait = 60 * time.Second
 	// 서버가 클라이언트에게 ping 메시지를 보내는 주기
-	pingPeriod = (pongWait * 9) / 10
-	// 메시지의 최대 크기를 10,000 바이트
-	maxMessageSize = 10000
+	pingPeriod     = (pongWait * 9) / 10
+	maxMessageSize = 2048
 )
 
 var newline = []byte{'\n'}
@@ -55,6 +55,11 @@ func (client *Client) HandleRead(chatService *service.ChatService) *pnd.AppError
 			}
 			break
 		}
+		if len(jsonMessage) > maxMessageSize {
+			errMsg := fmt.Sprintf("메시지 크기가 최대 크기(%d 바이트)를 초과합니다.", maxMessageSize)
+			client.Conn.WriteMessage(websocket.TextMessage, []byte(errMsg))
+			continue
+		}
 		client.handleNewMessage(jsonMessage, chatService)
 	}
 	return nil
@@ -83,7 +88,6 @@ func (client *Client) HandleWrite() {
 }
 
 func (client *Client) setupConnection() *pnd.AppError {
-	client.Conn.SetReadLimit(maxMessageSize)
 	err := client.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
 		return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "읽기 제한 시간 설정에 실패했습니다.")
@@ -118,6 +122,7 @@ func (client *Client) writeMessage(message []byte) *pnd.AppError {
 		if _, err := w.Write(newline); err != nil {
 			return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "개행 문자 쓰기에 실패했습니다.")
 		}
+
 		if _, err := w.Write(<-client.MessageSender); err != nil {
 			return pnd.NewAppError(err, http.StatusInternalServerError, pnd.ErrCodeUnknown, "채널에서 메시지 읽기에 실패했습니다.")
 		}
