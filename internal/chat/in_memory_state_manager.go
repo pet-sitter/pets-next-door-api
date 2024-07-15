@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -46,14 +45,14 @@ func (m *InMemoryStateManager) UnregisterClient(client *Client) *pnd.AppError {
 	return nil
 }
 
-func (m *InMemoryStateManager) FindClientByUID(uid string) (*Client, *pnd.AppError) {
+func (m *InMemoryStateManager) FindClientByUID(uid string) *Client {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	client, ok := m.clients[uid]
 	if !ok {
-		return nil, pnd.NewAppError(nil, http.StatusNotFound, pnd.ErrCodeUnknown, "클라이언트를 찾을 수 없습니다.")
+		return nil
 	}
-	return client, nil
+	return client
 }
 
 func (m *InMemoryStateManager) FindRoomByID(roomID int64) *Room {
