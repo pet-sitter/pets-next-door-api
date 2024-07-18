@@ -22,7 +22,7 @@ func InitializeWebSocketServer(
 		// 클라이언트를 생성하거나 기존 클라이언트를 재사용
 		client, exists := clientMap[row.UserInfo.FirebaseUID]
 		if !exists {
-			client = NewClient(nil, wsServer.StateManager, row.UserInfo.Nickname, row.UserInfo.FirebaseUID)
+			client = NewClient(nil, row.UserInfo.Nickname, row.UserInfo.FirebaseUID)
 			wsServer.StateManager.RegisterClient(client)
 			clientMap[row.UserInfo.FirebaseUID] = client
 		}
