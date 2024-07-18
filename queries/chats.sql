@@ -28,6 +28,12 @@ joined_at)
 VALUES ($1, $2, NOW())
 RETURNING id, user_id, room_id, joined_at;
 
+-- name: DeleteRoom :exec
+UPDATE
+    chat_rooms
+SET deleted_at = NOW()
+WHERE id = $1;
+
 -- name: LeaveRoom :exec
 UPDATE 
     user_chat_rooms
@@ -95,4 +101,11 @@ SELECT EXISTS (
     SELECT 1
     FROM user_chat_rooms
     WHERE room_id = $1 AND user_id = $2
-) AS is_in_room;
+);
+
+-- name: UserExistsInRoom :one
+SELECT EXISTS (
+    SELECT 1
+    FROM user_chat_rooms
+    WHERE room_id = $1 AND left_at IS NULL
+);

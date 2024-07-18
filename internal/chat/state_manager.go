@@ -12,7 +12,7 @@ type StateManager interface {
 	FindClientByUID(uid string) *Client
 	FindRoomByID(roomID int64) *Room
 	CreateRoom(
-		name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
+		name string, roomType chat.RoomType, roomService *service.ChatService,
 	) (*Room, *pnd.AppError)
 	BroadcastToClients(message []byte) *pnd.AppError
 	JoinRoom(roomID int64, clientID string) *pnd.AppError
