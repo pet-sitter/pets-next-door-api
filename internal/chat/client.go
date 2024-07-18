@@ -229,7 +229,7 @@ func (client *Client) CreateRoomIfNotExists(
 	if room == nil {
 		log.Info().Msgf("ID %d의 방을 찾을 수 없어 새 방을 생성합니다.", message.Room.GetID())
 		var err *pnd.AppError
-		room, err = stateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService, stateManager)
+		room, err = stateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService)
 		if err != nil {
 			log.Error().Err(err.Err).Msg("방 생성에 실패했습니다.")
 			return nil, err
