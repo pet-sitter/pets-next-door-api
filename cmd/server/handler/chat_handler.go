@@ -62,7 +62,7 @@ func (h *ChatHandler) ServerWebsocket(
 
 	// 클라이언트의 메시지를 읽고 쓰는 데 사용되는 고루틴을 시작 (비동기)
 	go client.HandleWrite()
-	go client.HandleRead(&h.chatService)
+	go client.HandleRead(*h.stateManager, &h.chatService)
 
 	return nil
 }
@@ -73,7 +73,7 @@ func (h *ChatHandler) initializeOrUpdateClient(
 ) *chat.Client {
 	client := h.wsServer.StateManager.FindClientByUID(userData.FirebaseUID)
 	if client == nil {
-		client = chat.NewClient(conn, *h.stateManager, userData.Nickname, userData.FirebaseUID)
+		client = chat.NewClient(conn, userData.Nickname, userData.FirebaseUID)
 		h.wsServer.StateManager.RegisterClient(client)
 	} else {
 		// 기존 클라이언트가 있는 경우 연결을 업데이트

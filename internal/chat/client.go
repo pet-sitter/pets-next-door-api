@@ -27,24 +27,22 @@ var newline = []byte{'\n'}
 
 type Client struct {
 	Conn          *websocket.Conn `json:"-"`
-	StateManager  StateManager    `json:"-"`
 	MessageSender chan []byte     `json:"-"`
 	FbUID         string          `json:"id"`
 	Name          string          `json:"name"`
 }
 
-func NewClient(conn *websocket.Conn, stateManager StateManager, name, fbUID string) *Client {
+func NewClient(conn *websocket.Conn, name, fbUID string) *Client {
 	return &Client{
 		FbUID:         fbUID,
 		Name:          name,
 		Conn:          conn,
-		StateManager:  stateManager,
 		MessageSender: make(chan []byte, 256),
 	}
 }
 
-func (client *Client) HandleRead(chatService *service.ChatService) *pnd.AppError {
-	defer client.disconnect()
+func (client *Client) HandleRead(stateManager StateManager, chatService *service.ChatService) *pnd.AppError {
+	defer client.disconnect(stateManager)
 	client.setupConnection()
 
 	for {
@@ -63,7 +61,7 @@ func (client *Client) HandleRead(chatService *service.ChatService) *pnd.AppError
 			}
 			continue
 		}
-		client.handleNewMessage(jsonMessage, chatService)
+		client.handleNewMessage(jsonMessage, stateManager, chatService)
 	}
 	return nil
 }
@@ -155,10 +153,10 @@ func (client *Client) sendPing() *pnd.AppError {
 	return nil
 }
 
-func (client *Client) disconnect() *pnd.AppError {
-	client.StateManager.UnregisterClient(client)
-	for roomID := range client.StateManager.GetClientRooms(client.FbUID) {
-		client.StateManager.LeaveRoom(roomID, client.FbUID)
+func (client *Client) disconnect(stateManager StateManager) *pnd.AppError {
+	stateManager.UnregisterClient(client)
+	for roomID := range stateManager.GetClientRooms(client.FbUID) {
+		stateManager.LeaveRoom(roomID, client.FbUID)
 	}
 	close(client.MessageSender)
 	if err := client.Conn.Close(); err != nil {
@@ -167,7 +165,7 @@ func (client *Client) disconnect() *pnd.AppError {
 	return nil
 }
 
-func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.ChatService) *pnd.AppError {
+func (client *Client) handleNewMessage(jsonMessage []byte, stateManager StateManager, chatService *service.ChatService) *pnd.AppError {
 	var message Message
 	if err := json.Unmarshal(jsonMessage, &message); err != nil {
 		return pnd.NewAppError(err, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "JSON 메시지 해독에 실패했습니다.")
@@ -176,23 +174,23 @@ func (client *Client) handleNewMessage(jsonMessage []byte, chatService *service.
 	switch message.Action {
 	case SendMessageAction:
 		roomID := message.Room.GetID()
-		if room := client.StateManager.FindRoomByID(roomID); room != nil {
+		if room := stateManager.FindRoomByID(roomID); room != nil {
 			room.BroadcastChan <- &message
 		}
 	case JoinRoomAction:
-		client.handleJoinRoomMessage(message, chatService)
+		client.handleJoinRoomMessage(message, stateManager, chatService)
 	case LeaveRoomAction:
-		client.handleLeaveRoomMessage(message.Room.GetID())
+		client.handleLeaveRoomMessage(message.Room.GetID(), stateManager)
 	}
 	return nil
 }
 
-func (client *Client) handleJoinRoomMessage(message Message, chatService *service.ChatService) *pnd.AppError {
+func (client *Client) handleJoinRoomMessage(message Message, stateManager StateManager, chatService *service.ChatService) *pnd.AppError {
 	if message.Room == nil {
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "채팅방 정보가 nil입니다.")
 	}
 
-	room, err := client.CreateRoomIfNotExists(message, chatService)
+	room, err := client.CreateRoomIfNotExists(message, stateManager, chatService)
 	if err != nil {
 		return err
 	}
@@ -201,12 +199,12 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "보낸 사람이 nil입니다.")
 	}
 
-	if !client.StateManager.IsClientInRoom(client.FbUID, message.Room.GetID()) {
+	if !stateManager.IsClientInRoom(client.FbUID, message.Room.GetID()) {
 		if room.RegisterChan == nil {
 			return pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "방 등록 채널이 nil입니다.")
 		}
 
-		client.StateManager.JoinRoom(room.ID, client.FbUID)
+		stateManager.JoinRoom(room.ID, client.FbUID)
 		room.RegisterChan <- client
 		err := client.notifyRoomJoined(room, message.Sender)
 		if err != nil {
@@ -217,15 +215,15 @@ func (client *Client) handleJoinRoomMessage(message Message, chatService *servic
 	return nil
 }
 
-func (client *Client) CreateRoomIfNotExists(message Message, chatService *service.ChatService) (*Room, *pnd.AppError) {
-	if client.StateManager == nil {
+func (client *Client) CreateRoomIfNotExists(message Message, stateManager StateManager, chatService *service.ChatService) (*Room, *pnd.AppError) {
+	if stateManager == nil {
 		return nil, pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "StateManager가 nil입니다.")
 	}
-	room := client.StateManager.FindRoomByID(message.Room.GetID())
+	room := stateManager.FindRoomByID(message.Room.GetID())
 	if room == nil {
 		log.Info().Msgf("ID %d의 방을 찾을 수 없어 새 방을 생성합니다.", message.Room.GetID())
 		var err *pnd.AppError
-		room, err = client.StateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService, client.StateManager)
+		room, err = stateManager.CreateRoom(message.Room.Name, message.Room.RoomType, chatService, stateManager)
 		if err != nil {
 			log.Error().Err(err.Err).Msg("방 생성에 실패했습니다.")
 			return nil, err
@@ -235,9 +233,9 @@ func (client *Client) CreateRoomIfNotExists(message Message, chatService *servic
 	return room, nil
 }
 
-func (client *Client) handleLeaveRoomMessage(roomID int64) {
-	client.StateManager.LeaveRoom(roomID, client.FbUID)
-	room := client.StateManager.FindRoomByID(roomID)
+func (client *Client) handleLeaveRoomMessage(roomID int64, stateManager StateManager) {
+	stateManager.LeaveRoom(roomID, client.FbUID)
+	room := stateManager.FindRoomByID(roomID)
 	room.UnregisterChan <- client
 }
 
