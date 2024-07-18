@@ -14,20 +14,17 @@ type InMemoryStateManager struct {
 	rooms   map[int64]*Room
 	// 클라이언트의 고유 식별자(FbUID)를 키로 사용하고, 클라이언트가 참여한 방의 ID를 값으로 갖는 또 다른 맵을 값으로 가집니다.
 	// 값이 struct{}인 이유는 이중 맵에서 값의 실제 데이터가 필요 없기 때문입니다. struct{}는 메모리를 거의 차지하지 않으므로 효율적입니다.
-	clientRooms map[string]map[int64]struct{}
-	// 방의 고유 식별자(roomID)를 키로 사용하고, 방 객체(*Room)를 값으로 갖습니다.
-	// 방의 고유 식별자(roomID)를 키로 사용하고, 해당 방에 참여한 클라이언트의 고유 식별자를 키로 갖는 또 다른 맵을 값으로 가집니다.
-	// 이 내부 맵은 클라이언트 객체(*Client)를 값으로 갖습니다.
-	roomClients map[int64]map[string]*Client
-	mutex       sync.RWMutex
+	clientRooms    map[string]map[int64]struct{}
+	roomClientUIDs map[int64][]string
+	mutex          sync.RWMutex
 }
 
 func NewInMemoryStateManager() *InMemoryStateManager {
 	return &InMemoryStateManager{
-		clients:     make(map[string]*Client),
-		rooms:       make(map[int64]*Room),
-		clientRooms: make(map[string]map[int64]struct{}),
-		roomClients: make(map[int64]map[string]*Client),
+		clients:        make(map[string]*Client),
+		rooms:          make(map[int64]*Room),
+		clientRooms:    make(map[string]map[int64]struct{}),
+		roomClientUIDs: make(map[int64][]string),
 	}
 }
 
@@ -98,10 +95,7 @@ func (m *InMemoryStateManager) JoinRoom(roomID int64, clientID string) *pnd.AppE
 		m.clientRooms[clientID] = make(map[int64]struct{})
 	}
 	m.clientRooms[clientID][roomID] = struct{}{}
-	if _, ok := m.roomClients[roomID]; !ok {
-		m.roomClients[roomID] = make(map[string]*Client)
-	}
-	m.roomClients[roomID][clientID] = m.clients[clientID]
+	m.roomClientUIDs[roomID] = append(m.roomClientUIDs[roomID], clientID)
 	return nil
 }
 
@@ -109,7 +103,12 @@ func (m *InMemoryStateManager) LeaveRoom(roomID int64, clientID string) *pnd.App
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	delete(m.clientRooms[clientID], roomID)
-	delete(m.roomClients[roomID], clientID)
+	for i, id := range m.roomClientUIDs[roomID] {
+		if id == clientID {
+			m.roomClientUIDs[roomID] = append(m.roomClientUIDs[roomID][:i], m.roomClientUIDs[roomID][i+1:]...)
+			break
+		}
+	}
 	return nil
 }
 
@@ -129,7 +128,11 @@ func (m *InMemoryStateManager) GetClientRooms(clientID string) map[int64]struct{
 func (m *InMemoryStateManager) GetRoomClients(roomID int64) map[string]*Client {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	return m.roomClients[roomID]
+	clientMap := make(map[string]*Client)
+	for _, clientID := range m.roomClientUIDs[roomID] {
+		clientMap[clientID] = m.clients[clientID]
+	}
+	return clientMap
 }
 
 func (m *InMemoryStateManager) SetRoom(room *Room) *pnd.AppError {
