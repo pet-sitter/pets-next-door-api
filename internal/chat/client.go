@@ -165,7 +165,9 @@ func (client *Client) disconnect(stateManager StateManager) *pnd.AppError {
 	return nil
 }
 
-func (client *Client) handleNewMessage(jsonMessage []byte, stateManager StateManager, chatService *service.ChatService) *pnd.AppError {
+func (client *Client) handleNewMessage(
+	jsonMessage []byte, stateManager StateManager, chatService *service.ChatService,
+) *pnd.AppError {
 	var message Message
 	if err := json.Unmarshal(jsonMessage, &message); err != nil {
 		return pnd.NewAppError(err, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "JSON 메시지 해독에 실패했습니다.")
@@ -185,7 +187,9 @@ func (client *Client) handleNewMessage(jsonMessage []byte, stateManager StateMan
 	return nil
 }
 
-func (client *Client) handleJoinRoomMessage(message Message, stateManager StateManager, chatService *service.ChatService) *pnd.AppError {
+func (client *Client) handleJoinRoomMessage(
+	message Message, stateManager StateManager, chatService *service.ChatService,
+) *pnd.AppError {
 	if message.Room == nil {
 		return pnd.NewAppError(nil, http.StatusBadRequest, pnd.ErrCodeInvalidBody, "채팅방 정보가 nil입니다.")
 	}
@@ -215,7 +219,9 @@ func (client *Client) handleJoinRoomMessage(message Message, stateManager StateM
 	return nil
 }
 
-func (client *Client) CreateRoomIfNotExists(message Message, stateManager StateManager, chatService *service.ChatService) (*Room, *pnd.AppError) {
+func (client *Client) CreateRoomIfNotExists(
+	message Message, stateManager StateManager, chatService *service.ChatService,
+) (*Room, *pnd.AppError) {
 	if stateManager == nil {
 		return nil, pnd.NewAppError(nil, http.StatusInternalServerError, pnd.ErrCodeUnknown, "StateManager가 nil입니다.")
 	}
