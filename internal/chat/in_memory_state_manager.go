@@ -63,17 +63,16 @@ func (m *InMemoryStateManager) FindRoomByID(roomID int64) *Room {
 }
 
 func (m *InMemoryStateManager) CreateRoom(
-	name string, roomType chat.RoomType, roomService *service.ChatService, stateManager StateManager,
+	name string, roomType chat.RoomType, chatService *service.ChatService,
 ) (*Room, *pnd.AppError) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
 	ctx := context.Background()
-	row, err := roomService.CreateRoom(ctx, name, roomType)
+
+	row, err := chatService.CreateRoom(ctx, name, roomType)
 	if err != nil {
 		return nil, err
 	}
-	room := NewRoom(row.ID, row.Name, row.RoomType, stateManager)
-	go room.RunRoom(roomService)
+	room := NewRoom(row.ID, row.Name, row.RoomType, m)
+	go room.RunRoom(chatService)
 	m.rooms[room.GetID()] = room
 	return room, nil
 }
