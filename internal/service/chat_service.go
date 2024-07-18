@@ -70,6 +70,17 @@ func (s *ChatService) LeaveRoom(
 	if err != nil {
 		return pnd.FromPostgresError(err)
 	}
+	exists, err := databasegen.New(s.conn).UserExistsInRoom(ctx, roomID)
+	if err != nil {
+		return pnd.FromPostgresError(err)
+	}
+
+	if !exists {
+		err = databasegen.New(s.conn).DeleteRoom(ctx, int32(roomID))
+		if err != nil {
+			return pnd.FromPostgresError(err)
+		}
+	}
 	return nil
 }
 

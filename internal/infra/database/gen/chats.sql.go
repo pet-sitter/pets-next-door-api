@@ -47,12 +47,24 @@ func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (CreateR
 	return i, err
 }
 
+const deleteRoom = `-- name: DeleteRoom :exec
+UPDATE
+    chat_rooms
+SET deleted_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) DeleteRoom(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteRoom, id)
+	return err
+}
+
 const existsUserInRoom = `-- name: ExistsUserInRoom :one
 SELECT EXISTS (
     SELECT 1
     FROM user_chat_rooms
     WHERE room_id = $1 AND user_id = $2
-) AS is_in_room
+)
 `
 
 type ExistsUserInRoomParams struct {
@@ -62,9 +74,9 @@ type ExistsUserInRoomParams struct {
 
 func (q *Queries) ExistsUserInRoom(ctx context.Context, arg ExistsUserInRoomParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, existsUserInRoom, arg.RoomID, arg.UserID)
-	var is_in_room bool
-	err := row.Scan(&is_in_room)
-	return is_in_room, err
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const findMessageByRoomID = `-- name: FindMessageByRoomID :many
@@ -301,6 +313,21 @@ type LeaveRoomParams struct {
 func (q *Queries) LeaveRoom(ctx context.Context, arg LeaveRoomParams) error {
 	_, err := q.db.ExecContext(ctx, leaveRoom, arg.UserID, arg.RoomID)
 	return err
+}
+
+const userExistsInRoom = `-- name: UserExistsInRoom :one
+SELECT EXISTS (
+    SELECT 1
+    FROM user_chat_rooms
+    WHERE room_id = $1 AND left_at IS NULL
+)
+`
+
+func (q *Queries) UserExistsInRoom(ctx context.Context, roomID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, userExistsInRoom, roomID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const writeMessage = `-- name: WriteMessage :one
