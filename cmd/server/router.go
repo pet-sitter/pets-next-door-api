@@ -8,15 +8,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
-	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
+	"github.com/pet-sitter/pets-next-door-api/internal/wschat"
 	pndmiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
 	"github.com/rs/zerolog"
 	echoswagger "github.com/swaggo/echo-swagger"
@@ -56,7 +55,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
-	chatService := service.NewChatService(db)
+	// chatService := service.NewChatService(db)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
@@ -66,14 +65,14 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
 
-	// InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
-	// 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.
-	// 전략 패턴을 사용하여 이 부분을 다른 상태 관리 구현체로 쉽게 교체할 수 있습니다.
-	stateManager := chat.NewInMemoryStateManager()
-	wsServer := chat.NewWebSocketServer(stateManager)
-	go wsServer.Run()
-	chat.InitializeWebSocketServer(ctx, wsServer, chatService)
-	chatHandler := handler.NewChatController(wsServer, stateManager, authService, *chatService)
+	// // InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
+	// // 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.
+	// // 전략 패턴을 사용하여 이 부분을 다른 상태 관리 구현체로 쉽게 교체할 수 있습니다.
+	// stateManager := chat.NewInMemoryStateManager()
+	// wsServer := chat.NewWebSocketServer(stateManager)
+	// go wsServer.Run()
+	// chat.InitializeWebSocketServer(ctx, wsServer, chatService)
+	// chatHandler := handler.NewChatController(wsServer, stateManager, authService, *chatService)
 
 	// RegisterChan middlewares
 	logger := zerolog.New(os.Stdout)
@@ -91,7 +90,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	}))
 	e.Use(pndmiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
 
-	// RegisterChan routes
+	// Register routes
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
@@ -143,11 +142,21 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
 	}
 
+	// chatAPIGroup := apiRouteGroup.Group("/chat")
+	// {
+	// 	chatAPIGroup.GET("/ws", func(c echo.Context) error {
+	// 		return chatHandler.ServerWebsocket(c, c.Response().Writer, c.Request())
+	// 	})
+	// }
+
+	upgrader := wschat.NewDefaultUpgrader()
+	wsServerV2 := wschat.NewWSServer(upgrader, authService)
+
+	go wsServerV2.LoopOverClientMessages()
+
 	chatAPIGroup := apiRouteGroup.Group("/chat")
 	{
-		chatAPIGroup.GET("/ws", func(c echo.Context) error {
-			return chatHandler.ServerWebsocket(c, c.Response().Writer, c.Request())
-		})
+		chatAPIGroup.GET("/ws", wsServerV2.HandleConnections)
 	}
 
 	return e, nil
