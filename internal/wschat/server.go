@@ -101,11 +101,6 @@ func (s *WSServer) LoopOverClientMessages() {
 					strconv.Itoa(int(client.userID)) +
 					" to user: " + strconv.Itoa(int(msgReq.Sender.ID)))
 
-			// Filter messages from the same user
-			if client.userID == msgReq.Sender.ID {
-				continue
-			}
-
 			// TODO: Check if the message is for the room
 			msg := NewPlainMessageResponse(msgReq.Sender, msgReq.Room, msgReq.Message, time.Now())
 
