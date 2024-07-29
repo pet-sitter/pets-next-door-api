@@ -146,7 +146,7 @@ func (c *WSClient) Close() error {
 }
 
 type MessageRequest struct {
-	Sender      Sender `json:"user"`
+	Sender      Sender `json:"sender"`
 	Room        Room   `json:"room"`
 	MessageType string `json:"messageType"`
 	Media       *Media `json:"media,omitempty"`
@@ -154,7 +154,7 @@ type MessageRequest struct {
 }
 
 type MessageResponse struct {
-	Sender      Sender `json:"user"`
+	Sender      Sender `json:"sender"`
 	Room        Room   `json:"room"`
 	MessageType string `json:"messageType"`
 	Media       *Media `json:"media,omitempty"`
