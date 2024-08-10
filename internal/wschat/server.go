@@ -174,7 +174,13 @@ type Media struct {
 	URL       string `json:"url"`
 }
 
-func NewPlainMessageResponse(messageID string, sender Sender, room Room, message string, now time.Time) MessageResponse {
+func NewPlainMessageResponse(
+	messageID string,
+	sender Sender,
+	room Room,
+	message string,
+	now time.Time,
+) MessageResponse {
 	return MessageResponse{
 		MessageID:   messageID,
 		Sender:      sender,
@@ -186,7 +192,13 @@ func NewPlainMessageResponse(messageID string, sender Sender, room Room, message
 	}
 }
 
-func NewMediaMessageResponse(messageID string, sender Sender, room Room, media *Media, now time.Time) MessageResponse {
+func NewMediaMessageResponse(
+	messageID string,
+	sender Sender,
+	room Room,
+	media *Media,
+	now time.Time,
+) MessageResponse {
 	return MessageResponse{
 		MessageID:   messageID,
 		Sender:      sender,
