@@ -102,7 +102,7 @@ func (s *WSServer) LoopOverClientMessages() {
 					" to user: " + strconv.Itoa(int(msgReq.Sender.ID)))
 
 			// TODO: Check if the message is for the room
-			msg := NewPlainMessageResponse(msgReq.Sender, msgReq.Room, msgReq.Message, time.Now())
+			msg := NewPlainMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, msgReq.Message, time.Now())
 
 			if err := client.WriteJSON(msg); err != nil {
 				// No way but to close the connection
@@ -143,6 +143,7 @@ func (c *WSClient) Close() error {
 type MessageRequest struct {
 	Sender      Sender `json:"sender"`
 	Room        Room   `json:"room"`
+	MessageID   string `json:"messageId"`
 	MessageType string `json:"messageType"`
 	Media       *Media `json:"media,omitempty"`
 	Message     string `json:"message"`
@@ -151,6 +152,7 @@ type MessageRequest struct {
 type MessageResponse struct {
 	Sender      Sender `json:"sender"`
 	Room        Room   `json:"room"`
+	MessageID   string `json:"messageId"`
 	MessageType string `json:"messageType"`
 	Media       *Media `json:"media,omitempty"`
 	Message     string `json:"message"`
@@ -172,8 +174,9 @@ type Media struct {
 	URL       string `json:"url"`
 }
 
-func NewPlainMessageResponse(sender Sender, room Room, message string, now time.Time) MessageResponse {
+func NewPlainMessageResponse(messageID string, sender Sender, room Room, message string, now time.Time) MessageResponse {
 	return MessageResponse{
+		MessageID:   messageID,
 		Sender:      sender,
 		Room:        room,
 		MessageType: "plain",
@@ -183,8 +186,9 @@ func NewPlainMessageResponse(sender Sender, room Room, message string, now time.
 	}
 }
 
-func NewMediaMessageResponse(sender Sender, room Room, media *Media, now time.Time) MessageResponse {
+func NewMediaMessageResponse(messageID string, sender Sender, room Room, media *Media, now time.Time) MessageResponse {
 	return MessageResponse{
+		MessageID:   messageID,
 		Sender:      sender,
 		Room:        room,
 		MessageType: "media",
