@@ -150,7 +150,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	// }
 
 	upgrader := wschat.NewDefaultUpgrader()
-	wsServerV2 := wschat.NewWSServer(upgrader, authService)
+	wsServerV2 := wschat.NewWSServer(upgrader, authService, *mediaService)
 
 	go wsServerV2.LoopOverClientMessages()
 
