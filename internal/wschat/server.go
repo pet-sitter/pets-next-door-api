@@ -115,7 +115,6 @@ func (s *WSServer) LoopOverClientMessages() {
 			switch msgReq.MessageType {
 			case "plain":
 				msg = NewPlainMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, msgReq.Message, time.Now())
-				break
 			case "media":
 				if len(msgReq.Medias) == 0 {
 					log.Error().Msg("No media found")
@@ -129,10 +128,10 @@ func (s *WSServer) LoopOverClientMessages() {
 					if err != nil {
 						log.Error().Err(err.Err).Msg("Failed to find media")
 						msg = NewErrorMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, "Failed to find media", time.Now())
+					} else {
+						msg = NewMediaMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, medias, time.Now())
 					}
-					msg = NewMediaMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, medias, time.Now())
 				}
-				break
 			default:
 				log.Error().Msg("Unknown message type")
 				return
@@ -188,7 +187,12 @@ type MessageRequest struct {
 }
 
 func (m MessageRequest) String() string {
-	return "Sender: " + strconv.Itoa(int(m.Sender.ID)) + " Room: " + strconv.Itoa(int(m.Room.ID)) + " MessageID: " + m.MessageID + " MessageType: " + m.MessageType + " Message: " + m.Message + " Medias: " + strconv.Itoa(len(m.Medias))
+	return "Sender: " + strconv.Itoa(int(m.Sender.ID)) +
+		" Room: " + strconv.Itoa(int(m.Room.ID)) +
+		" MessageID: " + m.MessageID +
+		" MessageType: " + m.MessageType +
+		" Message: " + m.Message +
+		" Medias: " + strconv.Itoa(len(m.Medias))
 }
 
 type MessageResponse struct {

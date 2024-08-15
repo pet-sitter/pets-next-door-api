@@ -104,7 +104,7 @@ func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []int64) ([]medi
 	}
 	views := make([]media.DetailView, 0)
 	for _, mediaData := range mediaDataList {
-		views = append(views, *media.ToDetailViewFromFindByIDs(&mediaData))
+		views = append(views, *media.ToDetailViewFromFindByIDs(mediaData))
 	}
 
 	// Sort by given IDs
