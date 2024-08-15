@@ -33,6 +33,9 @@
 
             # https://github.com/swaggo/swag
             go-swag
+
+			# https://github.com/sqlc-dev/sqlc
+			sqlc
           ];
         };
       });
