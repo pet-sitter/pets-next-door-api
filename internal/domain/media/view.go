@@ -33,7 +33,7 @@ func ToDetailViewFromCreated(media databasegen.CreateMediaRow) *DetailView {
 	}
 }
 
-func ToDetailViewFromFindByIDs(media *databasegen.FindMediasByIDsRow) *DetailView {
+func ToDetailViewFromFindByIDs(media databasegen.FindMediasByIDsRow) *DetailView {
 	return &DetailView{
 		ID:        int64(media.ID),
 		MediaType: Type(media.MediaType),
