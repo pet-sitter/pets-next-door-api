@@ -35,6 +35,15 @@ func ToDetailViewFromCreated(media databasegen.CreateMediaRow) *DetailView {
 	}
 }
 
+func ToDetailViewFromFindByIDs(media *databasegen.FindMediasByIDsRow) *DetailView {
+	return &DetailView{
+		ID:        int64(media.ID),
+		MediaType: Type(media.MediaType),
+		URL:       media.Url,
+		CreatedAt: media.CreatedAt,
+	}
+}
+
 func ToDetailViewFromResourceMediaRows(resourceMedia databasegen.FindResourceMediaRow) *DetailView {
 	return &DetailView{
 		ID:        resourceMedia.MediaID,

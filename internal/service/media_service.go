@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"io"
+	"sort"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 
@@ -82,4 +83,43 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id uuid.UUID) (*media.
 	}
 
 	return media.ToDetailView(mediaData), nil
+}
+
+func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []int64) ([]media.DetailView, *pnd.AppError) {
+	if len(ids) == 0 {
+		return make([]media.DetailView, 0), nil
+	}
+
+	// TODO: filter unique IDs
+	idsToGet := make([]int32, 0)
+	for _, id := range ids {
+		idsToGet = append(idsToGet, int32(id))
+	}
+	mediaDataList, err := databasegen.New(s.conn).FindMediasByIDs(ctx, databasegen.FindMediasByIDsParams{
+		Ids:            idsToGet,
+		IncludeDeleted: false,
+	})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	views := make([]media.DetailView, 0)
+	for _, mediaData := range mediaDataList {
+		views = append(views, *media.ToDetailViewFromFindByIDs(&mediaData))
+	}
+
+	// Sort by given IDs
+	sort.Slice(views, func(i, j int) bool {
+		return FindIndex(ids, views[i].ID) < FindIndex(ids, views[j].ID)
+	})
+
+	return views, nil
+}
+
+func FindIndex(arr []int64, val int64) int {
+	for i, v := range arr {
+		if v == val {
+			return i
+		}
+	}
+	return -1
 }

@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createRoom = `-- name: CreateRoom :one
@@ -27,7 +29,7 @@ type CreateRoomParams struct {
 }
 
 type CreateRoomRow struct {
-	ID        int32
+	ID        uuid.UUID
 	Name      string
 	RoomType  string
 	CreatedAt time.Time
@@ -54,7 +56,7 @@ SET deleted_at = NOW()
 WHERE id = $1
 `
 
-func (q *Queries) DeleteRoom(ctx context.Context, id int32) error {
+func (q *Queries) DeleteRoom(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteRoom, id)
 	return err
 }
@@ -68,8 +70,8 @@ SELECT EXISTS (
 `
 
 type ExistsUserInRoomParams struct {
-	RoomID int64
-	UserID int64
+	RoomID uuid.UUID
+	UserID uuid.UUID
 }
 
 func (q *Queries) ExistsUserInRoom(ctx context.Context, arg ExistsUserInRoomParams) (bool, error) {
@@ -97,13 +99,13 @@ LIMIT $1 OFFSET $2
 type FindMessageByRoomIDParams struct {
 	Limit  int32
 	Offset int32
-	RoomID sql.NullInt64
+	RoomID uuid.NullUUID
 }
 
 type FindMessageByRoomIDRow struct {
-	ID          int32
-	UserID      int64
-	RoomID      int64
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
 	MessageType string
 	Content     string
 }
@@ -152,14 +154,14 @@ WHERE
 `
 
 type FindRoomByIDRow struct {
-	ID        int32
+	ID        uuid.UUID
 	Name      string
 	RoomType  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt32) (FindRoomByIDRow, error) {
+func (q *Queries) FindRoomByID(ctx context.Context, id uuid.NullUUID) (FindRoomByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, findRoomByID, id)
 	var i FindRoomByIDRow
 	err := row.Scan(
@@ -204,9 +206,9 @@ WHERE
 `
 
 type FindUserChatRoomsRow struct {
-	ID                int32
-	UserID            int64
-	RoomID            int64
+	ID                uuid.UUID
+	UserID            uuid.UUID
+	RoomID            uuid.UUID
 	JoinedAt          time.Time
 	Email             string
 	Nickname          string
@@ -216,7 +218,7 @@ type FindUserChatRoomsRow struct {
 	FbUid             sql.NullString
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
-	ChatRoomID        int32
+	ChatRoomID        uuid.UUID
 	ChatRoomName      string
 	ChatRoomType      string
 	ChatRoomCreatedAt time.Time
@@ -274,14 +276,14 @@ RETURNING id, user_id, room_id, joined_at
 `
 
 type JoinRoomParams struct {
-	UserID int64
-	RoomID int64
+	UserID uuid.UUID
+	RoomID uuid.UUID
 }
 
 type JoinRoomRow struct {
-	ID       int32
-	UserID   int64
-	RoomID   int64
+	ID       uuid.UUID
+	UserID   uuid.UUID
+	RoomID   uuid.UUID
 	JoinedAt time.Time
 }
 
@@ -306,8 +308,8 @@ AND room_id = $2
 `
 
 type LeaveRoomParams struct {
-	UserID int64
-	RoomID int64
+	UserID uuid.UUID
+	RoomID uuid.UUID
 }
 
 func (q *Queries) LeaveRoom(ctx context.Context, arg LeaveRoomParams) error {
@@ -323,7 +325,7 @@ SELECT EXISTS (
 )
 `
 
-func (q *Queries) UserExistsInRoom(ctx context.Context, roomID int64) (bool, error) {
+func (q *Queries) UserExistsInRoom(ctx context.Context, roomID uuid.UUID) (bool, error) {
 	row := q.db.QueryRowContext(ctx, userExistsInRoom, roomID)
 	var exists bool
 	err := row.Scan(&exists)
@@ -343,16 +345,16 @@ RETURNING id, user_id, room_id, message_type, content, created_at, updated_at
 `
 
 type WriteMessageParams struct {
-	UserID      int64
-	RoomID      int64
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
 	MessageType string
 	Content     string
 }
 
 type WriteMessageRow struct {
-	ID          int32
-	UserID      int64
-	RoomID      int64
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
 	MessageType string
 	Content     string
 	CreatedAt   time.Time
