@@ -617,3 +617,7 @@ issues:
         - gosec
         - noctx
         - wrapcheck
+    - path: internal/tests/config.go # https://github.com/golangci/golangci-lint/issues/4697
+      text: "don't use `init` function"
+    - path: internal/configs/server.go
+      text: "don't use `init` function"
