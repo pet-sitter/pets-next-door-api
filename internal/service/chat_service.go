@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
-	"time"
 )
 
 type ChatService struct {
@@ -137,8 +138,7 @@ func (s *ChatService) ExistsUserInRoom(ctx context.Context, roomID int64, fbUID 
 	return exists, nil
 }
 
-func (s *ChatService) MockFindAllChatRooms(ctx context.Context) (*[]chat.Room, *pnd.AppError) {
-
+func (s *ChatService) MockFindAllChatRooms() (*[]chat.Room, *pnd.AppError) {
 	rooms := []chat.Room{
 		{
 			ID:        1,
@@ -161,7 +161,7 @@ func (s *ChatService) MockFindAllChatRooms(ctx context.Context) (*[]chat.Room, *
 	return &rooms, nil
 }
 
-func (s *ChatService) MockFindMessagesByRoomID(ctx context.Context, roomID int64) (*[]chat.Message, *pnd.AppError) {
+func (s *ChatService) MockFindMessagesByRoomID(roomID int64) (*[]chat.Message, *pnd.AppError) {
 	messages := []chat.Message{
 		{
 			ID:          1,
