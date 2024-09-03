@@ -134,7 +134,7 @@ func TestFindRoomByID(t *testing.T) {
 		createdRoom, _ := chatService.CreateRoom(ctx, roomName, roomType)
 
 		// When
-		foundRoom, err := chatService.FindRoomByID(ctx, &createdRoom.ID)
+		foundRoom, err := chatService.FindRoomByID(ctx, createdRoom.ID)
 
 		// Then
 		assert.Nil(t, err)
