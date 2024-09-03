@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
-	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
@@ -57,7 +56,6 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
 	chatService := service.NewChatService(db)
-	stateManager := chat.NewInMemoryStateManager()
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
@@ -66,7 +64,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
-	chatHandler := handler.NewChatHandler(stateManager, authService, *chatService)
+	chatHandler := handler.NewChatHandler(authService, *chatService)
 
 	// // InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
 	// // 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.
@@ -156,8 +154,10 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		chatAPIGroup.POST("/rooms", chatHandler.CreateRoom)
 		chatAPIGroup.PUT("/rooms/:roomID/join", chatHandler.JoinChatRoom)
 		chatAPIGroup.PUT("/rooms/:roomID/leave", chatHandler.LeaveChatRoom)
-		chatAPIGroup.GET("/rooms", chatHandler.FindAllRooms)
 		chatAPIGroup.GET("/rooms/:roomID", chatHandler.FindRoomByID)
+
+		// Mock
+		chatAPIGroup.GET("/rooms", chatHandler.FindAllRooms)
 		chatAPIGroup.GET("/rooms/:roomID/messages", chatHandler.FindMessagesByRoomID)
 	}
 

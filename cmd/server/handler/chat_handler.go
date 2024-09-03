@@ -5,29 +5,35 @@ import (
 
 	"github.com/labstack/echo/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	domain "github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type ChatHandler struct {
-	stateManager *chat.StateManager
-	authService  service.AuthService
-	chatService  service.ChatService
+	authService service.AuthService
+	chatService service.ChatService
 }
 
 func NewChatHandler(
-	stateManager chat.StateManager,
 	authService service.AuthService,
 	chatService service.ChatService,
 ) *ChatHandler {
 	return &ChatHandler{
-		stateManager: &stateManager,
-		authService:  authService,
-		chatService:  chatService,
+		authService: authService,
+		chatService: chatService,
 	}
 }
 
+// FindRoomByID godoc
+// @Summary 채팅방을 조회합니다.
+// @Description
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Param roomID path int true "채팅방 ID"
+// @Security FirebaseAuth
+// @Success 200 {object} domain.Room
+// @Router /chat/rooms/{roomID} [get]
 func (h ChatHandler) FindRoomByID(c echo.Context) error {
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
@@ -42,6 +48,16 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// CreateRoom godoc
+// @Summary 채팅방을 생성합니다.
+// @Description
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Param request body domain.CreateRoomRequest true "채팅방 생성 요청"
+// @Security FirebaseAuth
+// @Success 201 {object} domain.Room
+// @Router /chat/rooms [post]
 func (h ChatHandler) CreateRoom(c echo.Context) error {
 	var createRoomRequest domain.CreateRoomRequest
 	if err := pnd.ParseBody(c, &createRoomRequest); err != nil {
@@ -56,6 +72,16 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 	return c.JSON(http.StatusCreated, res)
 }
 
+// JoinChatRoom godoc
+// @Summary 채팅방에 참가합니다.
+// @Description 채팅방에 참가합니다.
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Param roomID path int true "채팅방 ID"
+// @Security FirebaseAuth
+// @Success 200 {object} domain.JoinRoomView
+// @Router /chat/rooms/{roomID}/join [post]
 func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
@@ -75,6 +101,16 @@ func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// LeaveChatRoom godoc
+// @Summary 채팅방을 나갑니다.
+// @Description 채팅방을 나갑니다.
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Param roomID path int true "채팅방 ID"
+// @Security FirebaseAuth
+// @Success 200
+// @Router /chat/rooms/{roomID}/leave [post]
 func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
 	if err != nil {
@@ -90,6 +126,15 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// FindAllRooms godoc
+// @Summary 모든 채팅방을 조회합니다.
+// @Description 모든 채팅방을 조회합니다. ( 현재는 Mock 데이터로 응답합니다 )
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Security FirebaseAuth
+// @Success 200 {object} []domain.Room
+// @Router /chat/rooms [get]
 func (h ChatHandler) FindAllRooms(c echo.Context) error {
 	rooms, err := h.chatService.MockFindAllChatRooms()
 	if err != nil {
@@ -98,6 +143,16 @@ func (h ChatHandler) FindAllRooms(c echo.Context) error {
 	return c.JSON(http.StatusOK, rooms)
 }
 
+// FindMessagesByRoomID godoc
+// @Summary 채팅방의 메시지를 조회합니다.
+// @Description 채팅방의 메시지를 조회합니다. ( 현재는 Mock 데이터로 응답합니다 )
+// @Tags chat
+// @Accept  json
+// @Produce  json
+// @Param roomID path int true "채팅방 ID"
+// @Security FirebaseAuth
+// @Success 200 {object} []domain.Message
+// @Router /chat/rooms/{roomID}/messages [get]
 func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
