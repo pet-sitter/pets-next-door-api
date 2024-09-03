@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"net/http"
 	"os"
 
@@ -55,7 +56,8 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
-	// chatService := service.NewChatService(db)
+	chatService := service.NewChatService(db)
+	stateManager := chat.NewInMemoryStateManager()
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
@@ -64,6 +66,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
+	chatHandler := handler.NewChatHandler(stateManager, authService, *chatService)
 
 	// // InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
 	// // 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.
@@ -72,7 +75,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	// wsServer := chat.NewWebSocketServer(stateManager)
 	// go wsServer.Run()
 	// chat.InitializeWebSocketServer(ctx, wsServer, chatService)
-	// chatHandler := handler.NewChatController(wsServer, stateManager, authService, *chatService)
+	// chatHandler := handler.NewChatHandler(wsServer, stateManager, authService, *chatService)
 
 	// RegisterChan middlewares
 	logger := zerolog.New(os.Stdout)
@@ -142,13 +145,6 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
 	}
 
-	// chatAPIGroup := apiRouteGroup.Group("/chat")
-	// {
-	// 	chatAPIGroup.GET("/ws", func(c echo.Context) error {
-	// 		return chatHandler.ServerWebsocket(c, c.Response().Writer, c.Request())
-	// 	})
-	// }
-
 	upgrader := wschat.NewDefaultUpgrader()
 	wsServerV2 := wschat.NewWSServer(upgrader, authService, *mediaService)
 
@@ -157,6 +153,12 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	chatAPIGroup := apiRouteGroup.Group("/chat")
 	{
 		chatAPIGroup.GET("/ws", wsServerV2.HandleConnections)
+		chatAPIGroup.POST("/rooms", chatHandler.CreateRoom)
+		chatAPIGroup.PUT("/rooms/:roomID/join", chatHandler.JoinChatRoom)
+		chatAPIGroup.PUT("/rooms/:roomID/leave", chatHandler.LeaveChatRoom)
+		chatAPIGroup.GET("/rooms", chatHandler.FindAllRooms)
+		chatAPIGroup.GET("/rooms/:roomID", chatHandler.FindRoomByID)
+		chatAPIGroup.GET("/rooms/:roomID/messages", chatHandler.FindMessagesByRoomID)
 	}
 
 	return e, nil
