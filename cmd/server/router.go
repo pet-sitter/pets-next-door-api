@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"net/http"
 	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pet-sitter/pets-next-door-api/cmd/server/handler"
+	"github.com/pet-sitter/pets-next-door-api/internal/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/auth"
 	s3infra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
