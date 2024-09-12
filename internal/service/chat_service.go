@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
@@ -19,8 +20,7 @@ func NewChatService(conn *database.DB) *ChatService {
 	}
 }
 
-// Transactional 보장 어떻게함
-func (s *ChatService) CreateRoom(ctx context.Context, name string, roomType string, joinUserIds *[]int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
+func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joinUserIds *[]int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
 	// 채팅방 생성
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -114,7 +114,6 @@ func (s *ChatService) FindAllByUserUID(ctx context.Context, fbUID string) (*chat
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -136,7 +135,6 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 	}
 
 	row, err := databasegen.New(s.conn).FindRoomByIDAndUserID(ctx, roomID, int64(userData.ID))
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -144,15 +142,13 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 	return chat.ToUserChatRoomView(row), nil
 }
 
-func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID int64, prev int64, next int64, limit int64) (*chat.MessageCursorView, *pnd.AppError) {
-
+func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID, prev, next, limit int64) (*chat.MessageCursorView, *pnd.AppError) {
 	hasNext, hasPrev, rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
 		Prev:   prev,
 		Next:   next,
 		Limit:  limit,
 		RoomID: roomID,
 	})
-
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
