@@ -104,3 +104,43 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 
 	return page, size, nil
 }
+
+func ParseCursorPaginationQueries(c echo.Context, defaultLimit int) (prev int, next int, limit int, err *AppError) {
+	prevQuery := c.QueryParam("prev")
+	nextQuery := c.QueryParam("next")
+	sizeQuery := c.QueryParam("size")
+
+	if prevQuery == "" && nextQuery == "" {
+		return 0, 0, 0, ErrInvalidPagination(errors.New("expected either prev or next query"))
+	}
+
+	if prevQuery != "" {
+		var atoiError error
+		prev, atoiError = strconv.Atoi(prevQuery)
+		if atoiError != nil || prev <= 0 {
+			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: prev"))
+		}
+	}
+
+	if nextQuery != "" {
+		var atoiError error
+		next, atoiError = strconv.Atoi(nextQuery)
+		if atoiError != nil || next <= 0 {
+			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: next"))
+		}
+	}
+
+	if sizeQuery != "" {
+		var atoiError error
+		limit, atoiError = strconv.Atoi(sizeQuery)
+		if atoiError != nil || limit <= 0 {
+			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: size"))
+		}
+	}
+
+	if limit == 0 {
+		limit = defaultLimit
+	}
+
+	return prev, next, limit, nil
+}
