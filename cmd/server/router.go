@@ -155,8 +155,6 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		chatAPIGroup.PUT("/rooms/:roomID/join", chatHandler.JoinChatRoom)
 		chatAPIGroup.PUT("/rooms/:roomID/leave", chatHandler.LeaveChatRoom)
 		chatAPIGroup.GET("/rooms/:roomID", chatHandler.FindRoomByID)
-
-		// Mock
 		chatAPIGroup.GET("/rooms", chatHandler.FindAllRooms)
 		chatAPIGroup.GET("/rooms/:roomID/messages", chatHandler.FindMessagesByRoomID)
 	}

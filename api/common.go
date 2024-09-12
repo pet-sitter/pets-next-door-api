@@ -54,3 +54,21 @@ func setHeaders(w http.ResponseWriter, headers map[string]string) {
 		w.Header().Set(key, value)
 	}
 }
+
+type CursorPaginatedView[T interface{}] struct {
+	Prev    string `json:"prev"`
+	Next    string `json:"next"`
+	HasPrev bool   `json:"hasPrev"`
+	HasNext bool   `json:"hasNext"`
+	Items   []T    `json:"items"`
+}
+
+func NewCursorPaginatedView[T interface{}](prev, next string, hasPrev, hasNext bool, items []T) *CursorPaginatedView[T] {
+	return &CursorPaginatedView[T]{
+		Prev:    prev,
+		Next:    next,
+		HasPrev: hasPrev,
+		HasNext: hasNext,
+		Items:   items,
+	}
+}

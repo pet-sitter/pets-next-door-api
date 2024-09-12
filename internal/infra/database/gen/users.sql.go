@@ -292,3 +292,41 @@ func (q *Queries) UpdateUserByFbUID(ctx context.Context, arg UpdateUserByFbUIDPa
 	)
 	return i, err
 }
+
+func (q *Queries) FindUsersByIds(ctx context.Context, ids []int64) ([]FindUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, FindUsersByIDs, ids)
+	if err != nil || rows == nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	var items []FindUsersRow
+	for rows.Next() {
+		var i FindUsersRow
+		if err := rows.Scan(&i.ID, &i.Nickname, &i.ProfileImageUrl); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const FindUsersByIDs = `-- name: FindUsersByIDs :many
+SELECT users.id,
+	   users.nickname,
+	   media.url AS profile_image_url
+FROM users
+		 LEFT OUTER JOIN
+	 media
+	 ON
+		 users.profile_image_id = media.id
+
+WHERE users.id = ANY($1)
+AND users.deleted_at IS NULL
+`

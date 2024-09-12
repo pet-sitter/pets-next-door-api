@@ -1,100 +1,100 @@
 package chat
 
 import (
-	"time"
-
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
+	"strconv"
 )
 
-type JoinRoomView struct {
-	UserID   int64
-	RoomID   int64
-	JoinedAt time.Time
+func ToCreateRoom(row databasegen.CreateRoomRow, users *[]JoinUsersSimpleInfo) *RoomSimpleInfo {
+	return &RoomSimpleInfo{
+		ID:        string(row.ID),
+		RoomName:  row.Name,
+		RoomType:  row.RoomType,
+		JoinUsers: users,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
+	}
 }
 
-type UserChatRoomView struct {
-	ID       int64
-	UserID   int64
-	RoomID   int64
-	JoinedAt time.Time
-	UserInfo user.WithProfileImage
-	RoomInfo *Room
+func ToJoinUsers(row []databasegen.FindUsersRow) *[]JoinUsersSimpleInfo {
+
+	if len(row) == 0 {
+		return nil
+	}
+
+	joinUsers := make([]JoinUsersSimpleInfo, len(row))
+
+	for i, r := range row {
+		joinUsers[i] = JoinUsersSimpleInfo{
+			ID:               string(r.ID),
+			UserNickname:     r.Nickname,
+			UserProfileImage: r.ProfileImageUrl,
+		}
+	}
+	return &joinUsers
 }
 
-type UserChatRoomViewList []*UserChatRoomView
-
-func ToJoinRoomView(row databasegen.JoinRoomRow) *JoinRoomView {
-	return &JoinRoomView{
-		UserID:   row.UserID,
-		RoomID:   row.RoomID,
+func ToJoinRoom(row databasegen.JoinRoomRow) *JoinRoom {
+	return &JoinRoom{
+		UserID:   strconv.FormatInt(row.UserID, 10),
+		RoomID:   strconv.FormatInt(row.RoomID, 10),
 		JoinedAt: row.JoinedAt,
 	}
 }
 
-func ToCreateRoom(row databasegen.CreateRoomRow) *Room {
-	return &Room{
-		ID:        int64(row.ID),
-		Name:      row.Name,
-		RoomType:  RoomType(row.RoomType),
+func ToUserChatRoomsView(rows []databasegen.FindAllUserChatRoomsRow) *JoinRoomsView {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	// rows를 반복하며 JoinRoomsView로 변환
+	roomSimpleInfos := make([]RoomSimpleInfo, len(rows))
+	for i, r := range rows {
+		roomSimpleInfos[i] = RoomSimpleInfo{
+			ID:        strconv.FormatInt(r.UserID, 10),
+			RoomName:  r.ChatRoomName,
+			RoomType:  r.ChatRoomType,
+			CreatedAt: r.ChatRoomCreatedAt,
+			UpdatedAt: r.ChatRoomUpdatedAt,
+		}
+	}
+
+	return &JoinRoomsView{
+		Items: roomSimpleInfos,
+	}
+}
+
+func ToUserChatRoomView(row databasegen.FindRoomByIDRow) *RoomSimpleInfo {
+	return &RoomSimpleInfo{
+		ID:        strconv.FormatInt(int64(row.ID), 10),
+		RoomName:  row.Name,
+		RoomType:  row.RoomType,
 		CreatedAt: row.CreatedAt,
 		UpdatedAt: row.UpdatedAt,
 	}
 }
 
-func ToMessage(row databasegen.WriteMessageRow) *Message {
-	return &Message{
-		ID:        int64(row.ID),
-		RoomID:    row.RoomID,
-		UserID:    row.UserID,
-		Content:   row.Content,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+func ToUserChatRoomMessageView(row []databasegen.FindMessageByRoomIDRow, hasNext *bool, hasPrev *bool) *MessageCursorView {
+	if len(row) == 0 {
+		return nil
 	}
-}
 
-func ToRoom(row databasegen.FindRoomByIDRow) *Room {
-	return &Room{
-		ID:        int64(row.ID),
-		Name:      row.Name,
-		RoomType:  RoomType(row.RoomType),
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+	messages := make([]Message, len(row))
+	for i, r := range row {
+		messages[i] = Message{
+			ID:          int64(r.ID),
+			UserID:      r.UserID,
+			RoomID:      r.RoomID,
+			MessageType: r.MessageType,
+			Content:     r.Content,
+			CreatedAt:   r.CreatedAt,
+		}
 	}
-}
 
-func ToUserChatRoom(row databasegen.FindUserChatRoomsRow) *UserChatRoomView {
-	return &UserChatRoomView{
-		ID:       int64(row.ID),
-		UserID:   row.UserID,
-		RoomID:   row.RoomID,
-		JoinedAt: row.JoinedAt,
-		UserInfo: user.WithProfileImage{
-			ID:                   int64(row.ID),
-			Email:                row.Email,
-			Nickname:             row.Nickname,
-			Fullname:             row.Fullname,
-			ProfileImageURL:      utils.NullStrToStrPtr(row.ProfileImageUrl),
-			FirebaseProviderType: user.FirebaseProviderType(row.FbProviderType.String),
-			FirebaseUID:          row.FbUid.String,
-			CreatedAt:            row.CreatedAt,
-			UpdatedAt:            row.UpdatedAt,
-		},
-		RoomInfo: &Room{
-			ID:        row.RoomID,
-			Name:      row.ChatRoomName,
-			RoomType:  RoomType(row.ChatRoomType),
-			CreatedAt: row.ChatRoomCreatedAt,
-			UpdatedAt: row.ChatRoomUpdatedAt,
-		},
+	return &MessageCursorView{
+		Items:   messages,
+		HasNext: hasNext,
+		HasPrev: hasPrev,
 	}
-}
 
-func ToUserChatRoomFromRows(rows []databasegen.FindUserChatRoomsRow) UserChatRoomViewList {
-	userChatRooms := make([]*UserChatRoomView, len(rows))
-	for i, row := range rows {
-		userChatRooms[i] = ToUserChatRoom(row)
-	}
-	return userChatRooms
 }

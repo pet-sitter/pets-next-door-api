@@ -85,19 +85,30 @@ SELECT
     user_id,
     room_id,
     message_type,
-    content
+    content,
+	created_at
 FROM
     chat_messages
 WHERE
-    room_id = $3
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
+	chat_messages.deleted_at IS NULL
+AND
+    room_id = $4
+AND
+    (($1 != 0 AND $2 != 0 AND id > $1 AND id < $2) 
+OR 
+    ($1 != 0 AND $2 = 0 AND id < $1) 
+OR 
+    ($1 = 0 AND $2 != 0 AND id > $2)) 
+ORDER BY
+    chat_messages.created_at ASC
+LIMIT $3
 `
 
 type FindMessageByRoomIDParams struct {
-	Limit  int32
-	Offset int32
-	RoomID sql.NullInt64
+	Prev   int64
+	Next   int64
+	Limit  int64
+	RoomID int64
 }
 
 type FindMessageByRoomIDRow struct {
@@ -106,15 +117,23 @@ type FindMessageByRoomIDRow struct {
 	RoomID      int64
 	MessageType string
 	Content     string
+	CreatedAt   time.Time
 }
 
-func (q *Queries) FindMessageByRoomID(ctx context.Context, arg FindMessageByRoomIDParams) ([]FindMessageByRoomIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, findMessageByRoomID, arg.Limit, arg.Offset, arg.RoomID)
+func (q *Queries) FindMessageByRoomID(ctx context.Context, arg FindMessageByRoomIDParams) (*bool, *bool, []FindMessageByRoomIDRow, error) {
+	// Limit + 1로 메시지 조회
+	rows, err := q.db.QueryContext(ctx, findMessageByRoomID, arg.Prev, arg.Next, arg.Limit+1, arg.RoomID)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 	defer rows.Close()
+
 	var items []FindMessageByRoomIDRow
+	hasPrev := false
+	hasNext := false
+	var firstID int64
+	var lastID int64
+
 	for rows.Next() {
 		var i FindMessageByRoomIDRow
 		if err := rows.Scan(
@@ -123,21 +142,53 @@ func (q *Queries) FindMessageByRoomID(ctx context.Context, arg FindMessageByRoom
 			&i.RoomID,
 			&i.MessageType,
 			&i.Content,
+			&i.CreatedAt,
 		); err != nil {
-			return nil, err
+			return nil, nil, nil, err
 		}
+
+		// 첫 번째 ID 추출
+		if firstID == 0 {
+			firstID = int64(i.ID)
+		}
+		// 마지막 ID 추출
+		lastID = int64(i.ID)
+
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
+
+	// Next 이후 메시지가 있는지 확인 (Limit + 1 로 가져와서 확인)
+	if int64(len(items)) > arg.Limit {
+		hasNext = true
+		items = items[:len(items)-1] // 추가된 마지막 항목을 삭제하여 반환된 메시지 수를 Limit에 맞춤
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
+
+	// 첫 번째 메시지의 ID를 기준으로 이전 메시지가 있는지 확인
+	if firstID != 0 {
+		checkPrevQuery := `SELECT COUNT(1) FROM chat_messages WHERE room_id = $1 AND id < $2 AND deleted_at IS NULL`
+		checkPrevRow := q.db.QueryRowContext(ctx, checkPrevQuery, arg.RoomID, firstID)
+		var count int
+		if err := checkPrevRow.Scan(&count); err == nil && count > 0 {
+			hasPrev = true
+		}
 	}
-	return items, nil
+
+	// 마지막 메시지의 ID를 기준으로 이후 메시지가 있는지 확인
+	if lastID != 0 {
+		checkNextQuery := `SELECT COUNT(1) FROM chat_messages WHERE room_id = $1 AND id > $2 AND deleted_at IS NULL`
+		checkNextRow := q.db.QueryRowContext(ctx, checkNextQuery, arg.RoomID, lastID)
+		var count int
+		if err := checkNextRow.Scan(&count); err == nil && count > 0 {
+			hasNext = true
+		}
+	}
+
+	// 결과 반환
+	return &hasNext, &hasPrev, items, nil
 }
 
-const findRoomByID = `-- name: FindRoomByID :one
+
+const findRoomByIDAndUserID = `-- name: FindRoomByIDAndUserID :one
 SELECT
     id,
     name,
@@ -147,8 +198,15 @@ SELECT
 FROM
     chat_rooms
 WHERE
-    (chat_rooms.id = $1)
-    AND (chat_rooms.deleted_at IS NULL)
+	chat_rooms.deleted_at IS NULL
+    AND	(chat_rooms.id = $1)
+	AND EXISTS (
+		SELECT 1
+		FROM user_chat_rooms
+		WHERE user_id = $2
+		AND room_id = chat_rooms.id
+		AND left_at IS NULL
+	)
 `
 
 type FindRoomByIDRow struct {
@@ -157,10 +215,11 @@ type FindRoomByIDRow struct {
 	RoomType  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt time.Time
 }
 
-func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt32) (FindRoomByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, findRoomByID, id)
+func (q *Queries) FindRoomByIDAndUserID(ctx context.Context, roomId int64, userId int64) (FindRoomByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, findRoomByIDAndUserID, roomId, userId)
 	var i FindRoomByIDRow
 	err := row.Scan(
 		&i.ID,
@@ -172,7 +231,7 @@ func (q *Queries) FindRoomByID(ctx context.Context, id sql.NullInt32) (FindRoomB
 	return i, err
 }
 
-const findUserChatRooms = `-- name: FindUserChatRooms :many
+const findAllUserChatRooms = `-- name: FindAllUserChatRoomsByUserUID :many
 SELECT
     user_chat_rooms.id,
     user_chat_rooms.user_id,
@@ -201,9 +260,13 @@ FROM
         ON users.profile_image_id = media.id
 WHERE
     user_chat_rooms.left_at IS NULL
+AND 
+	chat_rooms.deleted_at IS NULL
+AND
+     user_chat_rooms.user_id = $1
 `
 
-type FindUserChatRoomsRow struct {
+type FindAllUserChatRoomsRow struct {
 	ID                int32
 	UserID            int64
 	RoomID            int64
@@ -223,15 +286,15 @@ type FindUserChatRoomsRow struct {
 	ChatRoomUpdatedAt time.Time
 }
 
-func (q *Queries) FindUserChatRooms(ctx context.Context) ([]FindUserChatRoomsRow, error) {
-	rows, err := q.db.QueryContext(ctx, findUserChatRooms)
+func (q *Queries) FindAllUserChatRoomsByUserUID(ctx context.Context, userId int64) ([]FindAllUserChatRoomsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllUserChatRooms, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindUserChatRoomsRow
+	var items []FindAllUserChatRoomsRow
 	for rows.Next() {
-		var i FindUserChatRoomsRow
+		var i FindAllUserChatRoomsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -272,10 +335,23 @@ joined_at)
 VALUES ($1, $2, NOW())
 RETURNING id, user_id, room_id, joined_at
 `
+const joinRooms = `-- name: JoinRooms :exec
+INSERT INTO user_chat_rooms
+(user_id,
+room_id,
+joined_at)
+VALUES ($1, $2, NOW())
+RETURNING id, user_id, room_id, joined_at
+`
 
 type JoinRoomParams struct {
 	UserID int64
 	RoomID int64
+}
+
+type JoinRoomsParams struct {
+	UserIDs []int64
+	RoomID  int64
 }
 
 type JoinRoomRow struct {
@@ -295,6 +371,35 @@ func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow
 		&i.JoinedAt,
 	)
 	return i, err
+}
+
+func (q *Queries) JoinRooms(ctx context.Context, arg JoinRoomsParams) error {
+	rows, err := q.db.QueryContext(ctx, joinRooms, arg.UserIDs, arg.RoomID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	var items []JoinRoomRow
+	for rows.Next() {
+		var i JoinRoomRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.RoomID,
+			&i.JoinedAt,
+		); err != nil {
+			return err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return nil
+
 }
 
 const leaveRoom = `-- name: LeaveRoom :exec
@@ -328,53 +433,4 @@ func (q *Queries) UserExistsInRoom(ctx context.Context, roomID int64) (bool, err
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
-}
-
-const writeMessage = `-- name: WriteMessage :one
-INSERT INTO chat_messages
-(user_id,
-room_id,
-message_type,
-content,
-created_at,
-updated_at)
-VALUES ($1, $2, $3, $4, NOW(), NOW())
-RETURNING id, user_id, room_id, message_type, content, created_at, updated_at
-`
-
-type WriteMessageParams struct {
-	UserID      int64
-	RoomID      int64
-	MessageType string
-	Content     string
-}
-
-type WriteMessageRow struct {
-	ID          int32
-	UserID      int64
-	RoomID      int64
-	MessageType string
-	Content     string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-func (q *Queries) WriteMessage(ctx context.Context, arg WriteMessageParams) (WriteMessageRow, error) {
-	row := q.db.QueryRowContext(ctx, writeMessage,
-		arg.UserID,
-		arg.RoomID,
-		arg.MessageType,
-		arg.Content,
-	)
-	var i WriteMessageRow
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.RoomID,
-		&i.MessageType,
-		&i.Content,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
 }
