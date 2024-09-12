@@ -12,7 +12,7 @@ type (
 
 func (t RoomType) IsValid() bool {
 	switch t {
-	case EVENT_ROOM_TYPE:
+	case EventRoomType:
 		return true
 	default:
 		return false
@@ -20,11 +20,11 @@ func (t RoomType) IsValid() bool {
 }
 
 const (
-	EVENT_ROOM_TYPE = "event"
+	EventRoomType = "event"
 )
 
 const (
-	EVENT_MESSAGE = "event"
+	EventMessage = "event"
 )
 
 type RoomSimpleInfo struct {

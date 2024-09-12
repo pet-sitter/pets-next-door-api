@@ -17,7 +17,6 @@ func ToCreateRoom(row databasegen.CreateRoomRow, users *[]JoinUsersSimpleInfo) *
 }
 
 func ToJoinUsers(row []databasegen.FindUsersRow) *[]JoinUsersSimpleInfo {
-
 	if len(row) == 0 {
 		return nil
 	}
@@ -74,7 +73,7 @@ func ToUserChatRoomView(row databasegen.FindRoomByIDRow) *RoomSimpleInfo {
 	}
 }
 
-func ToUserChatRoomMessageView(row []databasegen.FindMessageByRoomIDRow, hasNext *bool, hasPrev *bool) *MessageCursorView {
+func ToUserChatRoomMessageView(row []databasegen.FindMessageByRoomIDRow, hasNext, hasPrev *bool) *MessageCursorView {
 	if len(row) == 0 {
 		return nil
 	}
@@ -96,5 +95,4 @@ func ToUserChatRoomMessageView(row []databasegen.FindMessageByRoomIDRow, hasNext
 		HasNext: hasNext,
 		HasPrev: hasPrev,
 	}
-
 }

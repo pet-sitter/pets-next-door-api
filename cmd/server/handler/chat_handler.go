@@ -1,11 +1,12 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	domain "github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
-	"net/http"
 )
 
 type ChatHandler struct {
@@ -75,7 +76,6 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 		createRoomRequest.RoomType,
 		createRoomRequest.JoinUserIds,
 	)
-
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -148,7 +148,6 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 // @Router /chat/rooms [get]
 func (h ChatHandler) FindAllRooms(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
-
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -188,7 +187,6 @@ func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 		int64(next),
 		int64(limit),
 	)
-
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

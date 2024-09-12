@@ -105,7 +105,7 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 	return page, size, nil
 }
 
-func ParseCursorPaginationQueries(c echo.Context, defaultLimit int) (prev int, next int, limit int, err *AppError) {
+func ParseCursorPaginationQueries(c echo.Context, defaultLimit int) (prev, next, limit int, err *AppError) {
 	prevQuery := c.QueryParam("prev")
 	nextQuery := c.QueryParam("next")
 	sizeQuery := c.QueryParam("size")
