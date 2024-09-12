@@ -20,7 +20,9 @@ func NewChatService(conn *database.DB) *ChatService {
 	}
 }
 
-func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joinUserIds *[]int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
+func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joinUserIDs *[]int64) (
+	*chat.RoomSimpleInfo, *pnd.AppError,
+) {
 	// 채팅방 생성
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -40,14 +42,14 @@ func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joi
 	}
 
 	// 채팅방에 참여하는 인원이 없을 경우 방만 생성
-	if joinUserIds == nil || len(*joinUserIds) == 0 {
+	if joinUserIDs == nil || len(*joinUserIDs) == 0 {
 		return chat.ToCreateRoom(row, nil), nil
 	}
 
 	// 채팅방에 참여하는 인원이 있을 경우 참여자 추가
 	err3 := q.JoinRooms(ctx, databasegen.JoinRoomsParams{
 		RoomID:  int64(row.ID),
-		UserIDs: *joinUserIds,
+		UserIDs: *joinUserIDs,
 	})
 	if err3 != nil {
 		return nil, pnd.FromPostgresError(err3)
@@ -55,7 +57,7 @@ func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joi
 
 	tx.Commit()
 
-	joinUsers, err4 := databasegen.New(s.conn).FindUsersByIds(ctx, *joinUserIds)
+	joinUsers, err4 := databasegen.New(s.conn).FindUsersByIds(ctx, *joinUserIDs)
 
 	if err4 != nil {
 		return nil, pnd.FromPostgresError(err4)
@@ -126,7 +128,9 @@ func (s *ChatService) FindAllByUserUID(ctx context.Context, fbUID string) (*chat
 	return chat.ToUserChatRoomsView(rows), nil
 }
 
-func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID string, roomID int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
+func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID string, roomID int64) (
+	*chat.RoomSimpleInfo, *pnd.AppError,
+) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -142,7 +146,9 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 	return chat.ToUserChatRoomView(row), nil
 }
 
-func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID, prev, next, limit int64) (*chat.MessageCursorView, *pnd.AppError) {
+func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID, prev, next, limit int64) (
+	*chat.MessageCursorView, *pnd.AppError,
+) {
 	hasNext, hasPrev, rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
 		Prev:   prev,
 		Next:   next,
