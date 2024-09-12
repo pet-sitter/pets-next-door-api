@@ -1,8 +1,9 @@
 package chat
 
 import (
-	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 	"strconv"
+
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 func ToCreateRoom(row databasegen.CreateRoomRow, users *[]JoinUsersSimpleInfo) *RoomSimpleInfo {
