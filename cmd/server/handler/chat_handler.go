@@ -32,7 +32,7 @@ func NewChatHandler(
 // @Produce  json
 // @Param roomID path int true "채팅방 ID"
 // @Security FirebaseAuth
-// @Success 200 {object} domain.Room
+// @Success 200 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms/{roomID} [get]
 func (h ChatHandler) FindRoomByID(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -61,7 +61,7 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 // @Produce  json
 // @Param request body domain.CreateRoomRequest true "채팅방 생성 요청"
 // @Security FirebaseAuth
-// @Success 201 {object} domain.Room
+// @Success 201 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms [post]
 func (h ChatHandler) CreateRoom(c echo.Context) error {
 	var createRoomRequest domain.CreateRoomRequest
@@ -138,13 +138,13 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 }
 
 // FindAllRooms godoc
-// @Summary 유저가 소속되어 있는 모든 채팅방을 조회합니다.
-// @Description 유저가 소속되어 있는 채팅방 전체 목록을 조회합니다.
+// @Summary 사용자의 채팅방 목록을 조회합니다.
+// @Description 사용자의 채팅방 목록을 조회합니다.
 // @Tags chat
 // @Accept  json
 // @Produce  json
 // @Security FirebaseAuth
-// @Success 200 {object} []domain.Room
+// @Success 200 {object} []domain.JoinRoomsView
 // @Router /chat/rooms [get]
 func (h ChatHandler) FindAllRooms(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
@@ -160,14 +160,17 @@ func (h ChatHandler) FindAllRooms(c echo.Context) error {
 }
 
 // FindMessagesByRoomID godoc
-// @Summary 채팅방의 메시지를 조회합니다.
-// @Description 채팅방의 메시지를 조회합니다.
+// @Summary 채팅방의 메시지 목록을 조회합니다.
+// @Description 채팅방의 메시지 목록을 조회합니다.
 // @Tags chat
 // @Accept  json
 // @Produce  json
 // @Param roomID path int true "채팅방 ID"
+// @Param prev query int false "이전 페이지"
+// @Param next query int false "다음 페이지"
+// @Param size query int false "페이지 사이즈" default(30)
 // @Security FirebaseAuth
-// @Success 200 {object} []domain.Message
+// @Success 200 {object} domain.MessageCursorView
 // @Router /chat/rooms/{roomID}/messages [get]
 func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
