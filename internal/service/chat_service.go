@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
-
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
@@ -21,22 +19,52 @@ func NewChatService(conn *database.DB) *ChatService {
 	}
 }
 
-func (s *ChatService) CreateRoom(
-	ctx context.Context, name string, roomType chat.RoomType,
-) (*chat.Room, *pnd.AppError) {
-	row, err := databasegen.New(s.conn).CreateRoom(ctx, databasegen.CreateRoomParams{
-		Name:     name,
-		RoomType: string(roomType),
-	})
+// Transactional 보장 어떻게함
+func (s *ChatService) CreateRoom(ctx context.Context, name string, roomType string, joinUserIds *[]int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
+	// 채팅방 생성
+	tx, err := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
+
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
-	return chat.ToCreateRoom(row), nil
+	q := databasegen.New(tx)
+
+	row, err2 := q.CreateRoom(ctx, databasegen.CreateRoomParams{
+		Name:     name,
+		RoomType: roomType,
+	})
+
+	if err2 != nil {
+		return nil, pnd.FromPostgresError(err2)
+	}
+
+	// 채팅방에 참여하는 인원이 없을 경우 방만 생성
+	if joinUserIds == nil || len(*joinUserIds) == 0 {
+		return chat.ToCreateRoom(row, nil), nil
+	}
+
+	// 채팅방에 참여하는 인원이 있을 경우 참여자 추가
+	err3 := q.JoinRooms(ctx, databasegen.JoinRoomsParams{
+		RoomID:  int64(row.ID),
+		UserIDs: *joinUserIds,
+	})
+	if err3 != nil {
+		return nil, pnd.FromPostgresError(err3)
+	}
+
+	tx.Commit()
+
+	joinUsers, err4 := databasegen.New(s.conn).FindUsersByIds(ctx, *joinUserIds)
+
+	if err4 != nil {
+		return nil, pnd.FromPostgresError(err4)
+	}
+
+	return chat.ToCreateRoom(row, chat.ToJoinUsers(joinUsers)), nil
 }
 
-func (s *ChatService) JoinRoom(
-	ctx context.Context, roomID int64, fbUID string,
-) (*chat.JoinRoomView, *pnd.AppError) {
+func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) (*chat.JoinRoom, *pnd.AppError) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -51,12 +79,10 @@ func (s *ChatService) JoinRoom(
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return chat.ToJoinRoomView(row), nil
+	return chat.ToJoinRoom(row), nil
 }
 
-func (s *ChatService) LeaveRoom(
-	ctx context.Context, roomID int64, fbUID string,
-) *pnd.AppError {
+func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string) *pnd.AppError {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -84,103 +110,52 @@ func (s *ChatService) LeaveRoom(
 	return nil
 }
 
-func (s *ChatService) SaveMessage(
-	ctx context.Context, roomID int64, fbUID, message string, messageType chat.MessageType,
-) (*chat.Message, *pnd.AppError) {
+func (s *ChatService) FindAllByUserUID(ctx context.Context, fbUID string) (*chat.JoinRoomsView, *pnd.AppError) {
+	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
+		FbUid: utils.StrToNullStr(fbUID),
+	})
+
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+	rows, err := databasegen.New(s.conn).FindAllUserChatRoomsByUserUID(ctx, int64(userData.ID))
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
+	// rows를 반복하며 각 row에 대해 ToJoinRoom을 호출하여 JoinRoom으로 변환
+	return chat.ToUserChatRoomsView(rows), nil
+}
+
+func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID string, roomID int64) (*chat.RoomSimpleInfo, *pnd.AppError) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-	row, err := databasegen.New(s.conn).WriteMessage(ctx, databasegen.WriteMessageParams{
-		RoomID:      roomID,
-		UserID:      int64(userData.ID),
-		MessageType: string(messageType),
-		Content:     message,
-	})
+
+	row, err := databasegen.New(s.conn).FindRoomByIDAndUserID(ctx, roomID, int64(userData.ID))
+
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-	return chat.ToMessage(row), nil
+
+	return chat.ToUserChatRoomView(row), nil
 }
 
-func (s *ChatService) FindRoomByID(ctx context.Context, roomID int64) (*chat.Room, *pnd.AppError) {
-	row, err := databasegen.New(s.conn).FindRoomByID(ctx, utils.Int64ToNullInt32(roomID))
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	return chat.ToRoom(row), nil
-}
+func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID int64, prev int64, next int64, limit int64) (*chat.MessageCursorView, *pnd.AppError) {
 
-func (s *ChatService) FindUserChatRoom(ctx context.Context) (chat.UserChatRoomViewList, *pnd.AppError) {
-	rows, err := databasegen.New(s.conn).FindUserChatRooms(ctx)
-	if err != nil {
-		return nil, pnd.FromPostgresError(err)
-	}
-	return chat.ToUserChatRoomFromRows(rows), nil
-}
-
-func (s *ChatService) ExistsUserInRoom(ctx context.Context, roomID int64, fbUID string) (bool, *pnd.AppError) {
-	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
-		FbUid: utils.StrToNullStr(fbUID),
-	})
-	if err != nil {
-		return false, pnd.FromPostgresError(err)
-	}
-	exists, err := databasegen.New(s.conn).ExistsUserInRoom(ctx, databasegen.ExistsUserInRoomParams{
+	hasNext, hasPrev, rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
+		Prev:   prev,
+		Next:   next,
+		Limit:  limit,
 		RoomID: roomID,
-		UserID: int64(userData.ID),
 	})
+
 	if err != nil {
-		return false, pnd.FromPostgresError(err)
-	}
-	return exists, nil
-}
-
-func (s *ChatService) MockFindAllChatRooms() (*[]chat.Room, *pnd.AppError) {
-	rooms := []chat.Room{
-		{
-			ID:        1,
-			Name:      "Room 1",
-			RoomType:  chat.RoomTypePersonal,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			DeletedAt: time.Now(),
-		},
-		{
-			ID:        2,
-			Name:      "Room 2",
-			RoomType:  chat.RoomTypeGathering,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			DeletedAt: time.Now(),
-		},
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	return &rooms, nil
-}
-
-func (s *ChatService) MockFindMessagesByRoomID(roomID int64) (*[]chat.Message, *pnd.AppError) {
-	messages := []chat.Message{
-		{
-			ID:          1,
-			RoomID:      roomID,
-			UserID:      1,
-			Content:     "Hello",
-			MessageType: "normal",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		},
-		{
-			ID:          2,
-			RoomID:      roomID,
-			UserID:      2,
-			Content:     "Hi",
-			MessageType: "normal",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		},
-	}
-	return &messages, nil
+	return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
 }
