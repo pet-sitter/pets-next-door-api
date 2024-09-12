@@ -74,7 +74,7 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 		c.Request().Context(),
 		createRoomRequest.RoomName,
 		createRoomRequest.RoomType,
-		createRoomRequest.JoinUserIds,
+		createRoomRequest.JoinUserIDs,
 	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
