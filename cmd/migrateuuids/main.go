@@ -44,7 +44,7 @@ func main() {
 
 	ctx := context.Background()
 
-	pndErr := migrate(ctx, db, MigrateOptions{ReadOnly: true, Force: false})
+	pndErr := migrate(ctx, db, MigrateOptions{ReadOnly: *readOnlyPtr, Force: *forcePtr})
 	if pndErr != nil {
 		panic(pndErr.Err)
 	}

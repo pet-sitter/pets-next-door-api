@@ -108,6 +108,10 @@ func migrate(ctx context.Context, db *database.DB, options MigrateOptions) *pnd.
 	if err != nil {
 		return err
 	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -251,7 +255,7 @@ func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 				}
 
 				if !options.ReadOnly {
-					_, err = tx.Exec("UPDATE "+target.Table+" SET "+fk.UUIDColumn+" = $1 WHERE id = $2", uuidValue, row.ID)
+					_, err = tx.Exec("UPDATE "+target.Table+" SET "+fk.UUIDColumn+" = $1 WHERE id = $2", *uuidValue, row.ID)
 					if err != nil {
 						return pnd.ErrUnknown(
 							fmt.Errorf("error updating UUID column in table %s with id %d due to %w", target.Table, row.ID, err),
