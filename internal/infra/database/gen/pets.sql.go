@@ -10,12 +10,14 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
 const createPet = `-- name: CreatePet :one
 INSERT INTO pets
-(owner_id,
+(id,
+ owner_id,
  name,
  pet_type,
  sex,
@@ -27,12 +29,13 @@ INSERT INTO pets
  profile_image_id,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
 RETURNING id, created_at, updated_at
 `
 
 type CreatePetParams struct {
-	OwnerID        int64
+	ID             uuid.UUID
+	OwnerID        uuid.UUID
 	Name           string
 	PetType        string
 	Sex            string
@@ -41,17 +44,18 @@ type CreatePetParams struct {
 	BirthDate      time.Time
 	WeightInKg     string
 	Remarks        string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 }
 
 type CreatePetRow struct {
-	ID        int32
+	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 func (q *Queries) CreatePet(ctx context.Context, arg CreatePetParams) (CreatePetRow, error) {
 	row := q.db.QueryRowContext(ctx, createPet,
+		arg.ID,
 		arg.OwnerID,
 		arg.Name,
 		arg.PetType,
@@ -75,7 +79,7 @@ SET deleted_at = NOW()
 WHERE id = $1
 `
 
-func (q *Queries) DeletePet(ctx context.Context, id int32) error {
+func (q *Queries) DeletePet(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deletePet, id)
 	return err
 }
@@ -108,14 +112,14 @@ LIMIT 1
 `
 
 type FindPetParams struct {
-	ID             sql.NullInt32
-	OwnerID        sql.NullInt64
+	ID             uuid.NullUUID
+	OwnerID        uuid.NullUUID
 	IncludeDeleted bool
 }
 
 type FindPetRow struct {
-	ID              int32
-	OwnerID         int64
+	ID              uuid.UUID
+	OwnerID         uuid.UUID
 	Name            string
 	PetType         string
 	Sex             string
@@ -183,14 +187,14 @@ LIMIT $1 OFFSET $2
 type FindPetsParams struct {
 	Limit          int32
 	Offset         int32
-	ID             sql.NullInt32
-	OwnerID        sql.NullInt64
+	ID             uuid.NullUUID
+	OwnerID        uuid.NullUUID
 	IncludeDeleted bool
 }
 
 type FindPetsRow struct {
-	ID              int32
-	OwnerID         int64
+	ID              uuid.UUID
+	OwnerID         uuid.UUID
 	Name            string
 	PetType         string
 	Sex             string
@@ -269,20 +273,20 @@ FROM pets
      media
      ON
          pets.profile_image_id = media.id
-WHERE pets.id = ANY ($1::int[])
+WHERE pets.id = ANY ($1::uuid[])
   AND ($2::boolean = TRUE OR
        ($2::boolean = FALSE AND pets.deleted_at IS NULL))
 ORDER BY pets.created_at DESC
 `
 
 type FindPetsByIDsParams struct {
-	Ids            []int32
+	Ids            []uuid.UUID
 	IncludeDeleted bool
 }
 
 type FindPetsByIDsRow struct {
-	ID              int32
-	OwnerID         int64
+	ID              uuid.UUID
+	OwnerID         uuid.UUID
 	Name            string
 	PetType         string
 	Sex             string
@@ -364,8 +368,8 @@ WHERE sos_posts_pets.sos_post_id = $1
 `
 
 type FindPetsBySOSPostIDRow struct {
-	ID              int32
-	OwnerID         int64
+	ID              uuid.UUID
+	OwnerID         uuid.UUID
 	Name            string
 	PetType         string
 	Sex             string
@@ -380,7 +384,7 @@ type FindPetsBySOSPostIDRow struct {
 	DeletedAt       sql.NullTime
 }
 
-func (q *Queries) FindPetsBySOSPostID(ctx context.Context, sosPostID sql.NullInt64) ([]FindPetsBySOSPostIDRow, error) {
+func (q *Queries) FindPetsBySOSPostID(ctx context.Context, sosPostID uuid.UUID) ([]FindPetsBySOSPostIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, findPetsBySOSPostID, sosPostID)
 	if err != nil {
 		return nil, err
@@ -433,14 +437,14 @@ WHERE id = $1
 `
 
 type UpdatePetParams struct {
-	ID             int32
+	ID             uuid.UUID
 	Name           string
 	Neutered       bool
 	Breed          string
 	BirthDate      time.Time
 	WeightInKg     string
 	Remarks        string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 }
 
 func (q *Queries) UpdatePet(ctx context.Context, arg UpdatePetParams) error {

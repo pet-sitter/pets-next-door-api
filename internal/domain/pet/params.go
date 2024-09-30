@@ -1,20 +1,21 @@
 package pet
 
 import (
+	"github.com/google/uuid"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type FindPetParams struct {
-	ID             *int64
-	OwnerID        *int64
+	ID             uuid.NullUUID
+	OwnerID        uuid.NullUUID
 	IncludeDeleted bool
 }
 
 func (p *FindPetParams) ToDBParams() databasegen.FindPetParams {
 	return databasegen.FindPetParams{
-		ID:             utils.Int64PtrToNullInt32(p.ID),
-		OwnerID:        utils.Int64PtrToNullInt64(p.OwnerID),
+		ID:             p.ID,
+		OwnerID:        p.OwnerID,
 		IncludeDeleted: p.IncludeDeleted,
 	}
 }
@@ -22,8 +23,8 @@ func (p *FindPetParams) ToDBParams() databasegen.FindPetParams {
 type FindPetsParams struct {
 	Page           int
 	Size           int
-	ID             *int64
-	OwnerID        *int64
+	ID             uuid.NullUUID
+	OwnerID        uuid.NullUUID
 	IncludeDeleted bool
 }
 
@@ -32,8 +33,8 @@ func (p *FindPetsParams) ToDBParams() databasegen.FindPetsParams {
 	return databasegen.FindPetsParams{
 		Limit:          int32(pagination.Limit),
 		Offset:         int32(pagination.Offset),
-		ID:             utils.Int64PtrToNullInt32(p.ID),
-		OwnerID:        utils.Int64PtrToNullInt64(p.OwnerID),
+		ID:             p.ID,
+		OwnerID:        p.OwnerID,
 		IncludeDeleted: p.IncludeDeleted,
 	}
 }

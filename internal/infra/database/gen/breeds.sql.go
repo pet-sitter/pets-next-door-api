@@ -9,24 +9,28 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createBreed = `-- name: CreateBreed :one
-INSERT INTO breeds (name,
+INSERT INTO breeds (id,
+                    name,
                     pet_type,
                     created_at,
                     updated_at)
-VALUES ($1, $2, NOW(), NOW())
+VALUES ($1, $2, $3, NOW(), NOW())
 RETURNING id, pet_type, name, created_at, updated_at
 `
 
 type CreateBreedParams struct {
+	ID      uuid.UUID
 	Name    string
 	PetType string
 }
 
 type CreateBreedRow struct {
-	ID        int32
+	ID        uuid.UUID
 	PetType   string
 	Name      string
 	CreatedAt time.Time
@@ -34,7 +38,7 @@ type CreateBreedRow struct {
 }
 
 func (q *Queries) CreateBreed(ctx context.Context, arg CreateBreedParams) (CreateBreedRow, error) {
-	row := q.db.QueryRowContext(ctx, createBreed, arg.Name, arg.PetType)
+	row := q.db.QueryRowContext(ctx, createBreed, arg.ID, arg.Name, arg.PetType)
 	var i CreateBreedRow
 	err := row.Scan(
 		&i.ID,
@@ -69,7 +73,7 @@ type FindBreedsParams struct {
 }
 
 type FindBreedsRow struct {
-	ID        int32
+	ID        uuid.UUID
 	Name      string
 	PetType   string
 	CreatedAt time.Time

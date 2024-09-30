@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 
@@ -32,7 +33,7 @@ func (service *SOSConditionService) InitConditions(ctx context.Context) (soscond
 	conditionList := make([]databasegen.SosCondition, len(soscondition.AvailableNames))
 	for idx, conditionName := range soscondition.AvailableNames {
 		created, err := databasegen.New(tx).CreateSOSCondition(ctx, databasegen.CreateSOSConditionParams{
-			ID:   int32(idx + 1),
+			ID:   datatype.NewUUIDV7(),
 			Name: utils.StrToNullStr(conditionName.String()),
 		})
 		if err != nil {

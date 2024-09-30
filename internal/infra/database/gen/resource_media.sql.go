@@ -9,36 +9,45 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createResourceMedia = `-- name: CreateResourceMedia :one
 INSERT INTO resource_media
-(resource_id,
+(id,
+ resource_id,
  media_id,
  resource_type,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, NOW(), NOW())
+VALUES ($1, $2, $3, $4, NOW(), NOW())
 RETURNING id, resource_id, media_id, resource_type, created_at, updated_at
 `
 
 type CreateResourceMediaParams struct {
-	ResourceID   sql.NullInt64
-	MediaID      sql.NullInt64
+	ID           uuid.UUID
+	ResourceID   uuid.UUID
+	MediaID      uuid.UUID
 	ResourceType sql.NullString
 }
 
 type CreateResourceMediaRow struct {
-	ID           int32
-	ResourceID   sql.NullInt64
-	MediaID      sql.NullInt64
+	ID           uuid.UUID
+	ResourceID   uuid.UUID
+	MediaID      uuid.UUID
 	ResourceType sql.NullString
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
 
 func (q *Queries) CreateResourceMedia(ctx context.Context, arg CreateResourceMediaParams) (CreateResourceMediaRow, error) {
-	row := q.db.QueryRowContext(ctx, createResourceMedia, arg.ResourceID, arg.MediaID, arg.ResourceType)
+	row := q.db.QueryRowContext(ctx, createResourceMedia,
+		arg.ID,
+		arg.ResourceID,
+		arg.MediaID,
+		arg.ResourceType,
+	)
 	var i CreateResourceMediaRow
 	err := row.Scan(
 		&i.ID,
@@ -54,13 +63,11 @@ func (q *Queries) CreateResourceMedia(ctx context.Context, arg CreateResourceMed
 const deleteResourceMediaByResourceID = `-- name: DeleteResourceMediaByResourceID :exec
 UPDATE
     resource_media
-SET
-    deleted_at = NOW()
-WHERE
-    resource_id = $1
+SET deleted_at = NOW()
+WHERE resource_id = $1
 `
 
-func (q *Queries) DeleteResourceMediaByResourceID(ctx context.Context, resourceID sql.NullInt64) error {
+func (q *Queries) DeleteResourceMediaByResourceID(ctx context.Context, resourceID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteResourceMediaByResourceID, resourceID)
 	return err
 }
@@ -83,13 +90,13 @@ WHERE (rm.resource_id = $1 OR $1 IS NULL)
 `
 
 type FindResourceMediaParams struct {
-	ResourceID     sql.NullInt64
+	ResourceID     uuid.NullUUID
 	ResourceType   sql.NullString
 	IncludeDeleted bool
 }
 
 type FindResourceMediaRow struct {
-	MediaID   int32
+	MediaID   uuid.UUID
 	MediaType string
 	Url       string
 	CreatedAt time.Time

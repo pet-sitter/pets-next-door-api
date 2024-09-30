@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"io"
+
+	"github.com/google/uuid"
 
 	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -43,6 +46,8 @@ func (s *MediaService) UploadMedia(
 		return nil, err
 	}
 
+	fmt.Println("created", created)
+
 	return created, nil
 }
 
@@ -56,6 +61,7 @@ func (s *MediaService) CreateMedia(
 	}
 
 	created, err2 := databasegen.New(s.conn).CreateMedia(ctx, databasegen.CreateMediaParams{
+		ID:        datatype.NewUUIDV7(),
 		MediaType: mediaType.String(),
 		Url:       url,
 	})
@@ -69,9 +75,9 @@ func (s *MediaService) CreateMedia(
 	return media.ToDetailViewFromCreated(created), nil
 }
 
-func (s *MediaService) FindMediaByID(ctx context.Context, id int64) (*media.DetailView, *pnd.AppError) {
+func (s *MediaService) FindMediaByID(ctx context.Context, id uuid.UUID) (*media.DetailView, *pnd.AppError) {
 	mediaData, err := databasegen.New(s.conn).FindSingleMedia(ctx, databasegen.FindSingleMediaParams{
-		ID: utils.Int64ToNullInt32(id),
+		ID: uuid.NullUUID{UUID: id, Valid: true},
 	})
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)

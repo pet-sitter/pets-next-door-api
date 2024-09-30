@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/uuid"
+
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
@@ -26,7 +28,7 @@ func (f FirebaseProviderType) NullString() sql.NullString {
 }
 
 type WithProfileImage struct {
-	ID                   int64
+	ID                   uuid.UUID
 	Email                string
 	Password             string
 	Nickname             string
@@ -41,7 +43,7 @@ type WithProfileImage struct {
 
 func ToWithProfileImage(row databasegen.FindUserRow) *WithProfileImage {
 	return &WithProfileImage{
-		ID:                   int64(row.ID),
+		ID:                   row.ID,
 		Email:                row.Email,
 		Nickname:             row.Nickname,
 		Fullname:             row.Fullname,

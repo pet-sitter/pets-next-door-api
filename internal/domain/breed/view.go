@@ -1,20 +1,21 @@
 package breed
 
 import (
+	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type DetailView struct {
-	ID      int64            `json:"id"`
+	ID      uuid.UUID        `json:"id"`
 	PetType commonvo.PetType `json:"petType"`
 	Name    string           `json:"name"`
 }
 
 func ToDetailViewFromRows(row databasegen.FindBreedsRow) *DetailView {
 	return &DetailView{
-		ID:      int64(row.ID),
+		ID:      row.ID,
 		PetType: commonvo.PetType(row.PetType),
 		Name:    row.Name,
 	}

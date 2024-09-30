@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/google/uuid"
+
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -20,16 +22,14 @@ func ParseBody(c echo.Context, payload interface{}) *AppError {
 	return nil
 }
 
-func ParseIDFromPath(c echo.Context, path string) (*int, *AppError) {
-	id, err := strconv.Atoi(c.Param(path))
+func ParseIDFromPath(c echo.Context, path string) (uuid.UUID, *AppError) {
+	idStr := c.Param(path)
+	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return nil, ErrInvalidParam(err)
-	}
-	if id <= 0 {
-		return nil, ErrInvalidParam(fmt.Errorf("expected integer value bigger than 0 for path: %s", path))
+		return uuid.UUID{}, ErrInvalidParam(fmt.Errorf("expected valid UUID for path: %s", path))
 	}
 
-	return &id, nil
+	return id, nil
 }
 
 func ParseOptionalIntQuery(c echo.Context, query string) (*int, *AppError) {

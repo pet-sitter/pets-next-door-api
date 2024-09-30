@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"log"
 
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -116,6 +117,7 @@ func importBreed(
 	}
 
 	breedData, err := databasegen.New(conn).CreateBreed(ctx, databasegen.CreateBreedParams{
+		ID:      datatype.NewUUIDV7(),
 		Name:    row.Breed,
 		PetType: petType.String(),
 	})
@@ -131,7 +133,7 @@ func importBreed(
 	)
 
 	return &breed.DetailView{
-		ID:      int64(breedData.ID),
+		ID:      breedData.ID,
 		PetType: commonvo.PetType(breedData.PetType),
 		Name:    breedData.Name,
 	}, nil

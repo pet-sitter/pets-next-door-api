@@ -1,26 +1,14 @@
 package pet
 
 import (
+	"github.com/google/uuid"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 	"github.com/shopspring/decimal"
 )
 
-type LegacyView struct {
-	ID              int              `json:"id"`
-	Name            string           `json:"name"`
-	PetType         commonvo.PetType `json:"petType"`
-	Sex             Gender           `json:"sex"`
-	Neutered        bool             `json:"neutered"`
-	Breed           string           `json:"breed"`
-	BirthDate       string           `json:"birthDate"`
-	WeightInKg      decimal.Decimal  `json:"weightInKg"`
-	Remarks         string           `json:"remarks"`
-	ProfileImageURL *string          `json:"profileImageUrl"`
-}
-
 type DetailView struct {
-	ID              int64            `json:"id"`
+	ID              uuid.UUID        `json:"id"`
 	Name            string           `json:"name"`
 	PetType         commonvo.PetType `json:"petType"`
 	Sex             Gender           `json:"sex"`

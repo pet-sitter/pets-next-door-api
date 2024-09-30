@@ -1,6 +1,7 @@
 -- name: CreateUser :one
 INSERT INTO users
-(email,
+(id,
+ email,
  nickname,
  fullname,
  password,
@@ -9,7 +10,7 @@ INSERT INTO users
  fb_uid,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
 RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at;
 
 -- name: FindUsers :many

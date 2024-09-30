@@ -1,11 +1,13 @@
 package soscondition
 
+import "github.com/google/uuid"
+
 type ViewForSOSPost struct {
-	ID        int    `field:"id"`
-	Name      string `field:"name"`
-	CreatedAt string `field:"created_at"`
-	UpdatedAt string `field:"update_at"`
-	DeletedAt string `field:"deleted_at"`
+	ID        uuid.UUID `field:"id"`
+	Name      string    `field:"name"`
+	CreatedAt string    `field:"created_at"`
+	UpdatedAt string    `field:"update_at"`
+	DeletedAt string    `field:"deleted_at"`
 }
 
 type ViewListForSOSPost []*ViewForSOSPost

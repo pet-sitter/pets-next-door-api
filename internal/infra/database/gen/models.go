@@ -6,41 +6,40 @@ package databasegen
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type BasePost struct {
-	ID        int32
 	Title     sql.NullString
 	Content   sql.NullString
-	AuthorID  sql.NullInt64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt sql.NullTime
+	ID        uuid.UUID
+	AuthorID  uuid.UUID
 }
 
 type Breed struct {
-	ID        int32
 	Name      string
 	PetType   string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt sql.NullTime
+	ID        uuid.UUID
 }
 
 type Medium struct {
-	ID        int32
 	MediaType string
 	Url       string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt sql.NullTime
+	ID        uuid.UUID
 }
 
 type Pet struct {
-	ID             int32
-	OwnerID        int64
 	Name           string
 	PetType        string
 	Sex            string
@@ -52,81 +51,82 @@ type Pet struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      sql.NullTime
-	ProfileImageID sql.NullInt64
 	Remarks        string
+	ID             uuid.UUID
+	OwnerID        uuid.UUID
+	ProfileImageID uuid.NullUUID
 }
 
 type ResourceMedium struct {
-	ID           int32
-	MediaID      sql.NullInt64
-	ResourceID   sql.NullInt64
 	ResourceType sql.NullString
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    sql.NullTime
+	ID           uuid.UUID
+	MediaID      uuid.UUID
+	ResourceID   uuid.UUID
 }
 
 type SosCondition struct {
-	ID        int32
 	Name      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt sql.NullTime
+	ID        uuid.UUID
 }
 
 type SosDate struct {
-	ID          int32
 	DateStartAt sql.NullTime
 	DateEndAt   sql.NullTime
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	DeletedAt   sql.NullTime
+	ID          uuid.UUID
 }
 
 type SosPost struct {
-	ID          int32
-	Title       sql.NullString
-	Content     sql.NullString
-	AuthorID    sql.NullInt64
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   sql.NullTime
-	Reward      sql.NullString
-	CareType    sql.NullString
-	CarerGender sql.NullString
-	RewardType  sql.NullString
-	ThumbnailID sql.NullInt64
-}
-
-type SosPostsCondition struct {
-	ID             int32
-	SosPostID      sql.NullInt64
-	SosConditionID sql.NullInt64
+	LegacyID       int32
+	Title          sql.NullString
+	Content        sql.NullString
+	AuthorLegacyID sql.NullInt64
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      sql.NullTime
+	Reward         sql.NullString
+	CareType       sql.NullString
+	CarerGender    sql.NullString
+	RewardType     sql.NullString
+	ThumbnailID    uuid.NullUUID
+}
+
+type SosPostsCondition struct {
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      sql.NullTime
+	ID             uuid.UUID
+	SosPostID      uuid.UUID
+	SosConditionID uuid.NullUUID
 }
 
 type SosPostsDate struct {
-	ID         int32
-	SosPostID  sql.NullInt64
-	SosDatesID sql.NullInt64
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
 	DeletedAt  sql.NullTime
+	ID         uuid.UUID
+	SosPostID  uuid.UUID
+	SosDatesID uuid.UUID
 }
 
 type SosPostsPet struct {
-	ID        int32
-	SosPostID sql.NullInt64
-	PetID     sql.NullInt64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt sql.NullTime
+	ID        uuid.UUID
+	SosPostID uuid.UUID
+	PetID     uuid.UUID
 }
 
 type User struct {
-	ID             int32
 	Email          string
 	Password       string
 	Nickname       string
@@ -136,37 +136,6 @@ type User struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      sql.NullTime
-	ProfileImageID sql.NullInt64
-}
-
-type VCondition struct {
-	SosPostID      sql.NullInt64
-	ConditionsInfo json.RawMessage
-}
-
-type VMediaForSosPost struct {
-	SosPostID sql.NullInt64
-	MediaInfo json.RawMessage
-}
-
-type VPetsForSosPost struct {
-	SosPostID   sql.NullInt64
-	PetTypeList interface{}
-	PetsInfo    json.RawMessage
-}
-
-type VSosPost struct {
-	ID                  int32
-	Title               sql.NullString
-	Content             sql.NullString
-	Reward              sql.NullString
-	RewardType          sql.NullString
-	CareType            sql.NullString
-	CarerGender         sql.NullString
-	ThumbnailID         sql.NullInt64
-	AuthorID            sql.NullInt64
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	EarliestDateStartAt interface{}
-	Dates               json.RawMessage
+	ID             uuid.UUID
+	ProfileImageID uuid.NullUUID
 }

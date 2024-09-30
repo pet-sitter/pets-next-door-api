@@ -1,9 +1,10 @@
 -- name: CreateBreed :one
-INSERT INTO breeds (name,
+INSERT INTO breeds (id,
+                    name,
                     pet_type,
                     created_at,
                     updated_at)
-VALUES ($1, $2, NOW(), NOW())
+VALUES ($1, $2, $3, NOW(), NOW())
 RETURNING id, pet_type, name, created_at, updated_at;
 
 -- name: FindBreeds :many

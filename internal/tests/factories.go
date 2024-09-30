@@ -1,39 +1,42 @@
 package tests
 
 import (
-	"fmt"
+	"github.com/google/uuid"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/sospost"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
 	"github.com/shopspring/decimal"
 )
 
-func randomUUID() string {
-	uuid, _ := datatype.NewV7()
-	return uuid.String()
+func randomUUID() uuid.UUID {
+	newUUID, _ := datatype.NewV7()
+	return newUUID
 }
 
-func NewDummyRegisterUserRequest(profileImageID *int64) *user.RegisterUserRequest {
+func randomUUIDStr() string {
+	return randomUUID().String()
+}
+
+func NewDummyRegisterUserRequest(profileImageID uuid.NullUUID) *user.RegisterUserRequest {
 	return &user.RegisterUserRequest{
-		Email:                randomUUID() + "@example.com",
-		Nickname:             randomUUID()[0:20],
-		Fullname:             randomUUID()[0:20],
+		Email:                randomUUIDStr() + "@example.com",
+		Nickname:             randomUUIDStr()[0:20],
+		Fullname:             randomUUIDStr()[0:20],
 		ProfileImageID:       profileImageID,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,
-		FirebaseUID:          randomUUID(),
+		FirebaseUID:          randomUUIDStr(),
 	}
 }
 
 func NewDummyAddPetRequest(
-	profileImageID *int64, petType commonvo.PetType, gender pet.Gender, breed string,
+	profileImageID uuid.NullUUID, petType commonvo.PetType, gender pet.Gender, breed string,
 ) *pet.AddPetRequest {
 	birthDate, _ := datatype.ParseDate("2020-01-01")
 	return &pet.AddPetRequest{
-		Name:           randomUUID()[0:20],
+		Name:           randomUUIDStr()[0:20],
 		PetType:        petType,
 		Sex:            gender,
 		Neutered:       true,
@@ -44,20 +47,20 @@ func NewDummyAddPetRequest(
 	}
 }
 
-func NewDummyWriteSOSPostRequest(imageID, petIDs []int64, sosPostCnt int) *sospost.WriteSOSPostRequest {
-	return &sospost.WriteSOSPostRequest{
-		Title:    fmt.Sprintf("Title%d", sosPostCnt),
-		Content:  fmt.Sprintf("Content%d", sosPostCnt),
-		ImageIDs: imageID,
-		Reward:   "Reward",
-		Dates: []sospost.SOSDateView{
-			{DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-04-2%d", sosPostCnt)},
-			{DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-05-2%d", sosPostCnt)},
-		},
-		CareType:     sospost.CareTypeFoster,
-		CarerGender:  sospost.CarerGenderMale,
-		RewardType:   sospost.RewardTypeFee,
-		ConditionIDs: []int{1, 2},
-		PetIDs:       petIDs,
-	}
-}
+// func NewDummyWriteSOSPostRequest(imageID, petIDs []uuid.UUID, sosPostCnt int) *sospost.WriteSOSPostRequest {
+// 	return &sospost.WriteSOSPostRequest{
+// 		Title:    fmt.Sprintf("Title%d", sosPostCnt),
+// 		Content:  fmt.Sprintf("Content%d", sosPostCnt),
+// 		ImageIDs: imageID,
+// 		Reward:   "Reward",
+// 		Dates: []sospost.SOSDateView{
+// 			{DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-04-2%d", sosPostCnt)},
+// 			{DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-05-2%d", sosPostCnt)},
+// 		},
+// 		CareType:     sospost.CareTypeFoster,
+// 		CarerGender:  sospost.CarerGenderMale,
+// 		RewardType:   sospost.RewardTypeFee,
+// 		ConditionIDs: []uuid.UUID{randomUUID(), randomUUID()},
+// 		PetIDs:       petIDs,
+// 	}
+// }

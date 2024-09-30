@@ -1,5 +1,7 @@
 package media
 
+import "github.com/google/uuid"
+
 type Type string
 
 const (
@@ -11,12 +13,12 @@ func (mt Type) String() string {
 }
 
 type ViewForSOSPost struct {
-	ID        int64  `field:"id" json:"id"`
-	MediaType Type   `field:"media_type" json:"media_type"`
-	URL       string `field:"url" json:"url"`
-	CreatedAt string `field:"created_at" json:"created_at"`
-	UpdatedAt string `field:"updated_at" json:"updated_at"`
-	DeletedAt string `field:"deleted_at" json:"deleted_at"`
+	ID        uuid.UUID `field:"id" json:"id"`
+	MediaType Type      `field:"media_type" json:"media_type"`
+	URL       string    `field:"url" json:"url"`
+	CreatedAt string    `field:"created_at" json:"created_at"`
+	UpdatedAt string    `field:"updated_at" json:"updated_at"`
+	DeletedAt string    `field:"deleted_at" json:"deleted_at"`
 }
 
 type ViewListForSOSPost []*ViewForSOSPost

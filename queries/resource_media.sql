@@ -1,11 +1,12 @@
 -- name: CreateResourceMedia :one
 INSERT INTO resource_media
-(resource_id,
+(id,
+ resource_id,
  media_id,
  resource_type,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, NOW(), NOW())
+VALUES ($1, $2, $3, $4, NOW(), NOW())
 RETURNING id, resource_id, media_id, resource_type, created_at, updated_at;
 
 -- name: FindResourceMedia :many
@@ -27,7 +28,5 @@ WHERE (rm.resource_id = sqlc.narg('resource_id') OR sqlc.narg('resource_id') IS 
 -- name: DeleteResourceMediaByResourceID :exec
 UPDATE
     resource_media
-SET
-    deleted_at = NOW()
-WHERE
-    resource_id = $1;
+SET deleted_at = NOW()
+WHERE resource_id = $1;

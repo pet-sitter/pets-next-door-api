@@ -1,12 +1,13 @@
 package user
 
 import (
+	"github.com/google/uuid"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type FindUserParams struct {
-	ID             *int
+	ID             uuid.NullUUID
 	Email          *string
 	FbUID          *string
 	IncludeDeleted bool
@@ -14,7 +15,7 @@ type FindUserParams struct {
 
 func (p *FindUserParams) ToDBParams() databasegen.FindUserParams {
 	return databasegen.FindUserParams{
-		ID:             utils.IntPtrToNullInt32(p.ID),
+		ID:             p.ID,
 		Email:          utils.StrPtrToNullStr(p.Email),
 		FbUid:          utils.StrPtrToNullStr(p.FbUID),
 		IncludeDeleted: p.IncludeDeleted,

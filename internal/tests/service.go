@@ -5,6 +5,8 @@ import (
 	"io"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
@@ -34,16 +36,16 @@ func NewMockUserService(db *database.DB) *service.UserService {
 	return service.NewUserService(db, NewMockMediaService(db))
 }
 
-func NewMockSOSPostService(db *database.DB) *service.SOSPostService {
-	return service.NewSOSPostService(db)
-}
+// func NewMockSOSPostService(db *database.DB) *service.SOSPostService {
+// 	return service.NewSOSPostService(db)
+// }
 
 func AddDummyPet(
 	t *testing.T,
 	ctx context.Context,
 	userService *service.UserService,
 	ownerUID string,
-	profileImageID *int64,
+	profileImageID uuid.NullUUID,
 ) *pet.DetailView {
 	t.Helper()
 	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{

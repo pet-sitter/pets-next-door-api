@@ -9,11 +9,14 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users
-(email,
+(id,
+ email,
  nickname,
  fullname,
  password,
@@ -22,26 +25,27 @@ INSERT INTO users
  fb_uid,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
 RETURNING id, email, nickname, fullname, profile_image_id, fb_provider_type, fb_uid, created_at, updated_at
 `
 
 type CreateUserParams struct {
+	ID             uuid.UUID
 	Email          string
 	Nickname       string
 	Fullname       string
 	Password       string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 	FbProviderType sql.NullString
 	FbUid          sql.NullString
 }
 
 type CreateUserRow struct {
-	ID             int32
+	ID             uuid.UUID
 	Email          string
 	Nickname       string
 	Fullname       string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 	FbProviderType sql.NullString
 	FbUid          sql.NullString
 	CreatedAt      time.Time
@@ -50,6 +54,7 @@ type CreateUserRow struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
+		arg.ID,
 		arg.Email,
 		arg.Nickname,
 		arg.Fullname,
@@ -129,7 +134,7 @@ LIMIT 1
 `
 
 type FindUserParams struct {
-	ID             sql.NullInt32
+	ID             uuid.NullUUID
 	Nickname       sql.NullString
 	Email          sql.NullString
 	FbUid          sql.NullString
@@ -137,7 +142,7 @@ type FindUserParams struct {
 }
 
 type FindUserRow struct {
-	ID              int32
+	ID              uuid.UUID
 	Email           string
 	Nickname        string
 	Fullname        string
@@ -194,7 +199,7 @@ LIMIT $1 OFFSET $2
 type FindUsersParams struct {
 	Limit          int32
 	Offset         int32
-	ID             sql.NullInt32
+	ID             uuid.NullUUID
 	Nickname       sql.NullString
 	Email          sql.NullString
 	FbUid          sql.NullString
@@ -202,7 +207,7 @@ type FindUsersParams struct {
 }
 
 type FindUsersRow struct {
-	ID              int32
+	ID              uuid.UUID
 	Nickname        string
 	ProfileImageUrl sql.NullString
 }
@@ -260,16 +265,16 @@ RETURNING
 
 type UpdateUserByFbUIDParams struct {
 	Nickname       string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 	FbUid          sql.NullString
 }
 
 type UpdateUserByFbUIDRow struct {
-	ID             int32
+	ID             uuid.UUID
 	Email          string
 	Nickname       string
 	Fullname       string
-	ProfileImageID sql.NullInt64
+	ProfileImageID uuid.NullUUID
 	FbProviderType sql.NullString
 	FbUid          sql.NullString
 	CreatedAt      time.Time
