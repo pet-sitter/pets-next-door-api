@@ -1,39 +1,40 @@
 package soscondition
 
 import (
+	"github.com/google/uuid"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type DetailView struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 func ToDetailView(row databasegen.SosCondition) *DetailView {
 	return &DetailView{
-		ID:   int64(row.ID),
+		ID:   row.ID,
 		Name: utils.NullStrToStr(row.Name),
 	}
 }
 
-func ToDetailViewFromRows(row databasegen.SosCondition) *DetailView {
+func ToDetailViewFromRows(row databasegen.FindConditionsRow) *DetailView {
 	return &DetailView{
-		ID:   int64(row.ID),
+		ID:   row.ID,
 		Name: utils.NullStrToStr(row.Name),
 	}
 }
 
 func ToDetailViewFromSOSPostCondition(row databasegen.FindSOSPostConditionsRow) *DetailView {
 	return &DetailView{
-		ID:   int64(row.ID),
+		ID:   row.ID,
 		Name: utils.NullStrToStr(row.Name),
 	}
 }
 
 func ToDetailViewFromViewForSOSPost(view ViewForSOSPost) *DetailView {
 	return &DetailView{
-		ID:   int64(view.ID),
+		ID:   view.ID,
 		Name: view.Name,
 	}
 }
@@ -48,7 +49,7 @@ func ToListView(row []databasegen.SosCondition) ListView {
 	return conditionViews
 }
 
-func ToListViewFromRows(rows []databasegen.SosCondition) ListView {
+func ToListViewFromRows(rows []databasegen.FindConditionsRow) ListView {
 	conditionViews := make(ListView, len(rows))
 	for i, row := range rows {
 		conditionViews[i] = ToDetailViewFromRows(row)

@@ -1,6 +1,7 @@
 package pet
 
 import (
+	"github.com/google/uuid"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
 	"github.com/shopspring/decimal"
 )
@@ -18,7 +19,7 @@ type AddPetRequest struct {
 	BirthDate      string           `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal  `json:"weightInKg" validate:"required"`
 	Remarks        string           `json:"remarks"`
-	ProfileImageID *int64           `json:"profileImageId"`
+	ProfileImageID uuid.NullUUID    `json:"profileImageId"`
 }
 
 type UpdatePetRequest struct {
@@ -28,5 +29,5 @@ type UpdatePetRequest struct {
 	BirthDate      string          `json:"birthDate" validate:"required"`
 	WeightInKg     decimal.Decimal `json:"weightInKg" validate:"required"`
 	Remarks        string          `json:"remarks"`
-	ProfileImageID *int64          `json:"profileImageId"`
+	ProfileImageID uuid.NullUUID   `json:"profileImageId"`
 }

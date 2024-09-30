@@ -36,7 +36,7 @@ func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	found, err := h.mediaService.FindMediaByID(c.Request().Context(), int64(*id))
+	found, err := h.mediaService.FindMediaByID(c.Request().Context(), id)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

@@ -3,11 +3,13 @@ package media
 import (
 	"time"
 
+	"github.com/google/uuid"
+
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 type DetailView struct {
-	ID        int64     `json:"id"`
+	ID        uuid.UUID `json:"id"`
 	MediaType Type      `json:"mediaType"`
 	URL       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -17,7 +19,7 @@ type ListView []*DetailView
 
 func ToDetailView(media databasegen.FindSingleMediaRow) *DetailView {
 	return &DetailView{
-		ID:        int64(media.ID),
+		ID:        media.ID,
 		MediaType: Type(media.MediaType),
 		URL:       media.Url,
 		CreatedAt: media.CreatedAt,
@@ -26,7 +28,7 @@ func ToDetailView(media databasegen.FindSingleMediaRow) *DetailView {
 
 func ToDetailViewFromCreated(media databasegen.CreateMediaRow) *DetailView {
 	return &DetailView{
-		ID:        int64(media.ID),
+		ID:        media.ID,
 		MediaType: Type(media.MediaType),
 		URL:       media.Url,
 		CreatedAt: media.CreatedAt,
@@ -35,7 +37,7 @@ func ToDetailViewFromCreated(media databasegen.CreateMediaRow) *DetailView {
 
 func ToDetailViewFromResourceMediaRows(resourceMedia databasegen.FindResourceMediaRow) *DetailView {
 	return &DetailView{
-		ID:        int64(resourceMedia.MediaID),
+		ID:        resourceMedia.MediaID,
 		MediaType: Type(resourceMedia.MediaType),
 		URL:       resourceMedia.Url,
 		CreatedAt: resourceMedia.CreatedAt,

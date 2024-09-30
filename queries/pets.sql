@@ -1,6 +1,7 @@
 -- name: CreatePet :one
 INSERT INTO pets
-(owner_id,
+(id,
+ owner_id,
  name,
  pet_type,
  sex,
@@ -12,7 +13,7 @@ INSERT INTO pets
  profile_image_id,
  created_at,
  updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
 RETURNING id, created_at, updated_at;
 
 -- name: FindPet :one
@@ -88,7 +89,7 @@ FROM pets
      media
      ON
          pets.profile_image_id = media.id
-WHERE pets.id = ANY (sqlc.arg('ids')::int[])
+WHERE pets.id = ANY (sqlc.arg('ids')::uuid[])
   AND (sqlc.arg('include_deleted')::boolean = TRUE OR
        (sqlc.arg('include_deleted')::boolean = FALSE AND pets.deleted_at IS NULL))
 ORDER BY pets.created_at DESC;

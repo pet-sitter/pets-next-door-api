@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
@@ -30,8 +31,8 @@ func NewUserService(conn *database.DB, mediaService *MediaService) *UserService 
 func (service *UserService) RegisterUser(
 	ctx context.Context, registerUserRequest *user.RegisterUserRequest,
 ) (*user.InternalView, *pnd.AppError) {
-	if registerUserRequest.ProfileImageID != nil {
-		_, err := service.mediaService.FindMediaByID(ctx, *registerUserRequest.ProfileImageID)
+	if registerUserRequest.ProfileImageID.Valid {
+		_, err := service.mediaService.FindMediaByID(ctx, registerUserRequest.ProfileImageID.UUID)
 		if err != nil {
 			return nil, err
 		}
@@ -93,10 +94,7 @@ func (service *UserService) FindUserProfile(
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	int64ID := int64(row.ID)
-	petParams := pet.FindPetsParams{
-		OwnerID: &int64ID,
-	}
+	petParams := pet.FindPetsParams{OwnerID: uuid.NullUUID{UUID: row.ID, Valid: true}}
 	pets, err2 := service.FindPets(ctx, petParams)
 	if err2 != nil {
 		return nil, err2
@@ -115,7 +113,7 @@ func (service *UserService) ExistsByNickname(ctx context.Context, nickname strin
 }
 
 func (service *UserService) UpdateUserByUID(
-	ctx context.Context, uid, nickname string, profileImageID *int64,
+	ctx context.Context, uid, nickname string, profileImageID uuid.NullUUID,
 ) (*user.MyProfileView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
@@ -125,7 +123,7 @@ func (service *UserService) UpdateUserByUID(
 
 	_, err2 := databasegen.New(service.conn).WithTx(tx.Tx).UpdateUserByFbUID(ctx, databasegen.UpdateUserByFbUIDParams{
 		Nickname:       nickname,
-		ProfileImageID: utils.Int64PtrToNullInt64(profileImageID),
+		ProfileImageID: profileImageID,
 		FbUid:          utils.StrToNullStr(uid),
 	})
 	if err2 != nil {
@@ -199,15 +197,15 @@ func (service *UserService) AddPetsToOwner(
 
 	// 프로필 이미지 ID가 DB에 존재하는지 확인
 	for _, item := range addPetsRequest.Pets {
-		if item.ProfileImageID != nil {
-			if _, err := service.mediaService.FindMediaByID(ctx, *item.ProfileImageID); err != nil {
-				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %d", *item.ProfileImageID))
+		if item.ProfileImageID.Valid {
+			if _, err := service.mediaService.FindMediaByID(ctx, item.ProfileImageID.UUID); err != nil {
+				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %s", item.ProfileImageID.UUID))
 			}
 		}
 	}
 
 	// 사용자의 반려동물 추가
-	petIDs := make([]int32, 0, len(addPetsRequest.Pets))
+	petIDs := make([]uuid.UUID, 0, len(addPetsRequest.Pets))
 	for _, item := range addPetsRequest.Pets {
 		birthDate, err := datatype.ParseDateToTime(item.BirthDate)
 		if err != nil {
@@ -215,7 +213,8 @@ func (service *UserService) AddPetsToOwner(
 		}
 
 		petToCreate := databasegen.CreatePetParams{
-			OwnerID:        int64(userData.ID),
+			ID:             datatype.NewUUIDV7(),
+			OwnerID:        userData.ID,
 			Name:           item.Name,
 			PetType:        string(item.PetType),
 			Sex:            string(item.Sex),
@@ -224,8 +223,9 @@ func (service *UserService) AddPetsToOwner(
 			BirthDate:      birthDate,
 			WeightInKg:     item.WeightInKg.String(),
 			Remarks:        item.Remarks,
-			ProfileImageID: utils.Int64PtrToNullInt64(item.ProfileImageID),
+			ProfileImageID: item.ProfileImageID,
 		}
+		fmt.Printf("petToCreate: %+v\n", petToCreate)
 		row, err := databasegen.New(service.conn).WithTx(tx.Tx).CreatePet(ctx, petToCreate)
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
@@ -241,6 +241,7 @@ func (service *UserService) AddPetsToOwner(
 		Ids: petIDs,
 	})
 	if err2 != nil {
+		fmt.Printf("여기가 문제인가? %v\n", err2)
 		return nil, pnd.FromPostgresError(err2)
 	}
 
@@ -248,14 +249,17 @@ func (service *UserService) AddPetsToOwner(
 }
 
 func (service *UserService) UpdatePet(
-	ctx context.Context, uid string, petID int64, updatePetRequest pet.UpdatePetRequest,
+	ctx context.Context, uid string, petID uuid.UUID, updatePetRequest pet.UpdatePetRequest,
 ) (*pet.DetailView, *pnd.AppError) {
 	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid, IncludeDeleted: false})
 	if err != nil {
 		return nil, err
 	}
 
-	petToUpdate, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID, IncludeDeleted: false})
+	petToUpdate, err := service.FindPet(
+		ctx,
+		pet.FindPetParams{ID: uuid.NullUUID{UUID: petID, Valid: true}, IncludeDeleted: false},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -264,8 +268,8 @@ func (service *UserService) UpdatePet(
 		return nil, pnd.ErrForbidden(errors.New("해당 반려동물을 수정할 권한이 없습니다"))
 	}
 
-	if updatePetRequest.ProfileImageID != nil {
-		if _, err = service.mediaService.FindMediaByID(ctx, *updatePetRequest.ProfileImageID); err != nil {
+	if updatePetRequest.ProfileImageID.Valid {
+		if _, err = service.mediaService.FindMediaByID(ctx, updatePetRequest.ProfileImageID.UUID); err != nil {
 			return nil, err
 		}
 	}
@@ -282,14 +286,14 @@ func (service *UserService) UpdatePet(
 	}
 
 	if err := databasegen.New(service.conn).WithTx(tx.Tx).UpdatePet(ctx, databasegen.UpdatePetParams{
-		ID:             int32(petID),
+		ID:             petID,
 		Name:           updatePetRequest.Name,
 		Neutered:       updatePetRequest.Neutered,
 		Breed:          updatePetRequest.Breed,
 		BirthDate:      birthDate,
 		WeightInKg:     updatePetRequest.WeightInKg.String(),
 		Remarks:        updatePetRequest.Remarks,
-		ProfileImageID: utils.Int64PtrToNullInt64(updatePetRequest.ProfileImageID),
+		ProfileImageID: updatePetRequest.ProfileImageID,
 	}); err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -298,20 +302,23 @@ func (service *UserService) UpdatePet(
 		return nil, err
 	}
 
-	updatedPet, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID, IncludeDeleted: false})
+	updatedPet, err := service.FindPet(
+		ctx,
+		pet.FindPetParams{ID: uuid.NullUUID{UUID: petID, Valid: true}, IncludeDeleted: false},
+	)
 	if err != nil {
 		return nil, err
 	}
 	return updatedPet.ToDetailView(), nil
 }
 
-func (service *UserService) DeletePet(ctx context.Context, uid string, petID int64) *pnd.AppError {
+func (service *UserService) DeletePet(ctx context.Context, uid string, petID uuid.UUID) *pnd.AppError {
 	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid})
 	if err != nil {
 		return err
 	}
 
-	petToDelete, err := service.FindPet(ctx, pet.FindPetParams{ID: &petID})
+	petToDelete, err := service.FindPet(ctx, pet.FindPetParams{ID: uuid.NullUUID{UUID: petID, Valid: true}})
 	if err != nil {
 		return err
 	}
@@ -326,7 +333,7 @@ func (service *UserService) DeletePet(ctx context.Context, uid string, petID int
 		return err
 	}
 
-	if err := databasegen.New(service.conn).WithTx(tx.Tx).DeletePet(ctx, int32(petID)); err != nil {
+	if err := databasegen.New(service.conn).WithTx(tx.Tx).DeletePet(ctx, petID); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 

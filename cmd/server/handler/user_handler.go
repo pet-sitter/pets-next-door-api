@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/labstack/echo/v4"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
@@ -148,7 +150,10 @@ func (h *UserHandler) FindUserByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.userService.FindUserProfile(c.Request().Context(), user.FindUserParams{ID: userID})
+	res, err := h.userService.FindUserProfile(
+		c.Request().Context(),
+		user.FindUserParams{ID: uuid.NullUUID{UUID: userID, Valid: true}},
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -276,8 +281,9 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 	res, err := h.userService.FindPets(c.Request().Context(), pet.FindPetsParams{
 		Page:    1,
 		Size:    100,
-		OwnerID: &foundUser.ID,
-	})
+		OwnerID: uuid.NullUUID{UUID: foundUser.ID, Valid: true},
+	},
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -313,7 +319,7 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.userService.UpdatePet(c.Request().Context(), uid, int64(*petID), updatePetRequest)
+	res, err := h.userService.UpdatePet(c.Request().Context(), uid, petID, updatePetRequest)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -341,7 +347,7 @@ func (h *UserHandler) DeleteMyPet(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	if err := h.userService.DeletePet(c.Request().Context(), uid, int64(*petID)); err != nil {
+	if err := h.userService.DeletePet(c.Request().Context(), uid, petID); err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 

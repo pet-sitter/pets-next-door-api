@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -8,7 +9,7 @@ import (
 )
 
 type InternalView struct {
-	ID                   int64                `json:"id"`
+	ID                   uuid.UUID            `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
@@ -29,7 +30,7 @@ func (r *InternalView) ToMyProfileView() *MyProfileView {
 }
 
 type MyProfileView struct {
-	ID                   int64                `json:"id"`
+	ID                   uuid.UUID            `json:"id"`
 	Email                string               `json:"email"`
 	Nickname             string               `json:"nickname"`
 	Fullname             string               `json:"fullname"`
@@ -38,7 +39,7 @@ type MyProfileView struct {
 }
 
 type ProfileView struct {
-	ID              int64            `json:"id"`
+	ID              uuid.UUID        `json:"id"`
 	Nickname        string           `json:"nickname"`
 	ProfileImageURL *string          `json:"profileImageUrl"`
 	Pets            []pet.DetailView `json:"pets"`
@@ -49,7 +50,7 @@ func NewProfileView(
 	pets *pet.ListView,
 ) *ProfileView {
 	return &ProfileView{
-		ID:              int64(user.ID),
+		ID:              user.ID,
 		Nickname:        user.Nickname,
 		ProfileImageURL: utils.NullStrToStrPtr(user.ProfileImageUrl),
 		Pets:            pets.Pets,
@@ -80,14 +81,14 @@ func NewStatusView(providerType FirebaseProviderType) *StatusView {
 }
 
 type WithoutPrivateInfo struct {
-	ID              int64   `json:"id"`
-	Nickname        string  `json:"nickname"`
-	ProfileImageURL *string `json:"profileImageUrl"`
+	ID              uuid.UUID `json:"id"`
+	Nickname        string    `json:"nickname"`
+	ProfileImageURL *string   `json:"profileImageUrl"`
 }
 
 func ToWithoutPrivateInfo(row databasegen.FindUserRow) *WithoutPrivateInfo {
 	return &WithoutPrivateInfo{
-		ID:              int64(row.ID),
+		ID:              row.ID,
 		Nickname:        row.Nickname,
 		ProfileImageURL: utils.NullStrToStrPtr(row.ProfileImageUrl),
 	}
@@ -104,7 +105,7 @@ func ToListWithoutPrivateInfo(page, size int, rows []databasegen.FindUsersRow) *
 
 	for _, row := range rows {
 		ul.Items = append(ul.Items, WithoutPrivateInfo{
-			ID:              int64(row.ID),
+			ID:              row.ID,
 			Nickname:        row.Nickname,
 			ProfileImageURL: utils.NullStrToStrPtr(row.ProfileImageUrl),
 		})

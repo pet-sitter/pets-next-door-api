@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/uuid"
+
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/commonvo"
@@ -19,8 +21,8 @@ const (
 )
 
 type WithProfileImage struct {
-	ID              int64
-	OwnerID         int64
+	ID              uuid.UUID
+	OwnerID         uuid.UUID
 	Name            string
 	PetType         commonvo.PetType
 	Sex             Gender
@@ -40,7 +42,7 @@ func ToWithProfileImage(row databasegen.FindPetRow) *WithProfileImage {
 	birthDate := datatype.DateOf(row.BirthDate)
 
 	return &WithProfileImage{
-		ID:              int64(row.ID),
+		ID:              row.ID,
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
@@ -62,7 +64,7 @@ func ToWithProfileImageFromRows(row databasegen.FindPetsRow) *WithProfileImage {
 	birthDate := datatype.DateOf(row.BirthDate)
 
 	return &WithProfileImage{
-		ID:              int64(row.ID),
+		ID:              row.ID,
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
@@ -84,7 +86,7 @@ func ToWithProfileImageFromIDsRows(row databasegen.FindPetsByIDsRow) *WithProfil
 	birthDate := datatype.DateOf(row.BirthDate)
 
 	return &WithProfileImage{
-		ID:              int64(row.ID),
+		ID:              row.ID,
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
@@ -106,7 +108,7 @@ func ToWithProfileImageFromSOSPostIDRow(row databasegen.FindPetsBySOSPostIDRow) 
 	birthDate := datatype.DateOf(row.BirthDate)
 
 	return &WithProfileImage{
-		ID:              int64(row.ID),
+		ID:              row.ID,
 		OwnerID:         row.OwnerID,
 		Name:            row.Name,
 		PetType:         commonvo.PetType(row.PetType),
@@ -126,8 +128,8 @@ func ToWithProfileImageFromSOSPostIDRow(row databasegen.FindPetsBySOSPostIDRow) 
 // ViewForSOSPost
 // v_pets_for_sos_posts 뷰를 위한 구조체
 type ViewForSOSPost struct {
-	ID              int              `field:"id" json:"id"`
-	OwnerID         int              `field:"owner_id" json:"owner_id"`
+	ID              uuid.UUID        `field:"id" json:"id"`
+	OwnerID         uuid.UUID        `field:"owner_id" json:"owner_id"`
 	Name            string           `field:"name" json:"name"`
 	PetType         commonvo.PetType `field:"pet_type" json:"pet_type"`
 	Sex             Gender           `field:"sex" json:"sex"`
@@ -144,7 +146,7 @@ type ViewForSOSPost struct {
 
 func (v *ViewForSOSPost) ToDetailView() *DetailView {
 	return &DetailView{
-		ID:              int64(v.ID),
+		ID:              v.ID,
 		Name:            v.Name,
 		PetType:         v.PetType,
 		Sex:             v.Sex,

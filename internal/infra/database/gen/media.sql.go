@@ -7,27 +7,30 @@ package databasegen
 
 import (
 	"context"
-	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createMedia = `-- name: CreateMedia :one
 INSERT INTO media
-(media_type,
+(id,
+ media_type,
  url,
  created_at,
  updated_at)
-VALUES ($1, $2, NOW(), NOW())
+VALUES ($1, $2, $3, NOW(), NOW())
 RETURNING id, media_type, url, created_at, updated_at
 `
 
 type CreateMediaParams struct {
+	ID        uuid.UUID
 	MediaType string
 	Url       string
 }
 
 type CreateMediaRow struct {
-	ID        int32
+	ID        uuid.UUID
 	MediaType string
 	Url       string
 	CreatedAt time.Time
@@ -35,7 +38,7 @@ type CreateMediaRow struct {
 }
 
 func (q *Queries) CreateMedia(ctx context.Context, arg CreateMediaParams) (CreateMediaRow, error) {
-	row := q.db.QueryRowContext(ctx, createMedia, arg.MediaType, arg.Url)
+	row := q.db.QueryRowContext(ctx, createMedia, arg.ID, arg.MediaType, arg.Url)
 	var i CreateMediaRow
 	err := row.Scan(
 		&i.ID,
@@ -60,12 +63,12 @@ WHERE (id = $1 OR $1 IS NULL)
 `
 
 type FindSingleMediaParams struct {
-	ID             sql.NullInt32
+	ID             uuid.NullUUID
 	IncludeDeleted bool
 }
 
 type FindSingleMediaRow struct {
-	ID        int32
+	ID        uuid.UUID
 	MediaType string
 	Url       string
 	CreatedAt time.Time

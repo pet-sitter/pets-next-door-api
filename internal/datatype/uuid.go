@@ -13,3 +13,8 @@ func NewV7() (uuid.UUID, *pnd.AppError) {
 
 	return id, nil
 }
+
+func NewUUIDV7() uuid.UUID {
+	id, _ := NewV7()
+	return id
+}

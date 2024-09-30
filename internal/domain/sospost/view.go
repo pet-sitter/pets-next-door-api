@@ -1,6 +1,7 @@
 package sospost
 
 import (
+	"github.com/google/uuid"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -11,8 +12,8 @@ import (
 )
 
 type ViewParams struct {
-	ID          int
-	AuthorID    int
+	ID          uuid.UUID
+	AuthorID    uuid.UUID
 	Title       string
 	Content     string
 	MediaList   media.ListView
@@ -23,14 +24,14 @@ type ViewParams struct {
 	CareType    CareType
 	CarerGender CarerGender
 	RewardType  RewardType
-	ThumbnailID *int64
+	ThumbnailID uuid.NullUUID
 	CreatedAt   string
 	UpdatedAt   string
 }
 
 type ViewParamsInput struct {
-	ID          int64
-	AuthorID    int64
+	ID          uuid.UUID
+	AuthorID    uuid.UUID
 	Title       string
 	Content     string
 	MediaList   media.ListView
@@ -41,14 +42,14 @@ type ViewParamsInput struct {
 	CareType    string
 	CarerGender string
 	RewardType  string
-	ThumbnailID *int64
+	ThumbnailID uuid.NullUUID
 	CreatedAt   string
 	UpdatedAt   string
 }
 
 type DetailView struct {
-	ID          int                   `json:"id"`
-	AuthorID    int                   `json:"authorId"`
+	ID          uuid.UUID             `json:"id"`
+	AuthorID    uuid.UUID             `json:"authorId"`
 	Title       string                `json:"title"`
 	Content     string                `json:"content"`
 	Media       media.ListView        `json:"media"`
@@ -59,7 +60,7 @@ type DetailView struct {
 	CareType    CareType              `json:"careType"`
 	CarerGender CarerGender           `json:"carerGender"`
 	RewardType  RewardType            `json:"rewardType"`
-	ThumbnailID *int64                `json:"thumbnailId"`
+	ThumbnailID uuid.NullUUID         `json:"thumbnailId"`
 	CreatedAt   string                `json:"createdAt"`
 	UpdatedAt   string                `json:"updatedAt"`
 }
@@ -86,8 +87,8 @@ func ToDetailView(params ViewParams) *DetailView {
 
 func CreateViewParams(input ViewParamsInput) ViewParams {
 	return ViewParams{
-		ID:          int(input.ID),
-		AuthorID:    int(input.AuthorID),
+		ID:          input.ID,
+		AuthorID:    input.AuthorID,
 		Title:       input.Title,
 		Content:     input.Content,
 		MediaList:   input.MediaList,
@@ -112,8 +113,8 @@ func CreateDetailView(
 	sosDates []SOSDateView,
 ) *DetailView {
 	input := ViewParamsInput{
-		ID:          int64(sosPost.ID),
-		AuthorID:    sosPost.AuthorID.Int64,
+		// ID:          sosPost.ID,
+		// AuthorID:    sosPost.AuthorID.Int64,
 		Title:       utils.NullStrToStr(sosPost.Title),
 		Content:     utils.NullStrToStr(sosPost.Content),
 		MediaList:   mediaList,
@@ -124,16 +125,16 @@ func CreateDetailView(
 		CareType:    sosPost.CareType.String,
 		CarerGender: sosPost.CarerGender.String,
 		RewardType:  sosPost.RewardType.String,
-		ThumbnailID: &sosPost.ThumbnailID.Int64,
-		CreatedAt:   utils.FormatTimeFromTime(sosPost.CreatedAt),
-		UpdatedAt:   utils.FormatTimeFromTime(sosPost.UpdatedAt),
+		// ThumbnailID: sosPost.ThumbnailID.Int64,
+		CreatedAt: utils.FormatTimeFromTime(sosPost.CreatedAt),
+		UpdatedAt: utils.FormatTimeFromTime(sosPost.UpdatedAt),
 	}
 	params := CreateViewParams(input)
 	return ToDetailView(params)
 }
 
 type FindSOSPostView struct {
-	ID          int                      `json:"id"`
+	ID          uuid.UUID                `json:"id"`
 	Author      *user.WithoutPrivateInfo `json:"author"`
 	Title       string                   `json:"title"`
 	Content     string                   `json:"content"`
@@ -145,7 +146,7 @@ type FindSOSPostView struct {
 	CareType    CareType                 `json:"careType"`
 	CarerGender CarerGender              `json:"carerGender"`
 	RewardType  RewardType               `json:"rewardType"`
-	ThumbnailID *int64                   `json:"thumbnailId"`
+	ThumbnailID uuid.NullUUID            `json:"thumbnailId"`
 	CreatedAt   string                   `json:"createdAt"`
 	UpdatedAt   string                   `json:"updatedAt"`
 }
@@ -158,7 +159,7 @@ func (p *SOSPost) ToFindSOSPostView(
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
 	return &FindSOSPostView{
-		ID:          p.ID,
+		// ID:          p.ID,
 		Author:      author,
 		Title:       p.Title,
 		Content:     p.Content,
@@ -170,9 +171,9 @@ func (p *SOSPost) ToFindSOSPostView(
 		CareType:    p.CareType,
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
-		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTimeFromTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTimeFromTime(p.UpdatedAt),
+		// ThumbnailID: p.ThumbnailID,
+		CreatedAt: utils.FormatDateTimeFromTime(p.CreatedAt),
+		UpdatedAt: utils.FormatDateTimeFromTime(p.UpdatedAt),
 	}
 }
 
@@ -204,7 +205,7 @@ func (p *SOSPostInfo) ToFindSOSPostInfoView(
 	sosDates []SOSDateView,
 ) *FindSOSPostView {
 	return &FindSOSPostView{
-		ID:          p.ID,
+		// ID:          p.ID,
 		Author:      author,
 		Title:       p.Title,
 		Content:     p.Content,
@@ -216,9 +217,9 @@ func (p *SOSPostInfo) ToFindSOSPostInfoView(
 		CareType:    p.CareType,
 		CarerGender: p.CarerGender,
 		RewardType:  p.RewardType,
-		ThumbnailID: p.ThumbnailID,
-		CreatedAt:   utils.FormatDateTimeFromTime(p.CreatedAt),
-		UpdatedAt:   utils.FormatDateTimeFromTime(p.UpdatedAt),
+		// ThumbnailID: p.ThumbnailID,
+		CreatedAt: utils.FormatDateTimeFromTime(p.CreatedAt),
+		UpdatedAt: utils.FormatDateTimeFromTime(p.UpdatedAt),
 	}
 }
 
@@ -230,8 +231,8 @@ func UpdateDetailView(
 	sosDates []SOSDateView,
 ) *DetailView {
 	params := ViewParams{
-		ID:          int(sosPost.ID),
-		AuthorID:    int(sosPost.AuthorID.Int64),
+		// ID:          sosPost.ID,
+		// AuthorID:    sosPost.AuthorID,
 		Title:       utils.NullStrToStr(sosPost.Title),
 		Content:     utils.NullStrToStr(sosPost.Content),
 		MediaList:   mediaList,
@@ -242,9 +243,9 @@ func UpdateDetailView(
 		CareType:    CareType(sosPost.CareType.String),
 		CarerGender: CarerGender(sosPost.CarerGender.String),
 		RewardType:  RewardType(sosPost.RewardType.String),
-		ThumbnailID: &sosPost.ThumbnailID.Int64,
-		CreatedAt:   utils.FormatDateTimeFromTime(sosPost.CreatedAt),
-		UpdatedAt:   utils.FormatDateTimeFromTime(sosPost.UpdatedAt),
+		// ThumbnailID: sosPost.ThumbnailID,
+		CreatedAt: utils.FormatDateTimeFromTime(sosPost.CreatedAt),
+		UpdatedAt: utils.FormatDateTimeFromTime(sosPost.UpdatedAt),
 	}
 	return ToDetailView(params)
 }

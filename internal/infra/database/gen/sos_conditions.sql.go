@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createSOSCondition = `-- name: CreateSOSCondition :one
@@ -21,11 +23,11 @@ SELECT $1, $2, now(), now()
 WHERE NOT EXISTS (SELECT 1
                   FROM sos_conditions
                   WHERE name = $2::VARCHAR(50))
-RETURNING id, name, created_at, updated_at, deleted_at
+RETURNING name, created_at, updated_at, deleted_at, id
 `
 
 type CreateSOSConditionParams struct {
-	ID   int32
+	ID   uuid.UUID
 	Name sql.NullString
 }
 
@@ -33,11 +35,11 @@ func (q *Queries) CreateSOSCondition(ctx context.Context, arg CreateSOSCondition
 	row := q.db.QueryRowContext(ctx, createSOSCondition, arg.ID, arg.Name)
 	var i SosCondition
 	err := row.Scan(
-		&i.ID,
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ID,
 	)
 	return i, err
 }
@@ -53,15 +55,23 @@ WHERE ($1::BOOLEAN = TRUE OR
        ($1::BOOLEAN = FALSE AND deleted_at IS NULL))
 `
 
-func (q *Queries) FindConditions(ctx context.Context, includeDeleted bool) ([]SosCondition, error) {
+type FindConditionsRow struct {
+	ID        uuid.UUID
+	Name      sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime
+}
+
+func (q *Queries) FindConditions(ctx context.Context, includeDeleted bool) ([]FindConditionsRow, error) {
 	rows, err := q.db.QueryContext(ctx, findConditions, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SosCondition
+	var items []FindConditionsRow
 	for rows.Next() {
-		var i SosCondition
+		var i FindConditionsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -98,12 +108,12 @@ WHERE sos_posts_conditions.sos_post_id = $1
 `
 
 type FindSOSPostConditionsParams struct {
-	SosPostID      sql.NullInt64
+	SosPostID      uuid.UUID
 	IncludeDeleted bool
 }
 
 type FindSOSPostConditionsRow struct {
-	ID        int32
+	ID        uuid.UUID
 	Name      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
