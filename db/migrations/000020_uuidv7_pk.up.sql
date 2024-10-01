@@ -115,40 +115,44 @@ ALTER TABLE pets
 ALTER TABLE pets
     DROP COLUMN IF EXISTS profile_image_legacy_id;
 
--- base_posts
--- Rename id to legacy_id and uuid to id
-ALTER TABLE base_posts
-    DROP CONSTRAINT base_posts_pkey;
-ALTER TABLE base_posts
-    RENAME COLUMN id TO legacy_id;
-ALTER TABLE base_posts
-    RENAME COLUMN uuid TO id;
-ALTER TABLE base_posts
-    ALTER COLUMN id SET NOT NULL;
-ALTER TABLE base_posts
-    ADD PRIMARY KEY (id);
--- author_uuid -> author_id
-ALTER TABLE base_posts
-    RENAME COLUMN author_id TO author_legacy_id;
-ALTER TABLE base_posts
-    RENAME COLUMN author_uuid TO author_id;
-ALTER TABLE base_posts
-    ALTER COLUMN author_id SET NOT NULL;
--- DROP legacy columns
-ALTER TABLE base_posts
-    DROP COLUMN IF EXISTS legacy_id;
-ALTER TABLE base_posts
-    DROP COLUMN IF EXISTS author_legacy_id;
+-- sos_posts inherits base_posts, create a new table temp, drop two tables, and rename to sos_posts
+CREATE TABLE IF NOT EXISTS temp_sos_posts
+(
+    id           UUID PRIMARY KEY,
+    title        VARCHAR(200),
+    content      TEXT,
+    author_id    UUID      NOT NULL,
+    reward       VARCHAR(20),
+    care_type    VARCHAR(20),
+    carer_gender VARCHAR(10),
+    reward_type  VARCHAR(30),
+    thumbnail_id UUID,
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at   TIMESTAMP
+);
 
--- sos_posts
--- thumbnail_uuid -> thumbnail_id
-ALTER TABLE sos_posts
-    RENAME COLUMN thumbnail_id TO thumbnail_legacy_id;
-ALTER TABLE sos_posts
-    RENAME COLUMN thumbnail_uuid TO thumbnail_id;
--- DROP legacy columns
-ALTER TABLE sos_posts
-    DROP COLUMN IF EXISTS thumbnail_legacy_id;
+INSERT INTO temp_sos_posts
+SELECT uuid,
+       title,
+       content,
+       author_uuid,
+       reward_type,
+       reward,
+       care_type,
+       carer_gender,
+       thumbnail_uuid,
+       created_at,
+       updated_at,
+       deleted_at
+FROM sos_posts;
+
+DROP TABLE if exists sos_posts;
+
+ALTER TABLE temp_sos_posts
+    RENAME TO sos_posts;
+
+DROP TABLE IF EXISTS base_posts;
 
 -- sos_dates
 -- Rename id to legacy_id and uuid to id
@@ -323,3 +327,80 @@ CREATE INDEX IF NOT EXISTS sos_posts_conditions_sos_post_id ON sos_posts_conditi
 CREATE INDEX IF NOT EXISTS sos_posts_pets_sos_post_id ON sos_posts_pets (sos_post_id);
 CREATE INDEX IF NOT EXISTS sos_posts_dates_sos_post_id ON sos_posts_dates (sos_post_id);
 CREATE INDEX IF NOT EXISTS sos_posts_author_id_deleted_at ON sos_posts (author_id);
+
+-- Add view
+-- 돌봄 급구(SosPosts) 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_sos_posts AS
+SELECT sos_posts.id,
+       sos_posts.title,
+       sos_posts.content,
+       sos_posts.reward,
+       sos_posts.reward_type,
+       sos_posts.care_type,
+       sos_posts.carer_gender,
+       sos_posts.thumbnail_id,
+       sos_posts.author_id,
+       sos_posts.created_at,
+       sos_posts.updated_at,
+       MIN(sos_dates.date_start_at)                                      AS earliest_date_start_at,
+       json_agg(sos_dates.*) FILTER (WHERE sos_dates.deleted_at IS NULL) AS dates
+FROM sos_posts
+         LEFT JOIN sos_posts_dates ON sos_posts.id = sos_posts_dates.sos_post_id
+         LEFT JOIN sos_dates ON sos_posts_dates.sos_dates_id = sos_dates.id
+WHERE sos_posts.deleted_at IS NULL
+  AND sos_dates.deleted_at IS NULL
+  AND sos_posts_dates.deleted_at IS NULL
+GROUP BY sos_posts.id;
+
+-- 돌봄 급구 Conditions 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_conditions AS
+SELECT sos_posts_conditions.sos_post_id,
+       json_agg(sos_conditions.*)
+       FILTER (WHERE sos_conditions.deleted_at IS NULL) AS conditions_info
+FROM sos_posts_conditions
+         LEFT JOIN sos_conditions ON sos_posts_conditions.sos_condition_id = sos_conditions.id
+WHERE sos_conditions.deleted_at IS NULL
+  AND sos_posts_conditions.deleted_at IS NULL
+GROUP BY sos_posts_conditions.sos_post_id;
+
+-- 돌봄 급구 관련 Pets 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_pets_for_sos_posts AS
+SELECT sos_posts_pets.sos_post_id,
+       array_agg(pets.pet_type)                         AS pet_type_list,
+       json_agg(
+       json_build_object(
+               'id', pets.id,
+               'owner_id', pets.owner_id,
+               'name', pets.name,
+               'pet_type', pets.pet_type,
+               'sex', pets.sex,
+               'neutered', pets.neutered,
+               'breed', pets.breed,
+               'birth_date', pets.birth_date,
+               'weight_in_kg', pets.weight_in_kg,
+               'additional_note', pets.additional_note,
+               'created_at', pets.created_at,
+               'updated_at', pets.updated_at,
+               'deleted_at', pets.deleted_at,
+               'remarks', pets.remarks,
+               'profile_image_id', pets.profile_image_id,
+               'profile_image_url', media.url
+       )
+               ) FILTER (WHERE pets.deleted_at IS NULL) AS pets_info
+FROM sos_posts_pets
+         INNER JOIN pets ON sos_posts_pets.pet_id = pets.id AND pets.deleted_at IS NULL
+         LEFT JOIN media ON pets.profile_image_id = media.id
+WHERE sos_posts_pets.deleted_at IS NULL
+GROUP BY sos_posts_pets.sos_post_id;
+
+
+
+-- 돌봄 급구 관련 Media 테이블 VIEW 생성
+CREATE OR REPLACE VIEW v_media_for_sos_posts AS
+SELECT resource_media.resource_id                                AS sos_post_id,
+       json_agg(media.*) FILTER (WHERE media.deleted_at IS NULL) AS media_info
+FROM resource_media
+         LEFT JOIN media ON resource_media.media_id = media.id
+WHERE media.deleted_at IS NULL
+  AND resource_media.deleted_at IS NULL
+GROUP BY resource_media.resource_id;

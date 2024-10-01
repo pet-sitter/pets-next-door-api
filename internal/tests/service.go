@@ -36,9 +36,13 @@ func NewMockUserService(db *database.DB) *service.UserService {
 	return service.NewUserService(db, NewMockMediaService(db))
 }
 
-// func NewMockSOSPostService(db *database.DB) *service.SOSPostService {
-// 	return service.NewSOSPostService(db)
-// }
+func NewMockSOSPostService(db *database.DB) *service.SOSPostService {
+	return service.NewSOSPostService(db)
+}
+
+func NewMockSOSConditionService(db *database.DB) *service.SOSConditionService {
+	return service.NewSOSConditionService(db)
+}
 
 func AddDummyPet(
 	t *testing.T,

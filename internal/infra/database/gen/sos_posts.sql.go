@@ -8,9 +8,11 @@ package databasegen
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const deleteSOSPostConditionBySOSPostID = `-- name: DeleteSOSPostConditionBySOSPostID :exec
@@ -50,10 +52,6 @@ func (q *Queries) DeleteSOSPostPetBySOSPostID(ctx context.Context, sosPostID uui
 }
 
 const findDatesBySOSPostID = `-- name: FindDatesBySOSPostID :many
-
-
-
-
 SELECT sos_dates.id,
        sos_dates.date_start_at,
        sos_dates.date_end_at,
@@ -75,104 +73,6 @@ type FindDatesBySOSPostIDRow struct {
 	UpdatedAt   sql.NullTime
 }
 
-// -- name: FindSOSPosts :many
-// SELECT v_sos_posts.id,
-//
-//	v_sos_posts.title,
-//	v_sos_posts.content,
-//	v_sos_posts.reward,
-//	v_sos_posts.reward_type,
-//	v_sos_posts.care_type,
-//	v_sos_posts.carer_gender,
-//	v_sos_posts.thumbnail_id,
-//	v_sos_posts.author_id,
-//	v_sos_posts.created_at,
-//	v_sos_posts.updated_at,
-//	v_sos_posts.dates,
-//	v_pets_for_sos_posts.pets_info,
-//	v_media_for_sos_posts.media_info,
-//	v_conditions.conditions_info
-//
-// FROM v_sos_posts
-//
-//	LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
-//	LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
-//	LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
-//
-// WHERE v_sos_posts.earliest_date_start_at >= sqlc.narg('earliest_date_start_at')
-//
-//	AND (sqlc.narg('pet_type') = 'all' OR NOT EXISTS
-//	  (SELECT 1
-//	   FROM unnest(pet_type_list) AS pet_type
-//	   WHERE pet_type <> sqlc.narg('pet_type')))
-//
-// ORDER BY CASE WHEN sqlc.narg('sort_by') = 'newest' THEN v_sos_posts.created_at END DESC,
-//
-//	CASE WHEN sqlc.narg('sort_by') = 'deadline' THEN v_sos_posts.earliest_date_start_at END
-//
-// LIMIT sqlc.narg('limit') OFFSET sqlc.narg('offset');
-// -- name: FindSOSPostsByAuthorID :many
-// SELECT v_sos_posts.id,
-//
-//	v_sos_posts.title,
-//	v_sos_posts.content,
-//	v_sos_posts.reward,
-//	v_sos_posts.reward_type,
-//	v_sos_posts.care_type,
-//	v_sos_posts.carer_gender,
-//	v_sos_posts.thumbnail_id,
-//	v_sos_posts.author_id,
-//	v_sos_posts.created_at,
-//	v_sos_posts.updated_at,
-//	v_sos_posts.dates,
-//	v_pets_for_sos_posts.pets_info,
-//	v_media_for_sos_posts.media_info,
-//	v_conditions.conditions_info
-//
-// FROM v_sos_posts
-//
-//	LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
-//	LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
-//	LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
-//
-// WHERE v_sos_posts.earliest_date_start_at >= sqlc.narg('earliest_date_start_at')
-//
-//	AND v_sos_posts.author_id = sqlc.narg('author_id')
-//	AND (sqlc.narg('pet_type') = 'all' OR NOT EXISTS
-//	  (SELECT 1
-//	   FROM unnest(pet_type_list) AS pet_type
-//	   WHERE pet_type <> sqlc.narg('pet_type')))
-//
-// ORDER BY CASE WHEN sqlc.narg('sort_by') = 'newest' THEN v_sos_posts.created_at END DESC,
-//
-//	CASE WHEN sqlc.narg('sort_by') = 'deadline' THEN v_sos_posts.earliest_date_start_at END
-//
-// LIMIT sqlc.narg('limit') OFFSET sqlc.narg('offset');
-// -- name: FindSOSPostByID :one
-// SELECT v_sos_posts.id,
-//
-//	v_sos_posts.title,
-//	v_sos_posts.content,
-//	v_sos_posts.reward,
-//	v_sos_posts.reward_type,
-//	v_sos_posts.care_type,
-//	v_sos_posts.carer_gender,
-//	v_sos_posts.thumbnail_id,
-//	v_sos_posts.author_id,
-//	v_sos_posts.created_at,
-//	v_sos_posts.updated_at,
-//	v_sos_posts.dates,
-//	v_pets_for_sos_posts.pets_info,
-//	v_media_for_sos_posts.media_info,
-//	v_conditions.conditions_info
-//
-// FROM v_sos_posts
-//
-//	LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
-//	LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
-//	LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
-//
-// WHERE v_sos_posts.id = sqlc.narg('id');
 func (q *Queries) FindDatesBySOSPostID(ctx context.Context, id uuid.NullUUID) ([]FindDatesBySOSPostIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, findDatesBySOSPostID, id)
 	if err != nil {
@@ -188,6 +88,275 @@ func (q *Queries) FindDatesBySOSPostID(ctx context.Context, id uuid.NullUUID) ([
 			&i.DateEndAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findSOSPostByID = `-- name: FindSOSPostByID :one
+SELECT v_sos_posts.id,
+       v_sos_posts.title,
+       v_sos_posts.content,
+       v_sos_posts.reward,
+       v_sos_posts.reward_type,
+       v_sos_posts.care_type,
+       v_sos_posts.carer_gender,
+       v_sos_posts.thumbnail_id,
+       v_sos_posts.author_id,
+       v_sos_posts.created_at,
+       v_sos_posts.updated_at,
+       v_sos_posts.dates,
+       v_pets_for_sos_posts.pets_info,
+       v_media_for_sos_posts.media_info,
+       v_conditions.conditions_info
+FROM v_sos_posts
+         LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
+         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+WHERE v_sos_posts.id = $1
+`
+
+type FindSOSPostByIDRow struct {
+	ID             uuid.UUID
+	Title          sql.NullString
+	Content        sql.NullString
+	Reward         sql.NullString
+	RewardType     sql.NullString
+	CareType       sql.NullString
+	CarerGender    sql.NullString
+	ThumbnailID    uuid.NullUUID
+	AuthorID       uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Dates          json.RawMessage
+	PetsInfo       pqtype.NullRawMessage
+	MediaInfo      pqtype.NullRawMessage
+	ConditionsInfo pqtype.NullRawMessage
+}
+
+func (q *Queries) FindSOSPostByID(ctx context.Context, id uuid.NullUUID) (FindSOSPostByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, findSOSPostByID, id)
+	var i FindSOSPostByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Reward,
+		&i.RewardType,
+		&i.CareType,
+		&i.CarerGender,
+		&i.ThumbnailID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Dates,
+		&i.PetsInfo,
+		&i.MediaInfo,
+		&i.ConditionsInfo,
+	)
+	return i, err
+}
+
+const findSOSPosts = `-- name: FindSOSPosts :many
+SELECT v_sos_posts.id,
+       v_sos_posts.title,
+       v_sos_posts.content,
+       v_sos_posts.reward,
+       v_sos_posts.reward_type,
+       v_sos_posts.care_type,
+       v_sos_posts.carer_gender,
+       v_sos_posts.thumbnail_id,
+       v_sos_posts.author_id,
+       v_sos_posts.created_at,
+       v_sos_posts.updated_at,
+       v_sos_posts.dates,
+       v_pets_for_sos_posts.pets_info,
+       v_media_for_sos_posts.media_info,
+       v_conditions.conditions_info
+FROM v_sos_posts
+         LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
+         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+WHERE v_sos_posts.earliest_date_start_at >= $1
+  AND ($2 = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> $2))
+ORDER BY CASE WHEN $3 = 'newest' THEN v_sos_posts.created_at END DESC,
+         CASE WHEN $3 = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT $5 OFFSET $4
+`
+
+type FindSOSPostsParams struct {
+	EarliestDateStartAt interface{}
+	PetType             interface{}
+	SortBy              interface{}
+	Offset              sql.NullInt32
+	Limit               sql.NullInt32
+}
+
+type FindSOSPostsRow struct {
+	ID             uuid.UUID
+	Title          sql.NullString
+	Content        sql.NullString
+	Reward         sql.NullString
+	RewardType     sql.NullString
+	CareType       sql.NullString
+	CarerGender    sql.NullString
+	ThumbnailID    uuid.NullUUID
+	AuthorID       uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Dates          json.RawMessage
+	PetsInfo       pqtype.NullRawMessage
+	MediaInfo      pqtype.NullRawMessage
+	ConditionsInfo pqtype.NullRawMessage
+}
+
+func (q *Queries) FindSOSPosts(ctx context.Context, arg FindSOSPostsParams) ([]FindSOSPostsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findSOSPosts,
+		arg.EarliestDateStartAt,
+		arg.PetType,
+		arg.SortBy,
+		arg.Offset,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindSOSPostsRow
+	for rows.Next() {
+		var i FindSOSPostsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Content,
+			&i.Reward,
+			&i.RewardType,
+			&i.CareType,
+			&i.CarerGender,
+			&i.ThumbnailID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Dates,
+			&i.PetsInfo,
+			&i.MediaInfo,
+			&i.ConditionsInfo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findSOSPostsByAuthorID = `-- name: FindSOSPostsByAuthorID :many
+SELECT v_sos_posts.id,
+       v_sos_posts.title,
+       v_sos_posts.content,
+       v_sos_posts.reward,
+       v_sos_posts.reward_type,
+       v_sos_posts.care_type,
+       v_sos_posts.carer_gender,
+       v_sos_posts.thumbnail_id,
+       v_sos_posts.author_id,
+       v_sos_posts.created_at,
+       v_sos_posts.updated_at,
+       v_sos_posts.dates,
+       v_pets_for_sos_posts.pets_info,
+       v_media_for_sos_posts.media_info,
+       v_conditions.conditions_info
+FROM v_sos_posts
+         LEFT JOIN v_pets_for_sos_posts ON v_sos_posts.id = v_pets_for_sos_posts.sos_post_id
+         LEFT JOIN v_media_for_sos_posts ON v_sos_posts.id = v_media_for_sos_posts.sos_post_id
+         LEFT JOIN v_conditions ON v_sos_posts.id = v_conditions.sos_post_id
+WHERE v_sos_posts.earliest_date_start_at >= $1
+  AND v_sos_posts.author_id = $2
+  AND ($3 = 'all' OR NOT EXISTS
+    (SELECT 1
+     FROM unnest(pet_type_list) AS pet_type
+     WHERE pet_type <> $3))
+ORDER BY CASE WHEN $4 = 'newest' THEN v_sos_posts.created_at END DESC,
+         CASE WHEN $4 = 'deadline' THEN v_sos_posts.earliest_date_start_at END
+LIMIT $6 OFFSET $5
+`
+
+type FindSOSPostsByAuthorIDParams struct {
+	EarliestDateStartAt interface{}
+	AuthorID            uuid.NullUUID
+	PetType             interface{}
+	SortBy              interface{}
+	Offset              sql.NullInt32
+	Limit               sql.NullInt32
+}
+
+type FindSOSPostsByAuthorIDRow struct {
+	ID             uuid.UUID
+	Title          sql.NullString
+	Content        sql.NullString
+	Reward         sql.NullString
+	RewardType     sql.NullString
+	CareType       sql.NullString
+	CarerGender    sql.NullString
+	ThumbnailID    uuid.NullUUID
+	AuthorID       uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Dates          json.RawMessage
+	PetsInfo       pqtype.NullRawMessage
+	MediaInfo      pqtype.NullRawMessage
+	ConditionsInfo pqtype.NullRawMessage
+}
+
+func (q *Queries) FindSOSPostsByAuthorID(ctx context.Context, arg FindSOSPostsByAuthorIDParams) ([]FindSOSPostsByAuthorIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findSOSPostsByAuthorID,
+		arg.EarliestDateStartAt,
+		arg.AuthorID,
+		arg.PetType,
+		arg.SortBy,
+		arg.Offset,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindSOSPostsByAuthorIDRow
+	for rows.Next() {
+		var i FindSOSPostsByAuthorIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Content,
+			&i.Reward,
+			&i.RewardType,
+			&i.CareType,
+			&i.CarerGender,
+			&i.ThumbnailID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Dates,
+			&i.PetsInfo,
+			&i.MediaInfo,
+			&i.ConditionsInfo,
 		); err != nil {
 			return nil, err
 		}
@@ -342,9 +511,9 @@ SET title        = $1,
     reward_type  = $6,
     thumbnail_id = $7,
     updated_at   = NOW()
-WHERE legacy_id = $8
+WHERE id = $8
 RETURNING
-    legacy_id, author_legacy_id, title, content, reward, care_type, carer_gender, reward_type, thumbnail_id, created_at, updated_at
+    id, author_id, title, content, reward, care_type, carer_gender, reward_type, thumbnail_id, created_at, updated_at
 `
 
 type UpdateSOSPostParams struct {
@@ -355,21 +524,21 @@ type UpdateSOSPostParams struct {
 	CarerGender sql.NullString
 	RewardType  sql.NullString
 	ThumbnailID uuid.NullUUID
-	LegacyID    int32
+	ID          uuid.UUID
 }
 
 type UpdateSOSPostRow struct {
-	LegacyID       int32
-	AuthorLegacyID sql.NullInt64
-	Title          sql.NullString
-	Content        sql.NullString
-	Reward         sql.NullString
-	CareType       sql.NullString
-	CarerGender    sql.NullString
-	RewardType     sql.NullString
-	ThumbnailID    uuid.NullUUID
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID          uuid.UUID
+	AuthorID    uuid.UUID
+	Title       sql.NullString
+	Content     sql.NullString
+	Reward      sql.NullString
+	CareType    sql.NullString
+	CarerGender sql.NullString
+	RewardType  sql.NullString
+	ThumbnailID uuid.NullUUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (q *Queries) UpdateSOSPost(ctx context.Context, arg UpdateSOSPostParams) (UpdateSOSPostRow, error) {
@@ -381,12 +550,12 @@ func (q *Queries) UpdateSOSPost(ctx context.Context, arg UpdateSOSPostParams) (U
 		arg.CarerGender,
 		arg.RewardType,
 		arg.ThumbnailID,
-		arg.LegacyID,
+		arg.ID,
 	)
 	var i UpdateSOSPostRow
 	err := row.Scan(
-		&i.LegacyID,
-		&i.AuthorLegacyID,
+		&i.ID,
+		&i.AuthorID,
 		&i.Title,
 		&i.Content,
 		&i.Reward,
@@ -402,8 +571,8 @@ func (q *Queries) UpdateSOSPost(ctx context.Context, arg UpdateSOSPostParams) (U
 
 const writeSOSPost = `-- name: WriteSOSPost :one
 INSERT INTO sos_posts
-(legacy_id,
- author_legacy_id,
+(id,
+ author_id,
  title,
  content,
  reward,
@@ -414,39 +583,39 @@ INSERT INTO sos_posts
  created_at,
  updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-RETURNING legacy_id, author_legacy_id, title, content, reward, care_type, carer_gender, reward_type, thumbnail_id, created_at, updated_at
+RETURNING id, author_id, title, content, reward, care_type, carer_gender, reward_type, thumbnail_id, created_at, updated_at
 `
 
 type WriteSOSPostParams struct {
-	LegacyID       int32
-	AuthorLegacyID sql.NullInt64
-	Title          sql.NullString
-	Content        sql.NullString
-	Reward         sql.NullString
-	CareType       sql.NullString
-	CarerGender    sql.NullString
-	RewardType     sql.NullString
-	ThumbnailID    uuid.NullUUID
+	ID          uuid.UUID
+	AuthorID    uuid.UUID
+	Title       sql.NullString
+	Content     sql.NullString
+	Reward      sql.NullString
+	CareType    sql.NullString
+	CarerGender sql.NullString
+	RewardType  sql.NullString
+	ThumbnailID uuid.NullUUID
 }
 
 type WriteSOSPostRow struct {
-	LegacyID       int32
-	AuthorLegacyID sql.NullInt64
-	Title          sql.NullString
-	Content        sql.NullString
-	Reward         sql.NullString
-	CareType       sql.NullString
-	CarerGender    sql.NullString
-	RewardType     sql.NullString
-	ThumbnailID    uuid.NullUUID
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID          uuid.UUID
+	AuthorID    uuid.UUID
+	Title       sql.NullString
+	Content     sql.NullString
+	Reward      sql.NullString
+	CareType    sql.NullString
+	CarerGender sql.NullString
+	RewardType  sql.NullString
+	ThumbnailID uuid.NullUUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (q *Queries) WriteSOSPost(ctx context.Context, arg WriteSOSPostParams) (WriteSOSPostRow, error) {
 	row := q.db.QueryRowContext(ctx, writeSOSPost,
-		arg.LegacyID,
-		arg.AuthorLegacyID,
+		arg.ID,
+		arg.AuthorID,
 		arg.Title,
 		arg.Content,
 		arg.Reward,
@@ -457,8 +626,8 @@ func (q *Queries) WriteSOSPost(ctx context.Context, arg WriteSOSPostParams) (Wri
 	)
 	var i WriteSOSPostRow
 	err := row.Scan(
-		&i.LegacyID,
-		&i.AuthorLegacyID,
+		&i.ID,
+		&i.AuthorID,
 		&i.Title,
 		&i.Content,
 		&i.Reward,

@@ -32,6 +32,20 @@ func ParseIDFromPath(c echo.Context, path string) (uuid.UUID, *AppError) {
 	return id, nil
 }
 
+func ParseOptionalUUIDQuery(c echo.Context, query string) (uuid.NullUUID, *AppError) {
+	queryStr := c.QueryParam(query)
+	if queryStr == "" {
+		return uuid.NullUUID{}, nil
+	}
+
+	id, err := uuid.Parse(queryStr)
+	if err != nil {
+		return uuid.NullUUID{}, ErrInvalidQuery(fmt.Errorf("expected valid UUID for query: %s", query))
+	}
+
+	return uuid.NullUUID{UUID: id, Valid: true}, nil
+}
+
 func ParseOptionalIntQuery(c echo.Context, query string) (*int, *AppError) {
 	queryStr := c.QueryParam(query)
 	if queryStr == "" {

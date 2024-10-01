@@ -225,7 +225,6 @@ func (service *UserService) AddPetsToOwner(
 			Remarks:        item.Remarks,
 			ProfileImageID: item.ProfileImageID,
 		}
-		fmt.Printf("petToCreate: %+v\n", petToCreate)
 		row, err := databasegen.New(service.conn).WithTx(tx.Tx).CreatePet(ctx, petToCreate)
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
@@ -241,7 +240,6 @@ func (service *UserService) AddPetsToOwner(
 		Ids: petIDs,
 	})
 	if err2 != nil {
-		fmt.Printf("여기가 문제인가? %v\n", err2)
 		return nil, pnd.FromPostgresError(err2)
 	}
 
