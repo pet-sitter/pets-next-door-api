@@ -21,7 +21,9 @@ func NewChatService(conn *database.DB) *ChatService {
 	}
 }
 
-func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, userFirebaseUID string) (
+func (s *ChatService) CreateRoom(
+	ctx context.Context, name, roomType, userFirebaseUID string,
+) (
 	*chat.RoomSimpleInfo, *pnd.AppError,
 ) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
@@ -35,7 +37,7 @@ func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, use
 	tx, transactionError := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 
-	if err != nil {
+	if transactionError != nil {
 		return nil, transactionError
 	}
 
