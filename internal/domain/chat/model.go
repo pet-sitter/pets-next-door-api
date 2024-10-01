@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -28,18 +27,18 @@ const (
 )
 
 type RoomSimpleInfo struct {
-	ID        string                 `field:"id" json:"id"`
-	RoomName  string                 `field:"roomName" json:"roomName"`
-	RoomType  string                 `field:"roomType" json:"roomType"`
-	JoinUsers *[]JoinUsersSimpleInfo `field:"joinUsers" json:"joinUsers"`
-	CreatedAt time.Time              `field:"createdAt" json:"createdAt"`
-	UpdatedAt time.Time              `field:"updatedAt" json:"updatedAt"`
+	ID        string               `field:"id" json:"id"`
+	RoomName  string               `field:"roomName" json:"roomName"`
+	RoomType  string               `field:"roomType" json:"roomType"`
+	JoinUser  *JoinUsersSimpleInfo `field:"joinUser" json:"joinUser"`
+	CreatedAt time.Time            `field:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time            `field:"updatedAt" json:"updatedAt"`
 }
 
 type JoinUsersSimpleInfo struct {
-	ID               string         `field:"id" json:"userId"`
-	UserNickname     string         `field:"nickname" json:"userNickname"`
-	UserProfileImage sql.NullString `field:"profileImage" json:"profileImageId"`
+	ID               string `field:"id" json:"userId"`
+	UserNickname     string `field:"nickname" json:"userNickname"`
+	UserProfileImage string `field:"profileImage" json:"profileImageUrl"`
 }
 
 type JoinRoom struct {

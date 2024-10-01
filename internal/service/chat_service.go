@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
@@ -20,50 +21,46 @@ func NewChatService(conn *database.DB) *ChatService {
 	}
 }
 
-func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, joinUserIDs *[]int64) (
+func (s *ChatService) CreateRoom(ctx context.Context, name, roomType string, userFirebaseUID string) (
 	*chat.RoomSimpleInfo, *pnd.AppError,
 ) {
+	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
+		FbUid: utils.StrToNullStr(userFirebaseUID),
+	})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
+	}
+
 	// 채팅방 생성
-	tx, err := s.conn.BeginTx(ctx)
+	tx, transactionError := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 
 	if err != nil {
-		return nil, err
+		return nil, transactionError
 	}
-	q := databasegen.New(tx)
 
-	row, err2 := q.CreateRoom(ctx, databasegen.CreateRoomParams{
+	q := databasegen.New(tx)
+	row, databaseGenError := q.CreateRoom(ctx, databasegen.CreateRoomParams{
 		Name:     name,
 		RoomType: roomType,
 	})
 
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if databaseGenError != nil {
+		return nil, pnd.FromPostgresError(databaseGenError)
 	}
 
-	// 채팅방에 참여하는 인원이 없을 경우 방만 생성
-	if joinUserIDs == nil || len(*joinUserIDs) == 0 {
-		return chat.ToCreateRoom(row, nil), nil
-	}
-
-	// 채팅방에 참여하는 인원이 있을 경우 참여자 추가
-	err3 := q.JoinRooms(ctx, databasegen.JoinRoomsParams{
-		RoomID:  int64(row.ID),
-		UserIDs: *joinUserIDs,
+	_, err3 := q.JoinRoom(ctx, databasegen.JoinRoomParams{
+		UserID: int64(userData.ID),
+		RoomID: int64(row.ID),
 	})
+
 	if err3 != nil {
 		return nil, pnd.FromPostgresError(err3)
 	}
 
 	tx.Commit()
 
-	joinUsers, err4 := databasegen.New(s.conn).FindUsersByIds(ctx, *joinUserIDs)
-
-	if err4 != nil {
-		return nil, pnd.FromPostgresError(err4)
-	}
-
-	return chat.ToCreateRoom(row, chat.ToJoinUsers(joinUsers)), nil
+	return chat.ToCreateRoom(row, chat.ToJoinUsers(userData)), nil
 }
 
 func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) (*chat.JoinRoom, *pnd.AppError) {
@@ -73,15 +70,25 @@ func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) 
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-	row, err := databasegen.New(s.conn).JoinRoom(ctx, databasegen.JoinRoomParams{
-		RoomID: roomID,
-		UserID: int64(userData.ID),
-	})
+	// 채팅방에 이미 참여중인지 확인
+	exists, err := databasegen.New(s.conn).UserExistsInRoom(ctx, roomID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return chat.ToJoinRoom(row), nil
+	if !exists {
+		row, err := databasegen.New(s.conn).JoinRoom(ctx, databasegen.JoinRoomParams{
+			RoomID: roomID,
+			UserID: int64(userData.ID),
+		})
+		if err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
+		return chat.ToJoinRoom(row), nil
+	}
+
+	return nil, pnd.ErrBadRequest(errors.New("이미 참여중인 채팅방입니다"))
 }
 
 func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string) *pnd.AppError {
@@ -91,6 +98,7 @@ func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string)
 	if err != nil {
 		return pnd.FromPostgresError(err)
 	}
+
 	err = databasegen.New(s.conn).LeaveRoom(ctx, databasegen.LeaveRoomParams{
 		RoomID: roomID,
 		UserID: int64(userData.ID),
