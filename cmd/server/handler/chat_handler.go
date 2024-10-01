@@ -70,8 +70,8 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 	}
 	var createRoomRequest domain.CreateRoomRequest
 
-	if err := pnd.ParseBody(c, &createRoomRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+	if bodyError := pnd.ParseBody(c, &createRoomRequest); bodyError != nil {
+		return c.JSON(bodyError.StatusCode, err)
 	}
 
 	res, err := h.chatService.CreateRoom(
