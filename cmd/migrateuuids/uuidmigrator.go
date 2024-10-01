@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -72,6 +73,19 @@ var Targets = []Target{
 			{Column: "resource_id", UUIDColumn: "resource_uuid", ReferencedTable: "sos_posts", ReferencedColumn: "uuid"},
 		},
 	},
+	{"chat_rooms", "uuid", []FK{}},
+	{
+		"chat_messages", "uuid", []FK{
+			{Column: "room_id", UUIDColumn: "room_uuid", ReferencedTable: "chat_rooms", ReferencedColumn: "uuid"},
+			{Column: "user_id", UUIDColumn: "user_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
+		},
+	},
+	{
+		"user_chat_rooms", "uuid", []FK{
+			{Column: "room_id", UUIDColumn: "room_uuid", ReferencedTable: "chat_rooms", ReferencedColumn: "uuid"},
+			{Column: "user_id", UUIDColumn: "user_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
+		},
+	},
 }
 
 type MigrateOptions struct {
@@ -137,7 +151,12 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 		log.Printf(" - Total rows: %d\n", count)
 		total += count
 
-		rows, err := tx.Query("SELECT id, uuid FROM " + target.Table + " ORDER BY created_at ASC")
+		var rows *sql.Rows
+		if target.Table == "user_chat_rooms" {
+			rows, err = tx.Query("SELECT id, uuid FROM " + target.Table + " ORDER BY joined_at ASC")
+		} else {
+			rows, err = tx.Query("SELECT id, uuid FROM " + target.Table + " ORDER BY created_at ASC")
+		}
 		if err != nil {
 			return pnd.ErrUnknown(
 				fmt.Errorf("error selecting rows from table %s due to %w", target.Table, err),

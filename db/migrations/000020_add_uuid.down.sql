@@ -9,11 +9,6 @@ ALTER TABLE pets
     DROP COLUMN uuid,
     DROP COLUMN owner_uuid,
     DROP COLUMN profile_image_uuid;
-ALTER TABLE base_posts
-    DROP COLUMN uuid,
-    DROP COLUMN author_uuid;
-ALTER TABLE sos_posts
-    DROP COLUMN thumbnail_uuid;
 ALTER TABLE sos_dates
     DROP COLUMN uuid;
 ALTER TABLE sos_posts_dates
@@ -34,3 +29,13 @@ ALTER TABLE resource_media
     DROP COLUMN uuid,
     DROP COLUMN media_uuid,
     DROP COLUMN resource_uuid;
+ALTER TABLE chat_rooms
+    DROP COLUMN uuid;
+ALTER TABLE chat_messages
+    DROP COLUMN uuid,
+    DROP COLUMN user_uuid,
+    DROP COLUMN room_uuid;
+ALTER TABLE user_chat_rooms
+    DROP COLUMN uuid,
+    DROP COLUMN user_uuid,
+    DROP COLUMN room_uuid;

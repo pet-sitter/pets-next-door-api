@@ -56,7 +56,23 @@ ALTER TABLE
     resource_media
     ADD COLUMN uuid          UUID NULL,
     ADD COLUMN media_uuid    UUID NULL,
-    ADD COLUMN resource_uuid UUID NULL;;
+    ADD COLUMN resource_uuid UUID NULL;
+
+ALTER TABLE
+    chat_rooms
+    ADD COLUMN uuid UUID NULL;
+
+ALTER TABLE
+    chat_messages
+    ADD COLUMN uuid      UUID NULL,
+    ADD COLUMN user_uuid UUID NULL,
+    ADD COLUMN room_uuid UUID NULL;
+
+ALTER TABLE
+    user_chat_rooms
+    ADD COLUMN uuid      UUID NULL,
+    ADD COLUMN user_uuid UUID NULL,
+    ADD COLUMN room_uuid UUID NULL;
 
 -- Add view
 -- 돌봄 급구(SosPosts) 테이블 VIEW 생성
