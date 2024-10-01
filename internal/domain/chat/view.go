@@ -6,32 +6,23 @@ import (
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
-func ToCreateRoom(row databasegen.CreateRoomRow, users *[]JoinUsersSimpleInfo) *RoomSimpleInfo {
+func ToCreateRoom(row databasegen.CreateRoomRow, users *JoinUsersSimpleInfo) *RoomSimpleInfo {
 	return &RoomSimpleInfo{
 		ID:        string(row.ID),
 		RoomName:  row.Name,
 		RoomType:  row.RoomType,
-		JoinUsers: users,
+		JoinUser:  users,
 		CreatedAt: row.CreatedAt,
 		UpdatedAt: row.UpdatedAt,
 	}
 }
 
-func ToJoinUsers(row []databasegen.FindUsersRow) *[]JoinUsersSimpleInfo {
-	if len(row) == 0 {
-		return nil
+func ToJoinUsers(row databasegen.FindUserRow) *JoinUsersSimpleInfo {
+	return &JoinUsersSimpleInfo{
+		ID:               strconv.FormatInt(int64(row.ID), 10),
+		UserNickname:     row.Nickname,
+		UserProfileImage: row.ProfileImageUrl.String,
 	}
-
-	joinUsers := make([]JoinUsersSimpleInfo, len(row))
-
-	for i, r := range row {
-		joinUsers[i] = JoinUsersSimpleInfo{
-			ID:               string(r.ID),
-			UserNickname:     r.Nickname,
-			UserProfileImage: r.ProfileImageUrl,
-		}
-	}
-	return &joinUsers
 }
 
 func ToJoinRoom(row databasegen.JoinRoomRow) *JoinRoom {
