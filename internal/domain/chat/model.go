@@ -2,6 +2,8 @@ package chat
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type (
@@ -27,7 +29,7 @@ const (
 )
 
 type RoomSimpleInfo struct {
-	ID        string               `field:"id" json:"id"`
+	ID        uuid.UUID            `field:"id" json:"id"`
 	RoomName  string               `field:"roomName" json:"roomName"`
 	RoomType  string               `field:"roomType" json:"roomType"`
 	JoinUser  *JoinUsersSimpleInfo `field:"joinUser" json:"joinUser"`
@@ -36,14 +38,14 @@ type RoomSimpleInfo struct {
 }
 
 type JoinUsersSimpleInfo struct {
-	ID               string `field:"id" json:"userId"`
-	UserNickname     string `field:"nickname" json:"userNickname"`
-	UserProfileImage string `field:"profileImage" json:"profileImageUrl"`
+	ID               uuid.UUID `field:"id" json:"userId"`
+	UserNickname     string    `field:"nickname" json:"userNickname"`
+	UserProfileImage string    `field:"profileImage" json:"profileImageUrl"`
 }
 
 type JoinRoom struct {
-	UserID   string
-	RoomID   string
+	UserID   uuid.UUID
+	RoomID   uuid.UUID
 	JoinedAt time.Time
 }
 
@@ -53,14 +55,14 @@ type JoinRoomsView struct {
 }
 
 type UserChatRoomMessageView struct {
-	ID          string `field:"id" json:"id"`
-	MessageType string `field:"messageType" json:"messageType"`
+	ID          uuid.UUID `field:"id" json:"id"`
+	MessageType string    `field:"messageType" json:"messageType"`
 }
 
 type Message struct {
-	ID          int64     `field:"id" json:"id"`
-	UserID      int64     `field:"userID" json:"userID"`
-	RoomID      int64     `field:"roomID" json:"roomID"`
+	ID          uuid.UUID `field:"id" json:"id"`
+	UserID      uuid.UUID `field:"userID" json:"userID"`
+	RoomID      uuid.UUID `field:"roomID" json:"roomID"`
 	MessageType string    `field:"messageType" json:"messageType"`
 	Content     string    `field:"content" json:"content"`
 	CreatedAt   time.Time `field:"createdAt" json:"createdAt"`

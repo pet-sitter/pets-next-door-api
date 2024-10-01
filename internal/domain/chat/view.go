@@ -1,14 +1,12 @@
 package chat
 
 import (
-	"strconv"
-
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
 func ToCreateRoom(row databasegen.CreateRoomRow, users *JoinUsersSimpleInfo) *RoomSimpleInfo {
 	return &RoomSimpleInfo{
-		ID:        string(row.ID),
+		ID:        row.ID,
 		RoomName:  row.Name,
 		RoomType:  row.RoomType,
 		JoinUser:  users,
@@ -19,7 +17,7 @@ func ToCreateRoom(row databasegen.CreateRoomRow, users *JoinUsersSimpleInfo) *Ro
 
 func ToJoinUsers(row databasegen.FindUserRow) *JoinUsersSimpleInfo {
 	return &JoinUsersSimpleInfo{
-		ID:               strconv.FormatInt(int64(row.ID), 10),
+		ID:               row.ID,
 		UserNickname:     row.Nickname,
 		UserProfileImage: row.ProfileImageUrl.String,
 	}
@@ -27,13 +25,13 @@ func ToJoinUsers(row databasegen.FindUserRow) *JoinUsersSimpleInfo {
 
 func ToJoinRoom(row databasegen.JoinRoomRow) *JoinRoom {
 	return &JoinRoom{
-		UserID:   strconv.FormatInt(row.UserID, 10),
-		RoomID:   strconv.FormatInt(row.RoomID, 10),
+		UserID:   row.UserID,
+		RoomID:   row.RoomID,
 		JoinedAt: row.JoinedAt,
 	}
 }
 
-func ToUserChatRoomsView(rows []databasegen.FindAllUserChatRoomsRow) *JoinRoomsView {
+func ToUserChatRoomsView(rows []databasegen.FindAllUserChatRoomsByUserUIDRow) *JoinRoomsView {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -42,7 +40,7 @@ func ToUserChatRoomsView(rows []databasegen.FindAllUserChatRoomsRow) *JoinRoomsV
 	roomSimpleInfos := make([]RoomSimpleInfo, len(rows))
 	for i, r := range rows {
 		roomSimpleInfos[i] = RoomSimpleInfo{
-			ID:        strconv.FormatInt(r.UserID, 10),
+			ID:        r.UserID,
 			RoomName:  r.ChatRoomName,
 			RoomType:  r.ChatRoomType,
 			CreatedAt: r.ChatRoomCreatedAt,
@@ -55,9 +53,9 @@ func ToUserChatRoomsView(rows []databasegen.FindAllUserChatRoomsRow) *JoinRoomsV
 	}
 }
 
-func ToUserChatRoomView(row databasegen.FindRoomByIDRow) *RoomSimpleInfo {
+func ToUserChatRoomView(row databasegen.FindRoomByIDAndUserIDRow) *RoomSimpleInfo {
 	return &RoomSimpleInfo{
-		ID:        strconv.FormatInt(int64(row.ID), 10),
+		ID:        row.ID,
 		RoomName:  row.Name,
 		RoomType:  row.RoomType,
 		CreatedAt: row.CreatedAt,
@@ -73,7 +71,7 @@ func ToUserChatRoomMessageView(row []databasegen.FindMessageByRoomIDRow, hasNext
 	messages := make([]Message, len(row))
 	for i, r := range row {
 		messages[i] = Message{
-			ID:          int64(r.ID),
+			ID:          r.ID,
 			UserID:      r.UserID,
 			RoomID:      r.RoomID,
 			MessageType: r.MessageType,

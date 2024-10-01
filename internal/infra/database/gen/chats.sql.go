@@ -16,9 +16,9 @@ import (
 const createRoom = `-- name: CreateRoom :one
 INSERT INTO chat_rooms
 (name,
-room_type,
-created_at,
-updated_at)
+ room_type,
+ created_at,
+ updated_at)
 VALUES ($1, $2, NOW(), NOW())
 RETURNING id, name, room_type, created_at, updated_at
 `
@@ -62,11 +62,10 @@ func (q *Queries) DeleteRoom(ctx context.Context, id uuid.UUID) error {
 }
 
 const existsUserInRoom = `-- name: ExistsUserInRoom :one
-SELECT EXISTS (
-    SELECT 1
-    FROM user_chat_rooms
-    WHERE room_id = $1 AND user_id = $2
-)
+SELECT EXISTS (SELECT 1
+               FROM user_chat_rooms
+               WHERE room_id = $1
+                 AND user_id = $2)
 `
 
 type ExistsUserInRoomParams struct {
@@ -81,131 +80,37 @@ func (q *Queries) ExistsUserInRoom(ctx context.Context, arg ExistsUserInRoomPara
 	return exists, err
 }
 
-const findMessageByRoomID = `-- name: FindMessageByRoomID :many
-SELECT
-    id,
-    user_id,
-    room_id,
-    message_type,
-    content
-FROM
-    chat_messages
-WHERE
-    room_id = $3
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
+const findAllUserChatRoomsByUserUID = `-- name: FindAllUserChatRoomsByUserUID :many
+SELECT user_chat_rooms.id,
+       user_chat_rooms.user_id,
+       user_chat_rooms.room_id,
+       user_chat_rooms.joined_at,
+       users.email,
+       users.nickname,
+       users.fullname,
+       media.url             AS profile_image_url,
+       users.fb_provider_type,
+       users.fb_uid,
+       users.created_at,
+       users.updated_at,
+       chat_rooms.id         AS chat_room_id,
+       chat_rooms.name       AS chat_room_name,
+       chat_rooms.room_type  AS chat_room_type,
+       chat_rooms.created_at AS chat_room_created_at,
+       chat_rooms.updated_at AS chat_room_updated_at
+FROM user_chat_rooms
+         JOIN users
+              ON users.id = user_chat_rooms.user_id
+         JOIN chat_rooms
+              ON chat_rooms.id = user_chat_rooms.room_id
+         LEFT OUTER JOIN media
+                         ON users.profile_image_id = media.id
+WHERE user_chat_rooms.left_at IS NULL
+  AND chat_rooms.deleted_at IS NULL
+  AND user_chat_rooms.user_id = $1
 `
 
-type FindMessageByRoomIDParams struct {
-	Limit  int32
-	Offset int32
-	RoomID uuid.NullUUID
-}
-
-type FindMessageByRoomIDRow struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	RoomID      uuid.UUID
-	MessageType string
-	Content     string
-}
-
-func (q *Queries) FindMessageByRoomID(ctx context.Context, arg FindMessageByRoomIDParams) ([]FindMessageByRoomIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, findMessageByRoomID, arg.Limit, arg.Offset, arg.RoomID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []FindMessageByRoomIDRow
-	for rows.Next() {
-		var i FindMessageByRoomIDRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.RoomID,
-			&i.MessageType,
-			&i.Content,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const findRoomByID = `-- name: FindRoomByID :one
-SELECT
-    id,
-    name,
-    room_type,
-    created_at,
-    updated_at
-FROM
-    chat_rooms
-WHERE
-    (chat_rooms.id = $1)
-    AND (chat_rooms.deleted_at IS NULL)
-`
-
-type FindRoomByIDRow struct {
-	ID        uuid.UUID
-	Name      string
-	RoomType  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (q *Queries) FindRoomByID(ctx context.Context, id uuid.NullUUID) (FindRoomByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, findRoomByID, id)
-	var i FindRoomByIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.RoomType,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const findUserChatRooms = `-- name: FindUserChatRooms :many
-SELECT
-    user_chat_rooms.id,
-    user_chat_rooms.user_id,
-    user_chat_rooms.room_id,
-    user_chat_rooms.joined_at,
-    users.email,
-    users.nickname,
-    users.fullname,
-    media.url AS profile_image_url,
-    users.fb_provider_type,
-    users.fb_uid,
-    users.created_at,
-    users.updated_at,
-    chat_rooms.id AS chat_room_id,
-    chat_rooms.name AS chat_room_name,
-    chat_rooms.room_type AS chat_room_type,
-    chat_rooms.created_at AS chat_room_created_at,
-    chat_rooms.updated_at AS chat_room_updated_at
-FROM
-    user_chat_rooms
-    JOIN users
-        ON users.id = user_chat_rooms.user_id
-    JOIN chat_rooms
-        ON chat_rooms.id = user_chat_rooms.room_id
-    LEFT OUTER JOIN media
-        ON users.profile_image_id = media.id
-WHERE
-    user_chat_rooms.left_at IS NULL
-`
-
-type FindUserChatRoomsRow struct {
+type FindAllUserChatRoomsByUserUIDRow struct {
 	ID                uuid.UUID
 	UserID            uuid.UUID
 	RoomID            uuid.UUID
@@ -225,15 +130,15 @@ type FindUserChatRoomsRow struct {
 	ChatRoomUpdatedAt time.Time
 }
 
-func (q *Queries) FindUserChatRooms(ctx context.Context) ([]FindUserChatRoomsRow, error) {
-	rows, err := q.db.QueryContext(ctx, findUserChatRooms)
+func (q *Queries) FindAllUserChatRoomsByUserUID(ctx context.Context, userID uuid.UUID) ([]FindAllUserChatRoomsByUserUIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllUserChatRoomsByUserUID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindUserChatRoomsRow
+	var items []FindAllUserChatRoomsByUserUIDRow
 	for rows.Next() {
-		var i FindUserChatRoomsRow
+		var i FindAllUserChatRoomsByUserUIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -266,11 +171,126 @@ func (q *Queries) FindUserChatRooms(ctx context.Context) ([]FindUserChatRoomsRow
 	return items, nil
 }
 
+const findMessageByRoomID = `-- name: FindMessageByRoomID :many
+SELECT id,
+       user_id,
+       room_id,
+       message_type,
+       content,
+       created_at
+FROM chat_messages
+WHERE chat_messages.deleted_at IS NULL
+  AND room_id = $2
+  AND (($3::uuid IS NOT NULL AND $4::uuid IS NOT NULL AND
+        id > $3::uuid AND id < $4::uuid)
+    OR
+       ($3::uuid IS NOT NULL AND $4::uuid IS NULL AND
+        id < $3::uuid)
+    OR
+       ($3::uuid IS NULL AND $4::uuid IS NOT NULL AND
+        id > $4::uuid))
+ORDER BY chat_messages.created_at ASC
+LIMIT $1
+`
+
+type FindMessageByRoomIDParams struct {
+	Limit  int32
+	RoomID uuid.UUID
+	Prev   uuid.NullUUID
+	Next   uuid.NullUUID
+}
+
+type FindMessageByRoomIDRow struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
+	MessageType string
+	Content     string
+	CreatedAt   time.Time
+}
+
+func (q *Queries) FindMessageByRoomID(ctx context.Context, arg FindMessageByRoomIDParams) ([]FindMessageByRoomIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, findMessageByRoomID,
+		arg.Limit,
+		arg.RoomID,
+		arg.Prev,
+		arg.Next,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindMessageByRoomIDRow
+	for rows.Next() {
+		var i FindMessageByRoomIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.RoomID,
+			&i.MessageType,
+			&i.Content,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findRoomByIDAndUserID = `-- name: FindRoomByIDAndUserID :one
+SELECT id,
+       name,
+       room_type,
+       created_at,
+       updated_at
+FROM chat_rooms
+WHERE chat_rooms.deleted_at IS NULL
+  AND (chat_rooms.id = $1)
+  AND EXISTS (SELECT 1
+              FROM user_chat_rooms
+              WHERE user_id = $2
+                AND room_id = chat_rooms.id
+                AND left_at IS NULL)
+`
+
+type FindRoomByIDAndUserIDParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+type FindRoomByIDAndUserIDRow struct {
+	ID        uuid.UUID
+	Name      string
+	RoomType  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) FindRoomByIDAndUserID(ctx context.Context, arg FindRoomByIDAndUserIDParams) (FindRoomByIDAndUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, findRoomByIDAndUserID, arg.ID, arg.UserID)
+	var i FindRoomByIDAndUserIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.RoomType,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const joinRoom = `-- name: JoinRoom :one
 INSERT INTO user_chat_rooms
-(user_id, 
-room_id,
-joined_at)
+(user_id,
+ room_id,
+ joined_at)
 VALUES ($1, $2, NOW())
 RETURNING id, user_id, room_id, joined_at
 `
@@ -299,12 +319,31 @@ func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow
 	return i, err
 }
 
+const joinRooms = `-- name: JoinRooms :exec
+INSERT INTO user_chat_rooms
+(user_id,
+ room_id,
+ joined_at)
+VALUES ($1, $2, NOW())
+RETURNING id, user_id, room_id, joined_at
+`
+
+type JoinRoomsParams struct {
+	UserID uuid.UUID
+	RoomID uuid.UUID
+}
+
+func (q *Queries) JoinRooms(ctx context.Context, arg JoinRoomsParams) error {
+	_, err := q.db.ExecContext(ctx, joinRooms, arg.UserID, arg.RoomID)
+	return err
+}
+
 const leaveRoom = `-- name: LeaveRoom :exec
-UPDATE 
+UPDATE
     user_chat_rooms
 SET left_at = NOW()
 WHERE user_id = $1
-AND room_id = $2
+  AND room_id = $2
 `
 
 type LeaveRoomParams struct {
@@ -318,11 +357,10 @@ func (q *Queries) LeaveRoom(ctx context.Context, arg LeaveRoomParams) error {
 }
 
 const userExistsInRoom = `-- name: UserExistsInRoom :one
-SELECT EXISTS (
-    SELECT 1
-    FROM user_chat_rooms
-    WHERE room_id = $1 AND left_at IS NULL
-)
+SELECT EXISTS (SELECT 1
+               FROM user_chat_rooms
+               WHERE room_id = $1
+                 AND left_at IS NULL)
 `
 
 func (q *Queries) UserExistsInRoom(ctx context.Context, roomID uuid.UUID) (bool, error) {
@@ -330,53 +368,4 @@ func (q *Queries) UserExistsInRoom(ctx context.Context, roomID uuid.UUID) (bool,
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
-}
-
-const writeMessage = `-- name: WriteMessage :one
-INSERT INTO chat_messages
-(user_id,
-room_id,
-message_type,
-content,
-created_at,
-updated_at)
-VALUES ($1, $2, $3, $4, NOW(), NOW())
-RETURNING id, user_id, room_id, message_type, content, created_at, updated_at
-`
-
-type WriteMessageParams struct {
-	UserID      uuid.UUID
-	RoomID      uuid.UUID
-	MessageType string
-	Content     string
-}
-
-type WriteMessageRow struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	RoomID      uuid.UUID
-	MessageType string
-	Content     string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-func (q *Queries) WriteMessage(ctx context.Context, arg WriteMessageParams) (WriteMessageRow, error) {
-	row := q.db.QueryRowContext(ctx, writeMessage,
-		arg.UserID,
-		arg.RoomID,
-		arg.MessageType,
-		arg.Content,
-	)
-	var i WriteMessageRow
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.RoomID,
-		&i.MessageType,
-		&i.Content,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
 }
