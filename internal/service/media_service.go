@@ -85,16 +85,14 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id uuid.UUID) (*media.
 	return media.ToDetailView(mediaData), nil
 }
 
-func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []int64) ([]media.DetailView, *pnd.AppError) {
+func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []uuid.UUID) ([]media.DetailView, *pnd.AppError) {
 	if len(ids) == 0 {
 		return make([]media.DetailView, 0), nil
 	}
 
 	// TODO: filter unique IDs
-	idsToGet := make([]int32, 0)
-	for _, id := range ids {
-		idsToGet = append(idsToGet, int32(id))
-	}
+	idsToGet := make([]uuid.UUID, 0)
+	idsToGet = append(idsToGet, ids...)
 	mediaDataList, err := databasegen.New(s.conn).FindMediasByIDs(ctx, databasegen.FindMediasByIDsParams{
 		Ids:            idsToGet,
 		IncludeDeleted: false,
@@ -115,7 +113,7 @@ func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []int64) ([]medi
 	return views, nil
 }
 
-func FindIndex(arr []int64, val int64) int {
+func FindIndex(arr []uuid.UUID, val uuid.UUID) int {
 	for i, v := range arr {
 		if v == val {
 			return i

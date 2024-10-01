@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
+
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/chat"
@@ -52,8 +54,8 @@ func (s *ChatService) CreateRoom(
 	}
 
 	_, err3 := q.JoinRoom(ctx, databasegen.JoinRoomParams{
-		UserID: int64(userData.ID),
-		RoomID: int64(row.ID),
+		UserID: userData.ID,
+		RoomID: row.ID,
 	})
 
 	if err3 != nil {
@@ -65,7 +67,7 @@ func (s *ChatService) CreateRoom(
 	return chat.ToCreateRoom(row, chat.ToJoinUsers(userData)), nil
 }
 
-func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) (*chat.JoinRoom, *pnd.AppError) {
+func (s *ChatService) JoinRoom(ctx context.Context, roomID uuid.UUID, fbUID string) (*chat.JoinRoom, *pnd.AppError) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -81,7 +83,7 @@ func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) 
 	if !exists {
 		row, err := databasegen.New(s.conn).JoinRoom(ctx, databasegen.JoinRoomParams{
 			RoomID: roomID,
-			UserID: int64(userData.ID),
+			UserID: userData.ID,
 		})
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
@@ -93,7 +95,7 @@ func (s *ChatService) JoinRoom(ctx context.Context, roomID int64, fbUID string) 
 	return nil, pnd.ErrBadRequest(errors.New("이미 참여중인 채팅방입니다"))
 }
 
-func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string) *pnd.AppError {
+func (s *ChatService) LeaveRoom(ctx context.Context, roomID uuid.UUID, fbUID string) *pnd.AppError {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -103,7 +105,7 @@ func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string)
 
 	err = databasegen.New(s.conn).LeaveRoom(ctx, databasegen.LeaveRoomParams{
 		RoomID: roomID,
-		UserID: int64(userData.ID),
+		UserID: userData.ID,
 	})
 	if err != nil {
 		return pnd.FromPostgresError(err)
@@ -114,7 +116,7 @@ func (s *ChatService) LeaveRoom(ctx context.Context, roomID int64, fbUID string)
 	}
 
 	if !exists {
-		err = databasegen.New(s.conn).DeleteRoom(ctx, int32(roomID))
+		err = databasegen.New(s.conn).DeleteRoom(ctx, roomID)
 		if err != nil {
 			return pnd.FromPostgresError(err)
 		}
@@ -129,7 +131,7 @@ func (s *ChatService) FindAllByUserUID(ctx context.Context, fbUID string) (*chat
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
-	rows, err := databasegen.New(s.conn).FindAllUserChatRoomsByUserUID(ctx, int64(userData.ID))
+	rows, err := databasegen.New(s.conn).FindAllUserChatRoomsByUserUID(ctx, userData.ID)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -138,7 +140,7 @@ func (s *ChatService) FindAllByUserUID(ctx context.Context, fbUID string) (*chat
 	return chat.ToUserChatRoomsView(rows), nil
 }
 
-func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID string, roomID int64) (
+func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID string, roomID uuid.UUID) (
 	*chat.RoomSimpleInfo, *pnd.AppError,
 ) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
@@ -148,7 +150,10 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	row, err := databasegen.New(s.conn).FindRoomByIDAndUserID(ctx, roomID, int64(userData.ID))
+	row, err := databasegen.New(s.conn).FindRoomByIDAndUserID(
+		ctx,
+		databasegen.FindRoomByIDAndUserIDParams{ID: roomID, UserID: userData.ID},
+	)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -156,18 +161,20 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 	return chat.ToUserChatRoomView(row), nil
 }
 
-func (s *ChatService) FindChatRoomMessagesByRoomID(ctx context.Context, roomID, prev, next, limit int64) (
-	*chat.MessageCursorView, *pnd.AppError,
-) {
-	hasNext, hasPrev, rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
+func (s *ChatService) FindChatRoomMessagesByRoomID(
+	ctx context.Context, roomID uuid.UUID, prev, next uuid.NullUUID, limit int64,
+) (*chat.MessageCursorView, *pnd.AppError) {
+	rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
 		Prev:   prev,
 		Next:   next,
-		Limit:  limit,
+		Limit:  int32(limit),
 		RoomID: roomID,
 	})
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
+	// TODO: Implement hasNext, hasPrev
+	// return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
+	return chat.ToUserChatRoomMessageView(rows, nil, nil), nil
 }

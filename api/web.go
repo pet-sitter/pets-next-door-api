@@ -105,36 +105,43 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 	return page, size, nil
 }
 
-func ParseCursorPaginationQueries(c echo.Context, defaultLimit int) (prev, next, limit int, err *AppError) {
+func ParseCursorPaginationQueries(
+	c echo.Context, defaultLimit int,
+) (prev, next uuid.NullUUID, limit int, err *AppError) {
 	prevQuery := c.QueryParam("prev")
 	nextQuery := c.QueryParam("next")
 	sizeQuery := c.QueryParam("size")
 
-	if prevQuery == "" && nextQuery == "" {
-		return 0, 0, 0, ErrInvalidPagination(errors.New("expected either prev or next query"))
-	}
-
 	if prevQuery != "" {
-		var atoiError error
-		prev, atoiError = strconv.Atoi(prevQuery)
-		if atoiError != nil || prev <= 0 {
-			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: prev"))
+		id, err := uuid.Parse(prevQuery)
+		if err != nil {
+			return uuid.NullUUID{},
+				uuid.NullUUID{},
+				0,
+				ErrInvalidQuery(errors.New("expected valid UUID for query: prev"))
 		}
+		prev = uuid.NullUUID{UUID: id, Valid: true}
 	}
 
 	if nextQuery != "" {
-		var atoiError error
-		next, atoiError = strconv.Atoi(nextQuery)
-		if atoiError != nil || next <= 0 {
-			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: next"))
+		id, err := uuid.Parse(nextQuery)
+		if err != nil {
+			return uuid.NullUUID{},
+				uuid.NullUUID{},
+				0,
+				ErrInvalidQuery(errors.New("expected valid UUID for query: next"))
 		}
+		next = uuid.NullUUID{UUID: id, Valid: true}
 	}
 
 	if sizeQuery != "" {
 		var atoiError error
 		limit, atoiError = strconv.Atoi(sizeQuery)
 		if atoiError != nil || limit <= 0 {
-			return 0, 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: size"))
+			return uuid.NullUUID{},
+				uuid.NullUUID{},
+				0,
+				ErrInvalidQuery(errors.New("expected integer value bigger than 0 for query: size"))
 		}
 	}
 
