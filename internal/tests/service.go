@@ -44,6 +44,10 @@ func NewMockSOSConditionService(db *database.DB) *service.SOSConditionService {
 	return service.NewSOSConditionService(db)
 }
 
+func NewMockChatService(db *database.DB) *service.ChatService {
+	return service.NewChatService(db)
+}
+
 func AddDummyPet(
 	t *testing.T,
 	ctx context.Context,

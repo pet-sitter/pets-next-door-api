@@ -15,6 +15,7 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 	kakaoinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/kakao"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
+	"github.com/pet-sitter/pets-next-door-api/internal/wschat"
 	pndmiddleware "github.com/pet-sitter/pets-next-door-api/lib/middleware"
 	"github.com/rs/zerolog"
 	echoswagger "github.com/swaggo/echo-swagger"
@@ -54,6 +55,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
+	chatService := service.NewChatService(db)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, kakaoinfra.NewKakaoDefaultClient())
@@ -62,8 +64,18 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedHandler := handler.NewBreedHandler(*breedService)
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
+	chatHandler := handler.NewChatHandler(authService, *chatService)
 
-	// Register middlewares
+	// // InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
+	// // 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.
+	// // 전략 패턴을 사용하여 이 부분을 다른 상태 관리 구현체로 쉽게 교체할 수 있습니다.
+	// stateManager := chat.NewInMemoryStateManager()
+	// wsServer := chat.NewWebSocketServer(stateManager)
+	// go wsServer.Run()
+	// chat.InitializeWebSocketServer(ctx, wsServer, chatService)
+	// chatHandler := handler.NewChatHandler(wsServer, stateManager, authService, *chatService)
+
+	// RegisterChan middlewares
 	logger := zerolog.New(os.Stdout)
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
@@ -129,6 +141,22 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 		postAPIGroup.GET("/sos", sosPostHandler.FindSOSPosts)
 		postAPIGroup.PUT("/sos", sosPostHandler.UpdateSOSPost)
 		postAPIGroup.GET("/sos/conditions", conditionHandler.FindConditions)
+	}
+
+	upgrader := wschat.NewDefaultUpgrader()
+	wsServerV2 := wschat.NewWSServer(upgrader, authService, *mediaService)
+
+	go wsServerV2.LoopOverClientMessages()
+
+	chatAPIGroup := apiRouteGroup.Group("/chat")
+	{
+		chatAPIGroup.GET("/ws", wsServerV2.HandleConnections)
+		chatAPIGroup.POST("/rooms", chatHandler.CreateRoom)
+		chatAPIGroup.PUT("/rooms/:roomID/join", chatHandler.JoinChatRoom)
+		chatAPIGroup.PUT("/rooms/:roomID/leave", chatHandler.LeaveChatRoom)
+		chatAPIGroup.GET("/rooms/:roomID", chatHandler.FindRoomByID)
+		chatAPIGroup.GET("/rooms", chatHandler.FindAllRooms)
+		chatAPIGroup.GET("/rooms/:roomID/messages", chatHandler.FindMessagesByRoomID)
 	}
 
 	return e, nil

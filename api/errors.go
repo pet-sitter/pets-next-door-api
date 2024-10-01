@@ -28,6 +28,13 @@ const (
 	ErrCodeNotFound AppErrorCode = "ERR_NOT_FOUND"
 	ErrCodeConflict AppErrorCode = "ERR_CONFLICT"
 
+	// Common Errors - Chat
+	ErrCodeClientRegistrationFailed   AppErrorCode = "ERR_CLIENT_REGISTRATION_FAILED"
+	ErrCodeClientUnregistrationFailed AppErrorCode = "ERR_CLIENT_UNREGISTRATION_FAILED"
+	ErrCodeMessageEncodingFailed      AppErrorCode = "ERR_MESSAGE_ENCODING_FAILED"
+	ErrCodeRoomCreationFailed         AppErrorCode = "ERR_ROOM_CREATION_FAILED"
+	ErrCodeRoomNotFound               AppErrorCode = "ERR_ROOM_NOT_FOUND"
+
 	ErrCodeUnknown AppErrorCode = "ERR_UNKNOWN"
 )
 

@@ -21,6 +21,26 @@ type Breed struct {
 	ID        uuid.UUID
 }
 
+type ChatMessage struct {
+	MessageType string
+	Content     string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   sql.NullTime
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
+}
+
+type ChatRoom struct {
+	Name      string
+	RoomType  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime
+	ID        uuid.UUID
+}
+
 type Medium struct {
 	MediaType string
 	Url       string
@@ -129,6 +149,14 @@ type User struct {
 	DeletedAt      sql.NullTime
 	ID             uuid.UUID
 	ProfileImageID uuid.NullUUID
+}
+
+type UserChatRoom struct {
+	JoinedAt time.Time
+	LeftAt   sql.NullTime
+	ID       uuid.UUID
+	UserID   uuid.UUID
+	RoomID   uuid.UUID
 }
 
 type VCondition struct {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createMedia = `-- name: CreateMedia :one
@@ -48,6 +49,60 @@ func (q *Queries) CreateMedia(ctx context.Context, arg CreateMediaParams) (Creat
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const findMediasByIDs = `-- name: FindMediasByIDs :many
+SELECT id,
+	   media_type,
+	   url,
+	   created_at,
+	   updated_at
+FROM media
+WHERE id = ANY ($1::uuid[])
+  AND ($2::BOOLEAN = TRUE OR
+       ($2::BOOLEAN = FALSE AND deleted_at IS NULL))
+`
+
+type FindMediasByIDsParams struct {
+	Ids            []uuid.UUID
+	IncludeDeleted bool
+}
+
+type FindMediasByIDsRow struct {
+	ID        uuid.UUID
+	MediaType string
+	Url       string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) FindMediasByIDs(ctx context.Context, arg FindMediasByIDsParams) ([]FindMediasByIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findMediasByIDs, pq.Array(arg.Ids), arg.IncludeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindMediasByIDsRow
+	for rows.Next() {
+		var i FindMediasByIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MediaType,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const findSingleMedia = `-- name: FindSingleMedia :one
