@@ -53,7 +53,6 @@ func (db *DB) Flush() error {
 		"sos_posts_dates",
 		"sos_dates",
 		"sos_posts",
-		"base_posts",
 	}
 
 	for _, tableName := range tableNames {

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 	"io"
+
+	"github.com/pet-sitter/pets-next-door-api/internal/datatype"
 
 	"github.com/google/uuid"
 
@@ -45,8 +45,6 @@ func (s *MediaService) UploadMedia(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("created", created)
 
 	return created, nil
 }

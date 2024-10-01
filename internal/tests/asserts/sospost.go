@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
@@ -18,11 +20,11 @@ func DatesEquals(t *testing.T, want, got []sospost.SOSDateView) {
 	}
 }
 
-func ConditionIDEquals(t *testing.T, want []int, got soscondition.ListView) {
+func ConditionIDEquals(t *testing.T, want []uuid.UUID, got soscondition.ListView) {
 	t.Helper()
 
 	assert.Equal(t, len(want), len(got))
 	for i := range got {
-		assert.Equal(t, int64(want[i]), got[i].ID)
+		assert.Equal(t, want[i], got[i].ID)
 	}
 }

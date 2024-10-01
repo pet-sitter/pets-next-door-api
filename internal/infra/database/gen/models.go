@@ -6,20 +6,11 @@ package databasegen
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-type BasePost struct {
-	Title     sql.NullString
-	Content   sql.NullString
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-	ID        uuid.UUID
-	AuthorID  uuid.UUID
-}
 
 type Breed struct {
 	Name      string
@@ -85,18 +76,18 @@ type SosDate struct {
 }
 
 type SosPost struct {
-	LegacyID       int32
-	Title          sql.NullString
-	Content        sql.NullString
-	AuthorLegacyID sql.NullInt64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	DeletedAt      sql.NullTime
-	Reward         sql.NullString
-	CareType       sql.NullString
-	CarerGender    sql.NullString
-	RewardType     sql.NullString
-	ThumbnailID    uuid.NullUUID
+	ID          uuid.UUID
+	Title       sql.NullString
+	Content     sql.NullString
+	AuthorID    uuid.UUID
+	Reward      sql.NullString
+	CareType    sql.NullString
+	CarerGender sql.NullString
+	RewardType  sql.NullString
+	ThumbnailID uuid.NullUUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   sql.NullTime
 }
 
 type SosPostsCondition struct {
@@ -138,4 +129,36 @@ type User struct {
 	DeletedAt      sql.NullTime
 	ID             uuid.UUID
 	ProfileImageID uuid.NullUUID
+}
+
+type VCondition struct {
+	SosPostID      uuid.UUID
+	ConditionsInfo json.RawMessage
+}
+
+type VMediaForSosPost struct {
+	SosPostID uuid.UUID
+	MediaInfo json.RawMessage
+}
+
+type VPetsForSosPost struct {
+	SosPostID   uuid.UUID
+	PetTypeList interface{}
+	PetsInfo    json.RawMessage
+}
+
+type VSosPost struct {
+	ID                  uuid.UUID
+	Title               sql.NullString
+	Content             sql.NullString
+	Reward              sql.NullString
+	RewardType          sql.NullString
+	CareType            sql.NullString
+	CarerGender         sql.NullString
+	ThumbnailID         uuid.NullUUID
+	AuthorID            uuid.UUID
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	EarliestDateStartAt interface{}
+	Dates               json.RawMessage
 }

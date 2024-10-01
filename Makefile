@@ -60,10 +60,10 @@ run:
 	go run ./cmd/server
 
 test:
-	make db:test:down
+	make db:test:destroy
 	make db:test:up
 	go test ./... -count=1 -p=1
-	make db:test:down
+	make db:test:destroy
 test\:run:
 	go test ./... -count=1 -p=1
 
