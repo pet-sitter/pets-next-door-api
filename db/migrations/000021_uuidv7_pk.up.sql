@@ -21,6 +21,10 @@ ALTER TABLE sos_posts_pets
     DROP CONSTRAINT IF EXISTS sos_posts_pets_pet_id_fkey;
 ALTER TABLE sos_posts_pets
     DROP CONSTRAINT IF EXISTS sos_posts_pets_sos_post_id_fkey;
+ALTER TABLE chat_messages
+    DROP CONSTRAINT IF EXISTS chat_messages_room_id_fkey;
+ALTER TABLE user_chat_rooms
+    DROP CONSTRAINT IF EXISTS user_chat_rooms_room_id_fkey;
 DROP INDEX resource_media_resource_id;
 DROP INDEX pets_owner_id_idx;
 DROP INDEX sos_posts_conditions_sos_post_id;
@@ -319,6 +323,90 @@ ALTER TABLE resource_media
     DROP COLUMN IF EXISTS media_legacy_id;
 ALTER TABLE resource_media
     DROP COLUMN IF EXISTS resource_legacy_id;
+
+-- chat_rooms
+-- Rename id to legacy_id and uuid to id
+ALTER TABLE chat_rooms
+    DROP CONSTRAINT chat_rooms_pkey;
+ALTER TABLE chat_rooms
+    RENAME COLUMN id TO legacy_id;
+ALTER TABLE chat_rooms
+    RENAME COLUMN uuid TO id;
+ALTER TABLE chat_rooms
+    ALTER COLUMN id SET NOT NULL;
+ALTER TABLE chat_rooms
+    ADD PRIMARY KEY (id);
+-- DROP legacy columns
+ALTER TABLE chat_rooms
+    DROP COLUMN IF EXISTS legacy_id;
+
+-- chat_messages
+-- Rename id to legacy_id and uuid to id
+ALTER TABLE chat_messages
+    DROP CONSTRAINT chat_messages_pkey;
+ALTER TABLE chat_messages
+    RENAME COLUMN id TO legacy_id;
+ALTER TABLE chat_messages
+    RENAME COLUMN uuid TO id;
+ALTER TABLE chat_messages
+    ALTER COLUMN id SET NOT NULL;
+ALTER TABLE chat_messages
+    ADD PRIMARY KEY (id);
+-- user_uuid -> user_id
+ALTER TABLE chat_messages
+    RENAME COLUMN user_id TO user_legacy_id;
+ALTER TABLE chat_messages
+    RENAME COLUMN user_uuid TO user_id;
+ALTER TABLE chat_messages
+    ALTER COLUMN user_id SET NOT NULL;
+-- room_uuid -> room_id
+ALTER TABLE chat_messages
+    RENAME COLUMN room_id TO room_legacy_id;
+ALTER TABLE chat_messages
+    RENAME COLUMN room_uuid TO room_id;
+ALTER TABLE chat_messages
+    ALTER COLUMN room_id SET NOT NULL;
+-- DROP legacy columns
+ALTER TABLE chat_messages
+    DROP COLUMN IF EXISTS legacy_id;
+ALTER TABLE chat_messages
+    DROP COLUMN IF EXISTS user_legacy_id;
+ALTER TABLE chat_messages
+    DROP COLUMN IF EXISTS room_legacy_id;
+
+-- user_chat_rooms
+-- Rename id to legacy_id and uuid to id
+ALTER TABLE user_chat_rooms
+    DROP CONSTRAINT user_chat_rooms_pkey;
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN id TO legacy_id;
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN uuid TO id;
+ALTER TABLE user_chat_rooms
+    ALTER COLUMN id SET NOT NULL;
+ALTER TABLE user_chat_rooms
+    ADD PRIMARY KEY (id);
+-- user_uuid -> user_id
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN user_id TO user_legacy_id;
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN user_uuid TO user_id;
+ALTER TABLE user_chat_rooms
+    ALTER COLUMN user_id SET NOT NULL;
+-- room_uuid -> room_id
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN room_id TO room_legacy_id;
+ALTER TABLE user_chat_rooms
+    RENAME COLUMN room_uuid TO room_id;
+ALTER TABLE user_chat_rooms
+    ALTER COLUMN room_id SET NOT NULL;
+-- DROP legacy columns
+ALTER TABLE user_chat_rooms
+    DROP COLUMN IF EXISTS legacy_id;
+ALTER TABLE user_chat_rooms
+    DROP COLUMN IF EXISTS user_legacy_id;
+ALTER TABLE user_chat_rooms
+    DROP COLUMN IF EXISTS room_legacy_id;
 
 -- ADD INDEXES
 CREATE INDEX IF NOT EXISTS resource_media_resource_id ON resource_media (resource_id);
