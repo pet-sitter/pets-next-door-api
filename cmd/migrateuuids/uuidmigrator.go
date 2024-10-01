@@ -174,7 +174,12 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 			}
 			rowData = append(rowData, row)
 		}
-		rows.Close()
+		err = rows.Close()
+		if err != nil {
+			return pnd.ErrUnknown(
+				fmt.Errorf("error closing rows from table %s due to %w", target.Table, err),
+			)
+		}
 
 		for _, row := range rowData {
 			if !options.Force && row.UUID != nil {
