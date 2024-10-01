@@ -30,7 +30,7 @@ func NewChatHandler(
 // @Tags chat
 // @Accept  json
 // @Produce  json
-// @Param roomID path int true "채팅방 ID"
+// @Param roomID path string true "채팅방 ID"
 // @Security FirebaseAuth
 // @Success 200 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms/{roomID} [get]
@@ -45,7 +45,7 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.chatService.FindChatRoomByUIDAndRoomID(c.Request().Context(), foundUser.FirebaseUID, int64(*roomID))
+	res, err := h.chatService.FindChatRoomByUIDAndRoomID(c.Request().Context(), foundUser.FirebaseUID, roomID)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -93,7 +93,7 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 // @Tags chat
 // @Accept  json
 // @Produce  json
-// @Param roomID path int true "채팅방 ID"
+// @Param roomID path string true "채팅방 ID"
 // @Security FirebaseAuth
 // @Success 200 {object} domain.JoinRoomsView
 // @Router /chat/rooms/{roomID}/join [post]
@@ -108,7 +108,7 @@ func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.chatService.JoinRoom(c.Request().Context(), int64(*roomID), foundUser.FirebaseUID)
+	res, err := h.chatService.JoinRoom(c.Request().Context(), roomID, foundUser.FirebaseUID)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -122,7 +122,7 @@ func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 // @Tags chat
 // @Accept  json
 // @Produce  json
-// @Param roomID path int true "채팅방 ID"
+// @Param roomID path string true "채팅방 ID"
 // @Security FirebaseAuth
 // @Success 200
 // @Router /chat/rooms/{roomID}/leave [post]
@@ -137,7 +137,7 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res := h.chatService.LeaveRoom(c.Request().Context(), int64(*roomID), foundUser.FirebaseUID)
+	res := h.chatService.LeaveRoom(c.Request().Context(), roomID, foundUser.FirebaseUID)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -169,7 +169,7 @@ func (h ChatHandler) FindAllRooms(c echo.Context) error {
 // @Tags chat
 // @Accept  json
 // @Produce  json
-// @Param roomID path int true "채팅방 ID"
+// @Param roomID path string true "채팅방 ID"
 // @Param prev query int false "이전 페이지"
 // @Param next query int false "다음 페이지"
 // @Param size query int false "페이지 사이즈" default(30)
@@ -189,9 +189,9 @@ func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 
 	res, err := h.chatService.FindChatRoomMessagesByRoomID(
 		c.Request().Context(),
-		int64(*roomID),
-		int64(prev),
-		int64(next),
+		roomID,
+		prev,
+		next,
 		int64(limit),
 	)
 	if err != nil {

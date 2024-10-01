@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
@@ -15,7 +16,7 @@ import (
 
 type WSServer struct {
 	// key: UserID, value: WSClient
-	clients   map[int64]WSClient
+	clients   map[uuid.UUID]WSClient
 	broadcast chan MessageRequest
 	upgrader  websocket.Upgrader
 
@@ -29,7 +30,7 @@ func NewWSServer(
 	mediaService service.MediaService,
 ) *WSServer {
 	return &WSServer{
-		clients:      make(map[int64]WSClient),
+		clients:      make(map[uuid.UUID]WSClient),
 		broadcast:    make(chan MessageRequest),
 		upgrader:     upgrader,
 		authService:  authService,
@@ -104,8 +105,8 @@ func (s *WSServer) LoopOverClientMessages() {
 		for _, client := range s.clients {
 			log.Info().Msg(
 				"Message from user: " +
-					strconv.Itoa(int(client.userID)) +
-					" to user: " + strconv.Itoa(int(msgReq.Sender.ID)))
+					client.userID.String() +
+					" to user: " + msgReq.Sender.ID.String())
 
 			// Message print
 			log.Info().Msg("Message: " + msgReq.String())
@@ -120,7 +121,7 @@ func (s *WSServer) LoopOverClientMessages() {
 					log.Error().Msg("No media found")
 					msg = NewErrorMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, "No media found", time.Now())
 				} else {
-					ids := make([]int64, 0)
+					ids := make([]uuid.UUID, 0)
 					for _, mediaReq := range msgReq.Medias {
 						ids = append(ids, mediaReq.ID)
 					}
@@ -155,12 +156,12 @@ func (s *WSServer) LoopOverClientMessages() {
 
 type WSClient struct {
 	conn   *websocket.Conn
-	userID int64
+	userID uuid.UUID
 }
 
 func NewWSClient(
 	conn *websocket.Conn,
-	userID int64,
+	userID uuid.UUID,
 ) WSClient {
 	return WSClient{conn, userID}
 }
@@ -174,7 +175,7 @@ func (c *WSClient) Close() error {
 }
 
 type MediaRequest struct {
-	ID int64 `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 type MessageRequest struct {
@@ -187,8 +188,8 @@ type MessageRequest struct {
 }
 
 func (m MessageRequest) String() string {
-	return "Sender: " + strconv.Itoa(int(m.Sender.ID)) +
-		" Room: " + strconv.Itoa(int(m.Room.ID)) +
+	return "Sender: " + m.Sender.ID.String() +
+		" Room: " + m.Room.ID.String() +
 		" MessageID: " + m.MessageID +
 		" MessageType: " + m.MessageType +
 		" Message: " + m.Message +
@@ -207,17 +208,17 @@ type MessageResponse struct {
 }
 
 type Sender struct {
-	ID int64 `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 type Room struct {
-	ID int64 `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 type Media struct {
-	ID        int64  `json:"id"`
-	MediaType string `json:"type"`
-	URL       string `json:"url"`
+	ID        uuid.UUID `json:"id"`
+	MediaType string    `json:"type"`
+	URL       string    `json:"url"`
 }
 
 func NewPlainMessageResponse(
