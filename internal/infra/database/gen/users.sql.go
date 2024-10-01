@@ -293,8 +293,8 @@ func (q *Queries) UpdateUserByFbUID(ctx context.Context, arg UpdateUserByFbUIDPa
 	return i, err
 }
 
-func (q *Queries) FindUsersByIds(ctx context.Context, ids []int64) ([]FindUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, FindUsersByIDs, ids)
+func (q *Queries) FindUsersByIds(ctx context.Context, id int64) ([]FindUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, FindUsersByID, id)
 	if err != nil || rows == nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func (q *Queries) FindUsersByIds(ctx context.Context, ids []int64) ([]FindUsersR
 	return items, nil
 }
 
-const FindUsersByIDs = `-- name: FindUsersByIDs :many
+const FindUsersByID = `-- name: FindUsersByID :one
 SELECT users.id,
 	   users.nickname,
 	   media.url AS profile_image_url
@@ -327,6 +327,6 @@ FROM users
 	 ON
 		 users.profile_image_id = media.id
 
-WHERE users.id = ANY($1)
+WHERE users.id = $1
 AND users.deleted_at IS NULL
 `

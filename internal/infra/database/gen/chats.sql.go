@@ -349,11 +349,6 @@ type JoinRoomParams struct {
 	RoomID int64
 }
 
-type JoinRoomsParams struct {
-	UserIDs []int64
-	RoomID  int64
-}
-
 type JoinRoomRow struct {
 	ID       int32
 	UserID   int64
@@ -371,35 +366,6 @@ func (q *Queries) JoinRoom(ctx context.Context, arg JoinRoomParams) (JoinRoomRow
 		&i.JoinedAt,
 	)
 	return i, err
-}
-
-func (q *Queries) JoinRooms(ctx context.Context, arg JoinRoomsParams) error {
-	rows, err := q.db.QueryContext(ctx, joinRooms, arg.UserIDs, arg.RoomID)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-	var items []JoinRoomRow
-	for rows.Next() {
-		var i JoinRoomRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.RoomID,
-			&i.JoinedAt,
-		); err != nil {
-			return err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return err
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	return nil
-
 }
 
 const leaveRoom = `-- name: LeaveRoom :exec

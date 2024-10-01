@@ -64,6 +64,10 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 // @Success 201 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms [post]
 func (h ChatHandler) CreateRoom(c echo.Context) error {
+	user, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	if err != nil {
+		return c.JSON(err.StatusCode, err)
+	}
 	var createRoomRequest domain.CreateRoomRequest
 
 	if err := pnd.ParseBody(c, &createRoomRequest); err != nil {
@@ -74,7 +78,7 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 		c.Request().Context(),
 		createRoomRequest.RoomName,
 		createRoomRequest.RoomType,
-		createRoomRequest.JoinUserIDs,
+		user.FirebaseUID,
 	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
@@ -144,7 +148,7 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Security FirebaseAuth
-// @Success 200 {object} []domain.JoinRoomsView
+// @Success 200 {object} domain.JoinRoomsView
 // @Router /chat/rooms [get]
 func (h ChatHandler) FindAllRooms(c echo.Context) error {
 	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
