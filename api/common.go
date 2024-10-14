@@ -3,7 +3,15 @@ package pnd
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/google/uuid"
 )
+
+type CursorPaginatedView[T interface{}] struct {
+	Items []T           `json:"items"`
+	Prev  uuid.NullUUID `json:"prev"`
+	Next  uuid.NullUUID `json:"next"`
+}
 
 type PaginatedView[T interface{}] struct {
 	Page       int  `json:"page"`
@@ -32,7 +40,12 @@ func (l *PaginatedView[T]) CalcLastPage() {
 	}
 }
 
-func writePayload(w http.ResponseWriter, headers map[string]string, payload interface{}, statusCode int) error {
+func writePayload(
+	w http.ResponseWriter,
+	headers map[string]string,
+	payload interface{},
+	statusCode int,
+) error {
 	setHeaders(w, headers)
 
 	w.WriteHeader(statusCode)
