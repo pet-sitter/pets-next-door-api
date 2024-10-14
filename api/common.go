@@ -3,7 +3,15 @@ package pnd
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/google/uuid"
 )
+
+type CursorPaginatedView[T interface{}] struct {
+	Items []T           `json:"items"`
+	Prev  uuid.NullUUID `json:"prev"`
+	Next  uuid.NullUUID `json:"next"`
+}
 
 type PaginatedView[T interface{}] struct {
 	Page       int  `json:"page"`
