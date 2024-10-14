@@ -23,8 +23,12 @@ format\:install:
 	# gofumpt
 	# https://github.com/mvdan/gofumpt
 	go install mvdan.cc/gofumpt@latest
+	# golines
+	# https://github.,com/segmentio/golines
+	go install github.com/segmentio/golines@latest
 format:
 	gofumpt -l -w .
+	golines -w .
 
 lint\:install:
 	# golangci-lint
@@ -52,9 +56,12 @@ clean:
 	rm -rf ${BUILD_DIR}
 	make docs:clean
 
+compile:
+	go build -o ${BUILD_DIR}/${SERVER_BINARY_NAME} ./cmd/server
+
 build:
 	make docs
-	go build -o ${BUILD_DIR}/${SERVER_BINARY_NAME} ./cmd/server
+	make compile
 
 run:
 	go run ./cmd/server
