@@ -1,10 +1,11 @@
 -- name: CreateRoom :one
 INSERT INTO chat_rooms
-(name,
+(id,
+ name,
  room_type,
  created_at,
  updated_at)
-VALUES ($1, $2, NOW(), NOW())
+VALUES ($1, $2, $3, NOW(), NOW())
 RETURNING id, name, room_type, created_at, updated_at;
 
 -- name: DeleteRoom :exec
@@ -18,29 +19,6 @@ SELECT EXISTS (SELECT 1
                FROM user_chat_rooms
                WHERE room_id = $1
                  AND user_id = $2);
-
-
--- name: FindMessageByRoomID :many
-SELECT id,
-       user_id,
-       room_id,
-       message_type,
-       content,
-       created_at
-FROM chat_messages
-WHERE chat_messages.deleted_at IS NULL
-  AND room_id = $2
-  AND ((sqlc.narg('prev')::uuid IS NOT NULL AND sqlc.narg('next')::uuid IS NOT NULL AND
-        id > sqlc.narg('prev')::uuid AND id < sqlc.narg('next')::uuid)
-    OR
-       (sqlc.narg('prev')::uuid IS NOT NULL AND sqlc.narg('next')::uuid IS NULL AND
-        id < sqlc.narg('prev')::uuid)
-    OR
-       (sqlc.narg('prev')::uuid IS NULL AND sqlc.narg('next')::uuid IS NOT NULL AND
-        id > sqlc.narg('next')::uuid))
-ORDER BY chat_messages.created_at ASC
-LIMIT $1;
-
 
 -- name: FindRoomByIDAndUserID :one
 SELECT id,
@@ -88,10 +66,11 @@ WHERE user_chat_rooms.left_at IS NULL
 
 -- name: JoinRoom :one
 INSERT INTO user_chat_rooms
-(user_id,
+(id,
+ user_id,
  room_id,
  joined_at)
-VALUES ($1, $2, NOW())
+VALUES ($1, $2, $3, NOW())
 RETURNING id, user_id, room_id, joined_at;
 
 
@@ -116,3 +95,92 @@ SELECT EXISTS (SELECT 1
                FROM user_chat_rooms
                WHERE room_id = $1
                  AND left_at IS NULL);
+
+
+-- name: ExistsRoom :one
+SELECT EXISTS (SELECT 1
+               FROM chat_rooms
+               WHERE id = $1
+                 AND deleted_at IS NULL
+    );
+
+
+-- name: FindPrevMessageByRoomID :many
+SELECT id,
+       user_id,
+       room_id,
+       message_type,
+       content,
+       created_at
+FROM chat_messages
+WHERE chat_messages.deleted_at IS NULL
+  AND room_id = $2
+  AND (
+    id < sqlc.narg('prev')::uuid
+    )
+ORDER BY chat_messages.created_at DESC
+LIMIT $1;
+
+-- name: FindNextMessageByRoomID :many
+SELECT id,
+       user_id,
+       room_id,
+       message_type,
+       content,
+       created_at
+FROM chat_messages
+WHERE chat_messages.deleted_at IS NULL
+  AND room_id = $2
+  AND (
+    id > sqlc.narg('next')::uuid
+    )
+ORDER BY chat_messages.created_at ASC
+LIMIT $1;
+
+-- name: FindBetweenMessagesByRoomID :many
+SELECT id,
+       user_id,
+       room_id,
+       message_type,
+       content,
+       created_at
+FROM chat_messages
+WHERE chat_messages.deleted_at IS NULL
+  AND room_id = $2
+  AND id > sqlc.narg('prev')::uuid
+  AND id < sqlc.narg('next')::uuid
+ORDER BY chat_messages.created_at ASC
+LIMIT $1;
+
+-- name: HasPrevMessages :one
+SELECT EXISTS (
+    SELECT 1
+    FROM chat_messages
+    WHERE chat_messages.deleted_at IS NULL
+      AND room_id = $2
+      AND id < $1  -- 주어진 prev UUID보다 이전 메시지
+    LIMIT 1
+);
+
+-- name: HasNextMessages :one
+SELECT EXISTS (
+    SELECT 1
+    FROM chat_messages
+    WHERE chat_messages.deleted_at IS NULL
+      AND room_id = $2
+      AND id > $1  -- 주어진 next UUID보다 이후 메시지
+    LIMIT 1
+);
+
+-- name: FindMessagesByRoomIDAndSize :many
+SELECT id,
+       user_id,
+       room_id,
+       message_type,
+       content,
+       created_at
+FROM chat_messages
+WHERE chat_messages.deleted_at IS NULL
+  AND room_id = $2
+ORDER BY chat_messages.created_at DESC
+LIMIT $1;
