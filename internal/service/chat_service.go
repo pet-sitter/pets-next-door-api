@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 
@@ -43,8 +44,14 @@ func (s *ChatService) CreateRoom(
 		return nil, transactionError
 	}
 
+	chatRoomUUID, uuidError := uuid.NewV7()
+	if uuidError != nil {
+		return nil, pnd.ErrUnknown(fmt.Errorf("failed to generate UUID: %w", uuidError))
+	}
+
 	q := databasegen.New(tx)
 	row, databaseGenError := q.CreateRoom(ctx, databasegen.CreateRoomParams{
+		ID:       chatRoomUUID,
 		Name:     name,
 		RoomType: roomType,
 	})
@@ -53,7 +60,13 @@ func (s *ChatService) CreateRoom(
 		return nil, pnd.FromPostgresError(databaseGenError)
 	}
 
+	joinRoomUUID, joinRoomUUIDError := uuid.NewV7()
+	if joinRoomUUIDError != nil {
+		return nil, pnd.ErrUnknown(fmt.Errorf("failed to generate UUID: %w", joinRoomUUIDError))
+	}
+
 	_, err3 := q.JoinRoom(ctx, databasegen.JoinRoomParams{
+		ID:     joinRoomUUID,
 		UserID: userData.ID,
 		RoomID: row.ID,
 	})
@@ -74,14 +87,33 @@ func (s *ChatService) JoinRoom(ctx context.Context, roomID uuid.UUID, fbUID stri
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
+	// 채팅방이 현재 존재하는지 확인
+	existRoom, existRoomError := databasegen.New(s.conn).ExistsRoom(ctx, roomID)
+
+	if existRoomError != nil {
+		return nil, pnd.FromPostgresError(existRoomError)
+	}
+
+	if !existRoom {
+		return nil, pnd.ErrBadRequest(errors.New("chat room does not exist"))
+	}
+
 	// 채팅방에 이미 참여중인지 확인
-	exists, err := databasegen.New(s.conn).UserExistsInRoom(ctx, roomID)
-	if err != nil {
+	existsUser, existsUserError := databasegen.New(s.conn).UserExistsInRoom(ctx, roomID)
+	if existsUserError != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	if !exists {
+	// 채팅방에 참여하지 않은 경우 참여
+	if !existsUser {
+		joinRoomUUID, joinRoomUUIDError := uuid.NewV7()
+
+		if joinRoomUUIDError != nil {
+			return nil, pnd.ErrUnknown(fmt.Errorf("failed to generate UUID: %w", joinRoomUUIDError))
+		}
+
 		row, err := databasegen.New(s.conn).JoinRoom(ctx, databasegen.JoinRoomParams{
+			ID:     joinRoomUUID,
 			RoomID: roomID,
 			UserID: userData.ID,
 		})
@@ -92,7 +124,7 @@ func (s *ChatService) JoinRoom(ctx context.Context, roomID uuid.UUID, fbUID stri
 		return chat.ToJoinRoom(row), nil
 	}
 
-	return nil, pnd.ErrBadRequest(errors.New("이미 참여중인 채팅방입니다"))
+	return nil, pnd.ErrBadRequest(errors.New("user already joined in the room"))
 }
 
 func (s *ChatService) LeaveRoom(ctx context.Context, roomID uuid.UUID, fbUID string) *pnd.AppError {
@@ -164,9 +196,118 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 func (s *ChatService) FindChatRoomMessagesByRoomID(
 	ctx context.Context, roomID uuid.UUID, prev, next uuid.NullUUID, limit int64,
 ) (*chat.MessageCursorView, *pnd.AppError) {
-	rows, err := databasegen.New(s.conn).FindMessageByRoomID(ctx, databasegen.FindMessageByRoomIDParams{
-		Prev:   prev,
-		Next:   next,
+	// prev와 next에 따라 다른 쿼리를 실행
+	if prev.Valid && next.Valid {
+		// prev와 next 모두 존재하는 경우
+		rows, err := databasegen.New(s.conn).FindBetweenMessagesByRoomID(ctx, databasegen.FindBetweenMessagesByRoomIDParams{
+			Prev:   prev,
+			Next:   next,
+			Limit:  int32(limit),
+			RoomID: roomID,
+		})
+		if err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
+		// rows의 맨 앞의 ID값을 가져온다.
+		// 이 값이 prev가 존재하는지 여부를 판단하는데 사용된다.
+		if len(rows) == 0 {
+			return chat.ToUserChatRoomMessageBetweenView(rows, false, false), nil
+		}
+
+		// 가장 최신 메시지의 ID를 가져온다.
+		firstID := rows[0].ID
+
+		// 가장 오래된 메시지의 ID를 가져온다.
+		lastID := rows[len(rows)-1].ID
+
+		hasPrev, hasPrevError := databasegen.New(s.conn).HasPrevMessages(ctx, databasegen.HasPrevMessagesParams{
+			ID:     lastID,
+			RoomID: roomID,
+		})
+
+		if hasPrevError != nil {
+			return nil, pnd.FromPostgresError(hasPrevError)
+		}
+
+		hasNext, hasNextError := databasegen.New(s.conn).HasNextMessages(ctx, databasegen.HasNextMessagesParams{
+			ID:     firstID,
+			RoomID: roomID,
+		})
+
+		if hasNextError != nil {
+			return nil, pnd.FromPostgresError(hasNextError)
+		}
+
+		return chat.ToUserChatRoomMessageBetweenView(rows, hasNext, hasPrev), nil
+	}
+
+	if prev.Valid {
+		// prev만 존재하는 경우
+		rows, err := databasegen.New(s.conn).FindPrevMessageByRoomID(ctx, databasegen.FindPrevMessageByRoomIDParams{
+			Prev:   prev,
+			Limit:  int32(limit),
+			RoomID: roomID,
+		})
+		if err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
+		if len(rows) == 0 {
+			return chat.ToUserChatRoomMessagePrevView(rows, false, false), nil
+		}
+
+		firstID := rows[0].ID
+		lastID := rows[len(rows)-1].ID
+
+		hasPrev, hasPrevError := s.HasPrevMessages(ctx, roomID, lastID)
+
+		if hasPrevError != nil {
+			return nil, hasPrevError
+		}
+
+		hasNext, hasNextError := s.HasNextMessages(ctx, roomID, firstID)
+		if hasNextError != nil {
+			return nil, hasNextError
+		}
+
+		return chat.ToUserChatRoomMessagePrevView(rows, hasNext, hasPrev), nil
+	}
+
+	if next.Valid {
+		// next만 존재하는 경우
+		rows, err := databasegen.New(s.conn).FindNextMessageByRoomID(ctx, databasegen.FindNextMessageByRoomIDParams{
+			Next:   next,
+			Limit:  int32(limit),
+			RoomID: roomID,
+		})
+		if err != nil {
+			return nil, pnd.FromPostgresError(err)
+		}
+
+		if len(rows) == 0 {
+			return chat.ToUserChatRoomMessageNextView(rows, false, false), nil
+		}
+
+		firstID := rows[0].ID
+		lastID := rows[len(rows)-1].ID
+
+		hasPrev, hasPrevError := s.HasPrevMessages(ctx, roomID, lastID)
+
+		if hasPrevError != nil {
+			return nil, hasPrevError
+		}
+
+		hasNext, hasNextError := s.HasNextMessages(ctx, roomID, firstID)
+		if hasNextError != nil {
+			return nil, hasNextError
+		}
+
+		return chat.ToUserChatRoomMessageNextView(rows, hasNext, hasPrev), nil
+	}
+
+	// prev와 next가 모두 없는 경우 Size만큼 최신 메시지를 가져온다.
+	rows, err := databasegen.New(s.conn).FindMessagesByRoomIDAndSize(ctx, databasegen.FindMessagesByRoomIDAndSizeParams{
 		Limit:  int32(limit),
 		RoomID: roomID,
 	})
@@ -174,7 +315,53 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 		return nil, pnd.FromPostgresError(err)
 	}
 
-	// TODO: Implement hasNext, hasPrev
-	// return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
-	return chat.ToUserChatRoomMessageView(rows, nil, nil), nil
+	if len(rows) == 0 {
+		return chat.ToUserChatRoomMessageView(rows, false, false), nil
+	}
+
+	firstID := rows[0].ID
+	lastID := rows[len(rows)-1].ID
+
+	hasPrev, hasPrevError := s.HasPrevMessages(ctx, roomID, lastID)
+
+	if hasPrevError != nil {
+		return nil, hasPrevError
+	}
+
+	hasNext, hasNextError := s.HasNextMessages(ctx, roomID, firstID)
+	if hasNextError != nil {
+		return nil, hasNextError
+	}
+
+	return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
+}
+
+// hasPrev 메시지가 있는지 확인
+func (s *ChatService) HasPrevMessages(
+	ctx context.Context, roomID, messageID uuid.UUID,
+) (bool, *pnd.AppError) {
+	hasPrev, err := databasegen.New(s.conn).HasPrevMessages(ctx, databasegen.HasPrevMessagesParams{
+		ID:     messageID,
+		RoomID: roomID,
+	})
+	if err != nil {
+		return false, pnd.FromPostgresError(err)
+	}
+
+	return hasPrev, nil
+}
+
+// hasNext 메시지가 있는지 확인
+func (s *ChatService) HasNextMessages(
+	ctx context.Context, roomID, messageID uuid.UUID,
+) (bool, *pnd.AppError) {
+	hasNext, err := databasegen.New(s.conn).HasNextMessages(ctx, databasegen.HasNextMessagesParams{
+		ID:     messageID,
+		RoomID: roomID,
+	})
+	if err != nil {
+		return false, pnd.FromPostgresError(err)
+	}
+
+	return hasNext, nil
 }
