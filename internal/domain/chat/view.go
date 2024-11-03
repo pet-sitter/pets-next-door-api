@@ -74,7 +74,6 @@ func createMessageCursorView(
 	hasNext, hasPrev bool,
 	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
-	// Type assertion for each possible row type
 	var messages []Message
 
 	switch v := row.(type) {
@@ -134,7 +133,6 @@ func createMessageCursorView(
 		}
 	}
 
-	// Conditionally set NextID and PrevID based on hasNext and hasPrev
 	nextID := nextMessageID
 	prevID := prevMessageID
 	if !hasNext {
@@ -144,7 +142,6 @@ func createMessageCursorView(
 		prevID = nil
 	}
 
-	// Construct and return MessageCursorView
 	return &MessageCursorView{
 		Items:   &messages,
 		HasNext: hasNext,
