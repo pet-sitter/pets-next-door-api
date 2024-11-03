@@ -69,7 +69,9 @@ type Message struct {
 }
 
 type MessageCursorView struct {
-	HasNext bool      `field:"hasNext" json:"hasNext"`
-	HasPrev bool      `field:"hasPrev" json:"hasPrev"`
-	Items   []Message `field:"items" json:"items,omitempty"`
+	HasNext bool       `field:"hasNext" json:"hasNext"`
+	NextID  *uuid.UUID `field:"nextID" json:"nextID,omitempty"`
+	HasPrev bool       `field:"hasPrev" json:"hasPrev"`
+	PrevID  *uuid.UUID `field:"prevID" json:"prevID,omitempty"`
+	Items   *[]Message `field:"items" json:"items,omitempty"`
 }
