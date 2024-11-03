@@ -61,8 +61,8 @@ type UserChatRoomMessageView struct {
 
 type Message struct {
 	ID          uuid.UUID `field:"id" json:"id"`
-	UserID      uuid.UUID `field:"userID" json:"userID"`
-	RoomID      uuid.UUID `field:"roomID" json:"roomID"`
+	UserID      uuid.UUID `field:"userID" json:"userId"`
+	RoomID      uuid.UUID `field:"roomID" json:"roomId"`
 	MessageType string    `field:"messageType" json:"messageType"`
 	Content     string    `field:"content" json:"content"`
 	CreatedAt   time.Time `field:"createdAt" json:"createdAt"`
@@ -70,8 +70,8 @@ type Message struct {
 
 type MessageCursorView struct {
 	HasNext bool       `field:"hasNext" json:"hasNext"`
-	NextID  *uuid.UUID `field:"nextID" json:"nextID,omitempty"`
+	NextID  *uuid.UUID `field:"nextID" json:"next,omitempty"`
 	HasPrev bool       `field:"hasPrev" json:"hasPrev"`
-	PrevID  *uuid.UUID `field:"prevID" json:"prevID,omitempty"`
+	PrevID  *uuid.UUID `field:"prevID" json:"prev,omitempty"`
 	Items   *[]Message `field:"items" json:"items,omitempty"`
 }
