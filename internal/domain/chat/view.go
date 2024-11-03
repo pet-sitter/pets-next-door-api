@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"github.com/google/uuid"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 )
 
@@ -35,7 +36,10 @@ func ToUserChatRoomsView(
 	rows []databasegen.FindAllUserChatRoomsByUserUIDRow,
 ) *JoinRoomsView {
 	if len(rows) == 0 {
-		return nil
+		// row가 없으면 빈 배열 반환
+		return &JoinRoomsView{
+			Items: []RoomSimpleInfo{},
+		}
 	}
 
 	// rows를 반복하며 JoinRoomsView로 변환
@@ -66,10 +70,16 @@ func ToUserChatRoomView(row databasegen.FindRoomByIDAndUserIDRow) *RoomSimpleInf
 }
 
 func ToUserChatRoomMessageBetweenView(
-	row []databasegen.FindBetweenMessagesByRoomIDRow, hasNext, hasPrev bool,
+	row []databasegen.FindBetweenMessagesByRoomIDRow,
+	hasNext, hasPrev bool,
+	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
 	if len(row) == 0 {
-		return nil
+		return &MessageCursorView{
+			HasNext: false,
+			HasPrev: false,
+			Items:   &[]Message{},
+		}
 	}
 
 	messages := make([]Message, len(row))
@@ -84,18 +94,55 @@ func ToUserChatRoomMessageBetweenView(
 		}
 	}
 
+	if hasNext && hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nextMessageID,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
+	if hasNext && !hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			HasPrev: hasPrev,
+			NextID:  nextMessageID,
+			PrevID:  nil,
+		}
+	}
+
+	if hasPrev && !hasNext {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nil,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
 	return &MessageCursorView{
-		Items:   messages,
+		Items:   &messages,
 		HasNext: hasNext,
 		HasPrev: hasPrev,
+		NextID:  nil,
+		PrevID:  nil,
 	}
 }
 
 func ToUserChatRoomMessagePrevView(
 	row []databasegen.FindPrevMessageByRoomIDRow, hasNext, hasPrev bool,
+	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
 	if len(row) == 0 {
-		return nil
+		return &MessageCursorView{
+			HasNext: false,
+			HasPrev: false,
+			Items:   &[]Message{},
+		}
 	}
 
 	messages := make([]Message, len(row))
@@ -110,18 +157,55 @@ func ToUserChatRoomMessagePrevView(
 		}
 	}
 
+	if hasNext && hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nextMessageID,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
+	if hasNext && !hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			HasPrev: hasPrev,
+			NextID:  nextMessageID,
+			PrevID:  nil,
+		}
+	}
+
+	if hasPrev && !hasNext {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nil,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
 	return &MessageCursorView{
-		Items:   messages,
+		Items:   &messages,
 		HasNext: hasNext,
 		HasPrev: hasPrev,
+		NextID:  nil,
+		PrevID:  nil,
 	}
 }
 
 func ToUserChatRoomMessageNextView(
 	row []databasegen.FindNextMessageByRoomIDRow, hasNext, hasPrev bool,
+	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
 	if len(row) == 0 {
-		return nil
+		return &MessageCursorView{
+			HasNext: false,
+			HasPrev: false,
+			Items:   &[]Message{},
+		}
 	}
 
 	messages := make([]Message, len(row))
@@ -136,18 +220,55 @@ func ToUserChatRoomMessageNextView(
 		}
 	}
 
+	if hasNext && hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nextMessageID,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
+	if hasNext && !hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			HasPrev: hasPrev,
+			NextID:  nextMessageID,
+			PrevID:  nil,
+		}
+	}
+
+	if hasPrev && !hasNext {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nil,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
 	return &MessageCursorView{
-		Items:   messages,
+		Items:   &messages,
 		HasNext: hasNext,
 		HasPrev: hasPrev,
+		NextID:  nil,
+		PrevID:  nil,
 	}
 }
 
 func ToUserChatRoomMessageView(
 	row []databasegen.FindMessagesByRoomIDAndSizeRow, hasNext, hasPrev bool,
+	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
 	if len(row) == 0 {
-		return nil
+		return &MessageCursorView{
+			HasNext: false,
+			HasPrev: false,
+			Items:   &[]Message{},
+		}
 	}
 
 	messages := make([]Message, len(row))
@@ -162,9 +283,41 @@ func ToUserChatRoomMessageView(
 		}
 	}
 
+	if hasNext && hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			NextID:  nextMessageID,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+		}
+	}
+
+	if hasNext && !hasPrev {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			HasPrev: hasPrev,
+			NextID:  nextMessageID,
+			PrevID:  nil,
+		}
+	}
+
+	if hasPrev && !hasNext {
+		return &MessageCursorView{
+			Items:   &messages,
+			HasNext: hasNext,
+			HasPrev: hasPrev,
+			PrevID:  prevMessageID,
+			NextID:  nil,
+		}
+	}
+
 	return &MessageCursorView{
-		Items:   messages,
+		Items:   &messages,
 		HasNext: hasNext,
 		HasPrev: hasPrev,
+		PrevID:  nil,
+		NextID:  nil,
 	}
 }

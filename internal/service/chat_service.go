@@ -193,6 +193,11 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(ctx context.Context, fbUID stri
 	return chat.ToUserChatRoomView(row), nil
 }
 
+/**
+ * 채팅방의 메시지를 조회한다. 채팅메시지는 최신순으로 DESC 정렬을 진행한다.
+ * prev - 이전 메시지의 ID
+ * next - 다음 메시지의 ID
+ */
 func (s *ChatService) FindChatRoomMessagesByRoomID(
 	ctx context.Context, roomID uuid.UUID, prev, next uuid.NullUUID, limit int64,
 ) (*chat.MessageCursorView, *pnd.AppError) {
@@ -212,7 +217,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 		// rows의 맨 앞의 ID값을 가져온다.
 		// 이 값이 prev가 존재하는지 여부를 판단하는데 사용된다.
 		if len(rows) == 0 {
-			return chat.ToUserChatRoomMessageBetweenView(rows, false, false), nil
+			return chat.ToUserChatRoomMessageBetweenView(rows, false, false, nil, nil), nil
 		}
 
 		// 가장 최신 메시지의 ID를 가져온다.
@@ -239,7 +244,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 			return nil, pnd.FromPostgresError(hasNextError)
 		}
 
-		return chat.ToUserChatRoomMessageBetweenView(rows, hasNext, hasPrev), nil
+		return chat.ToUserChatRoomMessageBetweenView(rows, hasNext, hasPrev, &firstID, &lastID), nil
 	}
 
 	if prev.Valid {
@@ -254,7 +259,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 		}
 
 		if len(rows) == 0 {
-			return chat.ToUserChatRoomMessagePrevView(rows, false, false), nil
+			return chat.ToUserChatRoomMessagePrevView(rows, false, false, nil, nil), nil
 		}
 
 		firstID := rows[0].ID
@@ -271,7 +276,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 			return nil, hasNextError
 		}
 
-		return chat.ToUserChatRoomMessagePrevView(rows, hasNext, hasPrev), nil
+		return chat.ToUserChatRoomMessagePrevView(rows, hasNext, hasPrev, &firstID, &lastID), nil
 	}
 
 	if next.Valid {
@@ -286,7 +291,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 		}
 
 		if len(rows) == 0 {
-			return chat.ToUserChatRoomMessageNextView(rows, false, false), nil
+			return chat.ToUserChatRoomMessageNextView(rows, false, false, nil, nil), nil
 		}
 
 		firstID := rows[0].ID
@@ -303,7 +308,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 			return nil, hasNextError
 		}
 
-		return chat.ToUserChatRoomMessageNextView(rows, hasNext, hasPrev), nil
+		return chat.ToUserChatRoomMessageNextView(rows, hasNext, hasPrev, &firstID, &lastID), nil
 	}
 
 	// prev와 next가 모두 없는 경우 Size만큼 최신 메시지를 가져온다.
@@ -316,7 +321,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 	}
 
 	if len(rows) == 0 {
-		return chat.ToUserChatRoomMessageView(rows, false, false), nil
+		return chat.ToUserChatRoomMessageView(rows, false, false, nil, nil), nil
 	}
 
 	firstID := rows[0].ID
@@ -333,7 +338,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 		return nil, hasNextError
 	}
 
-	return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev), nil
+	return chat.ToUserChatRoomMessageView(rows, hasNext, hasPrev, &firstID, &lastID), nil
 }
 
 // hasPrev 메시지가 있는지 확인
