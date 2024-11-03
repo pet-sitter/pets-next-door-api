@@ -69,12 +69,64 @@ func ToUserChatRoomView(row databasegen.FindRoomByIDAndUserIDRow) *RoomSimpleInf
 	}
 }
 
-func ToUserChatRoomMessageBetweenView(
-	row []databasegen.FindBetweenMessagesByRoomIDRow,
+func createMessageCursorView(
+	row interface{},
 	hasNext, hasPrev bool,
 	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
-	if len(row) == 0 {
+	// Type assertion for each possible row type
+	var messages []Message
+
+	switch v := row.(type) {
+	case []databasegen.FindBetweenMessagesByRoomIDRow:
+		messages = make([]Message, len(v))
+		for i, r := range v {
+			messages[i] = Message{
+				ID:          r.ID,
+				UserID:      r.UserID,
+				RoomID:      r.RoomID,
+				MessageType: r.MessageType,
+				Content:     r.Content,
+				CreatedAt:   r.CreatedAt,
+			}
+		}
+	case []databasegen.FindPrevMessageByRoomIDRow:
+		messages = make([]Message, len(v))
+		for i, r := range v {
+			messages[i] = Message{
+				ID:          r.ID,
+				UserID:      r.UserID,
+				RoomID:      r.RoomID,
+				MessageType: r.MessageType,
+				Content:     r.Content,
+				CreatedAt:   r.CreatedAt,
+			}
+		}
+	case []databasegen.FindNextMessageByRoomIDRow:
+		messages = make([]Message, len(v))
+		for i, r := range v {
+			messages[i] = Message{
+				ID:          r.ID,
+				UserID:      r.UserID,
+				RoomID:      r.RoomID,
+				MessageType: r.MessageType,
+				Content:     r.Content,
+				CreatedAt:   r.CreatedAt,
+			}
+		}
+	case []databasegen.FindMessagesByRoomIDAndSizeRow:
+		messages = make([]Message, len(v))
+		for i, r := range v {
+			messages[i] = Message{
+				ID:          r.ID,
+				UserID:      r.UserID,
+				RoomID:      r.RoomID,
+				MessageType: r.MessageType,
+				Content:     r.Content,
+				CreatedAt:   r.CreatedAt,
+			}
+		}
+	default:
 		return &MessageCursorView{
 			HasNext: false,
 			HasPrev: false,
@@ -82,242 +134,51 @@ func ToUserChatRoomMessageBetweenView(
 		}
 	}
 
-	messages := make([]Message, len(row))
-	for i, r := range row {
-		messages[i] = Message{
-			ID:          r.ID,
-			UserID:      r.UserID,
-			RoomID:      r.RoomID,
-			MessageType: r.MessageType,
-			Content:     r.Content,
-			CreatedAt:   r.CreatedAt,
-		}
+	// Conditionally set NextID and PrevID based on hasNext and hasPrev
+	nextID := nextMessageID
+	prevID := prevMessageID
+	if !hasNext {
+		nextID = nil
+	}
+	if !hasPrev {
+		prevID = nil
 	}
 
-	if hasNext && hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nextMessageID,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	if hasNext && !hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			HasPrev: hasPrev,
-			NextID:  nextMessageID,
-			PrevID:  nil,
-		}
-	}
-
-	if hasPrev && !hasNext {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nil,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
+	// Construct and return MessageCursorView
 	return &MessageCursorView{
 		Items:   &messages,
 		HasNext: hasNext,
 		HasPrev: hasPrev,
-		NextID:  nil,
-		PrevID:  nil,
+		NextID:  nextID,
+		PrevID:  prevID,
 	}
+}
+
+func ToUserChatRoomMessageBetweenView(
+	row []databasegen.FindBetweenMessagesByRoomIDRow,
+	hasNext, hasPrev bool,
+	nextMessageID, prevMessageID *uuid.UUID,
+) *MessageCursorView {
+	return createMessageCursorView(row, hasNext, hasPrev, nextMessageID, prevMessageID)
 }
 
 func ToUserChatRoomMessagePrevView(
 	row []databasegen.FindPrevMessageByRoomIDRow, hasNext, hasPrev bool,
 	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
-	if len(row) == 0 {
-		return &MessageCursorView{
-			HasNext: false,
-			HasPrev: false,
-			Items:   &[]Message{},
-		}
-	}
-
-	messages := make([]Message, len(row))
-	for i, r := range row {
-		messages[i] = Message{
-			ID:          r.ID,
-			UserID:      r.UserID,
-			RoomID:      r.RoomID,
-			MessageType: r.MessageType,
-			Content:     r.Content,
-			CreatedAt:   r.CreatedAt,
-		}
-	}
-
-	if hasNext && hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nextMessageID,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	if hasNext && !hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			HasPrev: hasPrev,
-			NextID:  nextMessageID,
-			PrevID:  nil,
-		}
-	}
-
-	if hasPrev && !hasNext {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nil,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	return &MessageCursorView{
-		Items:   &messages,
-		HasNext: hasNext,
-		HasPrev: hasPrev,
-		NextID:  nil,
-		PrevID:  nil,
-	}
+	return createMessageCursorView(row, hasNext, hasPrev, nextMessageID, prevMessageID)
 }
 
 func ToUserChatRoomMessageNextView(
 	row []databasegen.FindNextMessageByRoomIDRow, hasNext, hasPrev bool,
 	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
-	if len(row) == 0 {
-		return &MessageCursorView{
-			HasNext: false,
-			HasPrev: false,
-			Items:   &[]Message{},
-		}
-	}
-
-	messages := make([]Message, len(row))
-	for i, r := range row {
-		messages[i] = Message{
-			ID:          r.ID,
-			UserID:      r.UserID,
-			RoomID:      r.RoomID,
-			MessageType: r.MessageType,
-			Content:     r.Content,
-			CreatedAt:   r.CreatedAt,
-		}
-	}
-
-	if hasNext && hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nextMessageID,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	if hasNext && !hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			HasPrev: hasPrev,
-			NextID:  nextMessageID,
-			PrevID:  nil,
-		}
-	}
-
-	if hasPrev && !hasNext {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nil,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	return &MessageCursorView{
-		Items:   &messages,
-		HasNext: hasNext,
-		HasPrev: hasPrev,
-		NextID:  nil,
-		PrevID:  nil,
-	}
+	return createMessageCursorView(row, hasNext, hasPrev, nextMessageID, prevMessageID)
 }
 
 func ToUserChatRoomMessageView(
 	row []databasegen.FindMessagesByRoomIDAndSizeRow, hasNext, hasPrev bool,
 	nextMessageID, prevMessageID *uuid.UUID,
 ) *MessageCursorView {
-	if len(row) == 0 {
-		return &MessageCursorView{
-			HasNext: false,
-			HasPrev: false,
-			Items:   &[]Message{},
-		}
-	}
-
-	messages := make([]Message, len(row))
-	for i, r := range row {
-		messages[i] = Message{
-			ID:          r.ID,
-			UserID:      r.UserID,
-			RoomID:      r.RoomID,
-			MessageType: r.MessageType,
-			Content:     r.Content,
-			CreatedAt:   r.CreatedAt,
-		}
-	}
-
-	if hasNext && hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			NextID:  nextMessageID,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-		}
-	}
-
-	if hasNext && !hasPrev {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			HasPrev: hasPrev,
-			NextID:  nextMessageID,
-			PrevID:  nil,
-		}
-	}
-
-	if hasPrev && !hasNext {
-		return &MessageCursorView{
-			Items:   &messages,
-			HasNext: hasNext,
-			HasPrev: hasPrev,
-			PrevID:  prevMessageID,
-			NextID:  nil,
-		}
-	}
-
-	return &MessageCursorView{
-		Items:   &messages,
-		HasNext: hasNext,
-		HasPrev: hasPrev,
-		PrevID:  nil,
-		NextID:  nil,
-	}
+	return createMessageCursorView(row, hasNext, hasPrev, nextMessageID, prevMessageID)
 }
