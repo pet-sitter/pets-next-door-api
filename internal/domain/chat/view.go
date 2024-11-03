@@ -46,7 +46,7 @@ func ToUserChatRoomsView(
 	roomSimpleInfos := make([]RoomSimpleInfo, len(rows))
 	for i, r := range rows {
 		roomSimpleInfos[i] = RoomSimpleInfo{
-			ID:        r.UserID,
+			ID:        r.ChatRoomID,
 			RoomName:  r.ChatRoomName,
 			RoomType:  r.ChatRoomType,
 			CreatedAt: r.ChatRoomCreatedAt,
