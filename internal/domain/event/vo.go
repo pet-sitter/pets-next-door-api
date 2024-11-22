@@ -1,5 +1,11 @@
 package event
 
+import (
+	"encoding/json"
+	"errors"
+	"strings"
+)
+
 type EventType string
 
 const (
@@ -47,4 +53,37 @@ func (e EventRecurringPeriod) IsValid() bool {
 		return true
 	}
 	return false
+}
+
+//go:generate stringer -type=GenderCondition
+type GenderCondition int
+
+const (
+	Male GenderCondition = iota
+	Female
+	All
+)
+
+func (g *GenderCondition) MarshalJSON() ([]byte, error) {
+	return json.Marshal(strings.ToLower(g.String()))
+}
+
+func (g *GenderCondition) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch strings.ToLower(s) {
+	case "male":
+		*g = Male
+	case "female":
+		*g = Female
+	case "all":
+		*g = All
+	default:
+		return errors.New("invalid GenderCondition")
+	}
+
+	return nil
 }
