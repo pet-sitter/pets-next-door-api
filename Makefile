@@ -27,8 +27,8 @@ format\:install:
 	# https://github.,com/segmentio/golines
 	go install github.com/segmentio/golines@latest
 format:
-	gofumpt -l -w .
 	golines -w .
+	gofumpt -l -w .
 
 lint\:install:
 	# golangci-lint
