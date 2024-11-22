@@ -15,7 +15,10 @@ type SOSPostHandler struct {
 	authService    service.AuthService
 }
 
-func NewSOSPostHandler(sosPostService service.SOSPostService, authService service.AuthService) *SOSPostHandler {
+func NewSOSPostHandler(
+	sosPostService service.SOSPostService,
+	authService service.AuthService,
+) *SOSPostHandler {
 	return &SOSPostHandler{
 		sosPostService: sosPostService,
 		authService:    authService,
@@ -33,7 +36,10 @@ func NewSOSPostHandler(sosPostService service.SOSPostService, authService servic
 // @Success 201 {object} sospost.DetailView
 // @Router /posts/sos [post]
 func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -43,7 +49,11 @@ func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.sosPostService.WriteSOSPost(c.Request().Context(), foundUser.FirebaseUID, &writeSOSPostRequest)
+	res, err := h.sosPostService.WriteSOSPost(
+		c.Request().Context(),
+		foundUser.FirebaseUID,
+		&writeSOSPostRequest,
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -133,7 +143,10 @@ func (h *SOSPostHandler) FindSOSPostByID(c echo.Context) error {
 // @Success 200
 // @Router /posts/sos [put]
 func (h *SOSPostHandler) UpdateSOSPost(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

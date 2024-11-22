@@ -20,7 +20,10 @@ type FirebaseBearerAuthService struct {
 	userService *UserService
 }
 
-func NewFirebaseBearerAuthService(authClient *auth.Client, userService *UserService) *FirebaseBearerAuthService {
+func NewFirebaseBearerAuthService(
+	authClient *auth.Client,
+	userService *UserService,
+) *FirebaseBearerAuthService {
 	return &FirebaseBearerAuthService{
 		authClient:  authClient,
 		userService: userService,
@@ -59,7 +62,10 @@ func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
 	return foundUser.ToInternalView(), nil
 }
 
-func (service *FirebaseBearerAuthService) CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError) {
+func (service *FirebaseBearerAuthService) CustomToken(
+	ctx context.Context,
+	uid string,
+) (*string, *pnd.AppError) {
 	customToken, err := service.authClient.CustomToken(ctx, uid)
 	if err != nil {
 		return nil, pnd.ErrUnknown(err)
@@ -68,7 +74,9 @@ func (service *FirebaseBearerAuthService) CustomToken(ctx context.Context, uid s
 	return &customToken, nil
 }
 
-func (service *FirebaseBearerAuthService) stripBearerToken(authHeader string) (string, *pnd.AppError) {
+func (service *FirebaseBearerAuthService) stripBearerToken(
+	authHeader string,
+) (string, *pnd.AppError) {
 	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
 		return authHeader[7:], nil
 	}

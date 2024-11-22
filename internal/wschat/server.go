@@ -56,7 +56,10 @@ func (s *WSServer) HandleConnections(
 ) error {
 	log.Info().Msg("Handling connections")
 
-	foundUser, err2 := s.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err2 := s.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err2 != nil {
 		return c.JSON(err2.StatusCode, err2)
 	}
@@ -87,7 +90,10 @@ func (s *WSServer) HandleConnections(
 			log.Error().Err(err).Msg("Failed to read message")
 			delete(s.clients, userID)
 
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
+			return c.JSON(
+				http.StatusInternalServerError,
+				map[string]interface{}{"error": err.Error()},
+			)
 		}
 
 		s.broadcast <- msgReq
@@ -115,11 +121,23 @@ func (s *WSServer) LoopOverClientMessages() {
 			var msg MessageResponse
 			switch msgReq.MessageType {
 			case "plain":
-				msg = NewPlainMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, msgReq.Message, time.Now())
+				msg = NewPlainMessageResponse(
+					msgReq.MessageID,
+					msgReq.Sender,
+					msgReq.Room,
+					msgReq.Message,
+					time.Now(),
+				)
 			case "media":
 				if len(msgReq.Medias) == 0 {
 					log.Error().Msg("No media found")
-					msg = NewErrorMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, "No media found", time.Now())
+					msg = NewErrorMessageResponse(
+						msgReq.MessageID,
+						msgReq.Sender,
+						msgReq.Room,
+						"No media found",
+						time.Now(),
+					)
 				} else {
 					ids := make([]uuid.UUID, 0)
 					for _, mediaReq := range msgReq.Medias {

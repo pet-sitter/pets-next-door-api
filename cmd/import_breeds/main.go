@@ -140,11 +140,20 @@ func importBreed(
 	}, nil
 }
 
-func importBreeds(ctx context.Context, conn *database.DB, petType commonvo.PetType, rows *[]breedsimporterservice.Row) {
+func importBreeds(
+	ctx context.Context,
+	conn *database.DB,
+	petType commonvo.PetType,
+	rows *[]breedsimporterservice.Row,
+) {
 	for _, row := range *rows {
 		breedData, err := importBreed(ctx, conn, petType, row)
 		if err != nil {
-			log.Printf("Failed to import breed with pet_type: %s, name: %s to database", breedData.PetType, breedData.Name)
+			log.Printf(
+				"Failed to import breed with pet_type: %s, name: %s to database",
+				breedData.PetType,
+				breedData.Name,
+			)
 		}
 	}
 }

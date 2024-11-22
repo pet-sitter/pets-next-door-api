@@ -31,7 +31,9 @@ func TestRegisterUser(t *testing.T) {
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 
 		// When
 		created, _ := userService.RegisterUser(ctx, userRequest)
@@ -72,7 +74,9 @@ func TestRegisterUser(t *testing.T) {
 
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		userService.RegisterUser(ctx, userRequest)
 
 		// When
@@ -117,7 +121,10 @@ func TestFindUsers(t *testing.T) {
 		}
 
 		// When
-		found, _ := userService.FindUsers(ctx, user.FindUsersParams{Page: 1, Size: 20, Nickname: &targetNickname})
+		found, _ := userService.FindUsers(
+			ctx,
+			user.FindUsersParams{Page: 1, Size: 20, Nickname: &targetNickname},
+		)
 
 		// Then
 		assert.Equal(t, 1, len(found.Items))
@@ -135,7 +142,9 @@ func TestFindUser(t *testing.T) {
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// When
@@ -155,7 +164,9 @@ func TestFindUser(t *testing.T) {
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// When
@@ -191,11 +202,16 @@ func TestFindUserProfile(t *testing.T) {
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		created, _ := userService.RegisterUser(ctx, userRequest)
 
 		// When
-		found, _ := userService.FindUserProfile(ctx, user.FindUserParams{FbUID: &created.FirebaseUID})
+		found, _ := userService.FindUserProfile(
+			ctx,
+			user.FindUserParams{FbUID: &created.FirebaseUID},
+		)
 
 		// Then
 		assert.Equal(t, created.ID, found.ID)
@@ -227,7 +243,9 @@ func TestExistsByEmail(t *testing.T) {
 		// Given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		userService.RegisterUser(ctx, userRequest)
 
 		// When
@@ -255,7 +273,12 @@ func TestUpdateUserByUID(t *testing.T) {
 
 		// When
 		updatedNickname := "updated"
-		updatedProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_profile_image.jpg")
+		updatedProfileImage, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"updated_profile_image.jpg",
+		)
 		userService.UpdateUserByUID(
 			ctx,
 			targetUser.FirebaseUID,
@@ -285,7 +308,12 @@ func TestAddPetsToOwner(t *testing.T) {
 			tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true}),
 		)
 
-		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
+		petProfileImage, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"pet_profile_image.jpg",
+		)
 		petsToAdd := pet.AddPetsToOwnerRequest{
 			Pets: []pet.AddPetRequest{
 				*tests.NewDummyAddPetRequest(
@@ -335,18 +363,31 @@ func TestUpdatePet(t *testing.T) {
 			tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true}),
 		)
 
-		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
+		petProfileImage, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"pet_profile_image.jpg",
+		)
 		petRequest := tests.NewDummyAddPetRequest(
 			uuid.NullUUID{UUID: petProfileImage.ID, Valid: true},
 			commonvo.PetTypeDog,
 			pet.GenderMale, "poodle",
 		)
 		createdPets, _ := userService.AddPetsToOwner(
-			ctx, registeredUser.FirebaseUID, pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}})
+			ctx,
+			registeredUser.FirebaseUID,
+			pet.AddPetsToOwnerRequest{Pets: []pet.AddPetRequest{*petRequest}},
+		)
 		createdPet := createdPets.Pets[0]
 
 		// When
-		updatedPetProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "updated_pet_profile_image.jpg")
+		updatedPetProfileImage, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"updated_pet_profile_image.jpg",
+		)
 		birthDate, _ := datatype.ParseDate("2021-01-01")
 		updatedPetRequest := pet.UpdatePetRequest{
 			Name:           "updated",
@@ -358,7 +399,12 @@ func TestUpdatePet(t *testing.T) {
 			ProfileImageID: uuid.NullUUID{UUID: updatedPetProfileImage.ID, Valid: true},
 		}
 
-		_, err := userService.UpdatePet(ctx, registeredUser.FirebaseUID, createdPet.ID, updatedPetRequest)
+		_, err := userService.UpdatePet(
+			ctx,
+			registeredUser.FirebaseUID,
+			createdPet.ID,
+			updatedPetRequest,
+		)
 		if err != nil {
 			t.Errorf("got %v want %v", err, nil)
 		}
@@ -395,7 +441,12 @@ func TestDeletePet(t *testing.T) {
 			tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true}),
 		)
 
-		petProfileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "pet_profile_image.jpg")
+		petProfileImage, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"pet_profile_image.jpg",
+		)
 		petRequest := tests.NewDummyAddPetRequest(
 			uuid.NullUUID{UUID: petProfileImage.ID, Valid: true},
 			commonvo.PetTypeDog,

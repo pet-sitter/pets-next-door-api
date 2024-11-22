@@ -24,7 +24,9 @@ func NewSOSConditionService(conn *database.DB) *SOSConditionService {
 	}
 }
 
-func (service *SOSConditionService) InitConditions(ctx context.Context) (soscondition.ListView, *pnd.AppError) {
+func (service *SOSConditionService) InitConditions(
+	ctx context.Context,
+) (soscondition.ListView, *pnd.AppError) {
 	tx, err := service.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -33,10 +35,11 @@ func (service *SOSConditionService) InitConditions(ctx context.Context) (soscond
 
 	conditionList := make([]databasegen.SosCondition, len(soscondition.AvailableNames))
 	for idx, conditionName := range soscondition.AvailableNames {
-		created, err := databasegen.New(tx).CreateSOSCondition(ctx, databasegen.CreateSOSConditionParams{
-			ID:   datatype.NewUUIDV7(),
-			Name: utils.StrToNullStr(conditionName.String()),
-		})
+		created, err := databasegen.New(tx).
+			CreateSOSCondition(ctx, databasegen.CreateSOSConditionParams{
+				ID:   datatype.NewUUIDV7(),
+				Name: utils.StrToNullStr(conditionName.String()),
+			})
 		if err != nil {
 			return nil, pnd.FromPostgresError(err)
 		}
@@ -51,7 +54,9 @@ func (service *SOSConditionService) InitConditions(ctx context.Context) (soscond
 	return soscondition.ToListView(conditionList), nil
 }
 
-func (service *SOSConditionService) FindConditions(ctx context.Context) (soscondition.ListView, *pnd.AppError) {
+func (service *SOSConditionService) FindConditions(
+	ctx context.Context,
+) (soscondition.ListView, *pnd.AppError) {
 	conditionList, err := databasegen.New(service.conn).FindConditions(ctx, false)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)

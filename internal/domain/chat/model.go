@@ -29,17 +29,17 @@ const (
 )
 
 type RoomSimpleInfo struct {
-	ID        uuid.UUID            `field:"id" json:"id"`
-	RoomName  string               `field:"roomName" json:"roomName"`
-	RoomType  string               `field:"roomType" json:"roomType"`
-	JoinUser  *JoinUsersSimpleInfo `field:"joinUser" json:"joinUser"`
+	ID        uuid.UUID            `field:"id"        json:"id"`
+	RoomName  string               `field:"roomName"  json:"roomName"`
+	RoomType  string               `field:"roomType"  json:"roomType"`
+	JoinUser  *JoinUsersSimpleInfo `field:"joinUser"  json:"joinUser"`
 	CreatedAt time.Time            `field:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time            `field:"updatedAt" json:"updatedAt"`
 }
 
 type JoinUsersSimpleInfo struct {
-	ID               uuid.UUID `field:"id" json:"userId"`
-	UserNickname     string    `field:"nickname" json:"userNickname"`
+	ID               uuid.UUID `field:"id"           json:"userId"`
+	UserNickname     string    `field:"nickname"     json:"userNickname"`
 	UserProfileImage string    `field:"profileImage" json:"profileImageUrl"`
 }
 
@@ -55,23 +55,23 @@ type JoinRoomsView struct {
 }
 
 type UserChatRoomMessageView struct {
-	ID          uuid.UUID `field:"id" json:"id"`
+	ID          uuid.UUID `field:"id"          json:"id"`
 	MessageType string    `field:"messageType" json:"messageType"`
 }
 
 type Message struct {
-	ID          uuid.UUID `field:"id" json:"id"`
-	UserID      uuid.UUID `field:"userID" json:"userId"`
-	RoomID      uuid.UUID `field:"roomID" json:"roomId"`
+	ID          uuid.UUID `field:"id"          json:"id"`
+	UserID      uuid.UUID `field:"userID"      json:"userId"`
+	RoomID      uuid.UUID `field:"roomID"      json:"roomId"`
 	MessageType string    `field:"messageType" json:"messageType"`
-	Content     string    `field:"content" json:"content"`
-	CreatedAt   time.Time `field:"createdAt" json:"createdAt"`
+	Content     string    `field:"content"     json:"content"`
+	CreatedAt   time.Time `field:"createdAt"   json:"createdAt"`
 }
 
 type MessageCursorView struct {
 	HasNext bool       `field:"hasNext" json:"hasNext"`
-	NextID  *uuid.UUID `field:"nextID" json:"next,omitempty"`
+	NextID  *uuid.UUID `field:"nextID"  json:"next,omitempty"`
 	HasPrev bool       `field:"hasPrev" json:"hasPrev"`
-	PrevID  *uuid.UUID `field:"prevID" json:"prev,omitempty"`
-	Items   *[]Message `field:"items" json:"items,omitempty"`
+	PrevID  *uuid.UUID `field:"prevID"  json:"prev,omitempty"`
+	Items   *[]Message `field:"items"   json:"items,omitempty"`
 }

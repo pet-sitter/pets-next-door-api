@@ -128,19 +128,19 @@ func ToWithProfileImageFromSOSPostIDRow(row databasegen.FindPetsBySOSPostIDRow) 
 // ViewForSOSPost
 // v_pets_for_sos_posts 뷰를 위한 구조체
 type ViewForSOSPost struct {
-	ID              uuid.UUID        `field:"id" json:"id"`
-	OwnerID         uuid.UUID        `field:"owner_id" json:"owner_id"`
-	Name            string           `field:"name" json:"name"`
-	PetType         commonvo.PetType `field:"pet_type" json:"pet_type"`
-	Sex             Gender           `field:"sex" json:"sex"`
-	Neutered        bool             `field:"neutered" json:"neutered"`
-	Breed           string           `field:"breed" json:"breed"`
-	BirthDate       datatype.Date    `field:"birth_date" json:"birth_date"`
-	WeightInKg      decimal.Decimal  `field:"weight_in_kg" json:"weight_in_kg"`
-	Remarks         string           `field:"remarks" json:"remarks"`
-	CreatedAt       string           `field:"created_at" json:"created_at"`
-	UpdatedAt       string           `field:"updated_at" json:"updated_at"`
-	DeletedAt       string           `field:"deleted_at" json:"deleted_at"`
+	ID              uuid.UUID        `field:"id"                json:"id"`
+	OwnerID         uuid.UUID        `field:"owner_id"          json:"owner_id"`
+	Name            string           `field:"name"              json:"name"`
+	PetType         commonvo.PetType `field:"pet_type"          json:"pet_type"`
+	Sex             Gender           `field:"sex"               json:"sex"`
+	Neutered        bool             `field:"neutered"          json:"neutered"`
+	Breed           string           `field:"breed"             json:"breed"`
+	BirthDate       datatype.Date    `field:"birth_date"        json:"birth_date"`
+	WeightInKg      decimal.Decimal  `field:"weight_in_kg"      json:"weight_in_kg"`
+	Remarks         string           `field:"remarks"           json:"remarks"`
+	CreatedAt       string           `field:"created_at"        json:"created_at"`
+	UpdatedAt       string           `field:"updated_at"        json:"updated_at"`
+	DeletedAt       string           `field:"deleted_at"        json:"deleted_at"`
 	ProfileImageURL *string          `field:"profile_image_url" json:"profile_image_url"`
 }
 

@@ -19,7 +19,10 @@ type AuthHandler struct {
 	kakaoClient kakaoinfra.KakaoClient
 }
 
-func NewAuthHandler(authService service.AuthService, kakaoClient kakaoinfra.KakaoClient) *AuthHandler {
+func NewAuthHandler(
+	authService service.AuthService,
+	kakaoClient kakaoinfra.KakaoClient,
+) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		kakaoClient: kakaoClient,
@@ -63,7 +66,10 @@ func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err2 := h.authService.CustomToken(c.Request().Context(), strconv.FormatInt(userProfile.ID, 10))
+	customToken, err2 := h.authService.CustomToken(
+		c.Request().Context(),
+		strconv.FormatInt(userProfile.ID, 10),
+	)
 	if err2 != nil {
 		return c.JSON(err2.StatusCode, err2)
 	}
@@ -87,16 +93,25 @@ func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userProfile, err2 := h.kakaoClient.FetchUserProfile(c.Request().Context(), tokenRequest.OAuthToken)
+	userProfile, err2 := h.kakaoClient.FetchUserProfile(
+		c.Request().Context(),
+		tokenRequest.OAuthToken,
+	)
 	if err2 != nil {
 		pndErr := pnd.ErrBadRequest(errors.New("유효하지 않은 Kakao 인증 정보입니다"))
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err := h.authService.CustomToken(c.Request().Context(), strconv.FormatInt(userProfile.ID, 10))
+	customToken, err := h.authService.CustomToken(
+		c.Request().Context(),
+		strconv.FormatInt(userProfile.ID, 10),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	return c.JSON(http.StatusCreated, auth.NewGenerateFBCustomTokenResponse(*customToken, userProfile))
+	return c.JSON(
+		http.StatusCreated,
+		auth.NewGenerateFBCustomTokenResponse(*customToken, userProfile),
+	)
 }

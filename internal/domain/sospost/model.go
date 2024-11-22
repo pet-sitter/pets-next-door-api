@@ -77,22 +77,22 @@ type SOSPostList struct {
 }
 
 type SOSPostInfo struct {
-	ID          uuid.UUID                       `field:"id" json:"id"`
-	AuthorID    uuid.UUID                       `field:"author" json:"author"`
-	Title       string                          `field:"title" json:"title"`
-	Content     string                          `field:"content" json:"content"`
-	Media       media.ViewListForSOSPost        `field:"media" json:"media"`
-	Conditions  soscondition.ViewListForSOSPost `field:"conditions" json:"conditions"`
-	Pets        pet.ViewListForSOSPost          `field:"pets" json:"pets"`
-	Reward      string                          `field:"reward" json:"reward"`
-	Dates       SOSDatesList                    `field:"dates" json:"dates"`
-	CareType    CareType                        `field:"careType" json:"careType"`
+	ID          uuid.UUID                       `field:"id"          json:"id"`
+	AuthorID    uuid.UUID                       `field:"author"      json:"author"`
+	Title       string                          `field:"title"       json:"title"`
+	Content     string                          `field:"content"     json:"content"`
+	Media       media.ViewListForSOSPost        `field:"media"       json:"media"`
+	Conditions  soscondition.ViewListForSOSPost `field:"conditions"  json:"conditions"`
+	Pets        pet.ViewListForSOSPost          `field:"pets"        json:"pets"`
+	Reward      string                          `field:"reward"      json:"reward"`
+	Dates       SOSDatesList                    `field:"dates"       json:"dates"`
+	CareType    CareType                        `field:"careType"    json:"careType"`
 	CarerGender CarerGender                     `field:"carerGender" json:"carerGender"`
-	RewardType  RewardType                      `field:"rewardType" json:"rewardType"`
+	RewardType  RewardType                      `field:"rewardType"  json:"rewardType"`
 	ThumbnailID uuid.NullUUID                   `field:"thumbnailId" json:"thumbnailId"`
-	CreatedAt   time.Time                       `field:"createdAt" json:"createdAt"`
-	UpdatedAt   time.Time                       `field:"updatedAt" json:"updatedAt"`
-	DeletedAt   time.Time                       `field:"deletedAt" json:"deletedAt"`
+	CreatedAt   time.Time                       `field:"createdAt"   json:"createdAt"`
+	UpdatedAt   time.Time                       `field:"updatedAt"   json:"updatedAt"`
+	DeletedAt   time.Time                       `field:"deletedAt"   json:"deletedAt"`
 }
 
 type SOSPostInfoList struct {
@@ -148,7 +148,10 @@ func ToInfoFromFindAuthorIDRow(row databasegen.FindSOSPostsByAuthorIDRow) *SOSPo
 	}
 }
 
-func ToInfoListFromFindAuthorIDRow(rows []databasegen.FindSOSPostsByAuthorIDRow, page, size int) *SOSPostInfoList {
+func ToInfoListFromFindAuthorIDRow(
+	rows []databasegen.FindSOSPostsByAuthorIDRow,
+	page, size int,
+) *SOSPostInfoList {
 	sl := NewSOSPostInfoList(page, size)
 	for _, row := range rows {
 		sl.Items = append(sl.Items, *ToInfoFromFindAuthorIDRow(row))
@@ -248,12 +251,12 @@ func ParseSOSDatesList(rows json.RawMessage) SOSDatesList {
 }
 
 type SOSDates struct {
-	ID          uuid.UUID `field:"id" json:"id"`
+	ID          uuid.UUID `field:"id"            json:"id"`
 	DateStartAt string    `field:"date_start_at" json:"date_start_at"`
-	DateEndAt   string    `field:"date_end_at" json:"date_end_at"`
-	CreatedAt   time.Time `field:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `field:"updated_at" json:"updated_at"`
-	DeletedAt   time.Time `field:"deleted_at" json:"deleted_at"`
+	DateEndAt   string    `field:"date_end_at"   json:"date_end_at"`
+	CreatedAt   time.Time `field:"created_at"    json:"created_at"`
+	UpdatedAt   time.Time `field:"updated_at"    json:"updated_at"`
+	DeletedAt   time.Time `field:"deleted_at"    json:"deleted_at"`
 }
 
 type SOSDatesList []*SOSDates

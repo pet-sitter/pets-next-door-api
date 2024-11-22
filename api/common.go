@@ -32,7 +32,12 @@ func (l *PaginatedView[T]) CalcLastPage() {
 	}
 }
 
-func writePayload(w http.ResponseWriter, headers map[string]string, payload interface{}, statusCode int) error {
+func writePayload(
+	w http.ResponseWriter,
+	headers map[string]string,
+	payload interface{},
+	statusCode int,
+) error {
 	setHeaders(w, headers)
 
 	w.WriteHeader(statusCode)

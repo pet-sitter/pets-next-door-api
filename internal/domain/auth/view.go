@@ -15,7 +15,10 @@ type KakaoCallbackView struct {
 	PhotoURL             string                    `json:"photoURL"`
 }
 
-func NewKakaoCallbackView(authToken string, kakaoUserProfile *kakaoinfra.KakaoUserProfile) KakaoCallbackView {
+func NewKakaoCallbackView(
+	authToken string,
+	kakaoUserProfile *kakaoinfra.KakaoUserProfile,
+) KakaoCallbackView {
 	return KakaoCallbackView{
 		AuthToken:            authToken,
 		FirebaseProviderType: user.FirebaseProviderTypeKakao,

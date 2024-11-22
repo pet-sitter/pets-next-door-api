@@ -22,7 +22,10 @@ func NewKakaoDefaultClient() *KakaoDefaultClient {
 	return &KakaoDefaultClient{}
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchAccessToken(ctx context.Context, code string) (*KakaoTokenResponse, error) {
+func (kakaoClient *KakaoDefaultClient) FetchAccessToken(
+	ctx context.Context,
+	code string,
+) (*KakaoTokenResponse, error) {
 	kakaoTokenRequest := NewKakaoTokenRequest(
 		configs.KakaoRestAPIKey,
 		configs.KakaoRedirectURI,
@@ -63,9 +66,17 @@ func (kakaoClient *KakaoDefaultClient) FetchAccessToken(ctx context.Context, cod
 	return kakaoTokenResponse, nil
 }
 
-func (kakaoClient *KakaoDefaultClient) FetchUserProfile(ctx context.Context, code string) (*KakaoUserProfile, error) {
+func (kakaoClient *KakaoDefaultClient) FetchUserProfile(
+	ctx context.Context,
+	code string,
+) (*KakaoUserProfile, error) {
 	client := &http.Client{}
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://kapi.kakao.com/v2/user/me", nil)
+	req, _ := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		"https://kapi.kakao.com/v2/user/me",
+		nil,
+	)
 	req.Header.Add("Authorization", "Bearer "+code)
 	res, err := client.Do(req)
 	if err != nil {

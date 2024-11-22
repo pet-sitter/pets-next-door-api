@@ -26,7 +26,9 @@ type ListView struct {
 }
 
 func ToListViewFromRows(page, size int, rows []databasegen.FindBreedsRow) *ListView {
-	bl := &ListView{PaginatedView: pnd.NewPaginatedView(page, size, false, make([]*DetailView, len(rows)))}
+	bl := &ListView{
+		PaginatedView: pnd.NewPaginatedView(page, size, false, make([]*DetailView, len(rows))),
+	}
 	for i, row := range rows {
 		bl.Items[i] = ToDetailViewFromRows(row)
 	}
