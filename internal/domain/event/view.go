@@ -18,7 +18,7 @@ type BaseView struct {
 	Name        string                  `json:"name"`
 	Description string                  `json:"description"`
 	Media       media.DetailView        `json:"media"`
-	Topic       EventTopic              `json:"topic"`
+	Topics      []EventTopic            `json:"topics"`
 }
 
 type ShortTermView struct {
