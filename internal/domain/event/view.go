@@ -14,15 +14,16 @@ type View struct {
 }
 
 type BaseView struct {
-	ID          uuid.UUID               `json:"id"`
-	EventType   EventType               `json:"type"`
-	Author      user.WithoutPrivateInfo `json:"author"`
-	Name        string                  `json:"name"`
-	Description string                  `json:"description"`
-	Media       media.DetailView        `json:"media"`
-	Topics      []EventTopic            `json:"topics"`
-	CreatedAt   time.Time               `json:"createdAt"`
-	UpdatedAt   time.Time               `json:"updatedAt"`
+	ID              uuid.UUID               `json:"id"`
+	EventType       EventType               `json:"type"`
+	Author          user.WithoutPrivateInfo `json:"author"`
+	Name            string                  `json:"name"`
+	Description     string                  `json:"description"`
+	Media           media.DetailView        `json:"media"`
+	Topics          []EventTopic            `json:"topics"`
+	GenderCondition string                  `json:"genderCondition"`
+	CreatedAt       time.Time               `json:"createdAt"`
+	UpdatedAt       time.Time               `json:"updatedAt"`
 }
 
 type ShortTermView struct {
