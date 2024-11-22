@@ -1,6 +1,8 @@
 package event
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
@@ -19,6 +21,8 @@ type BaseView struct {
 	Description string                  `json:"description"`
 	Media       media.DetailView        `json:"media"`
 	Topics      []EventTopic            `json:"topics"`
+	CreatedAt   time.Time               `json:"createdAt"`
+	UpdatedAt   time.Time               `json:"updatedAt"`
 }
 
 type ShortTermView struct {
