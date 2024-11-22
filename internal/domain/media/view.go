@@ -67,7 +67,9 @@ func ToDetailViewFromViewForSOSPost(media ViewForSOSPost) *DetailView {
 	}
 }
 
-func ToListViewFromResourceMediaRows(resourceMediaList []databasegen.FindResourceMediaRow) ListView {
+func ToListViewFromResourceMediaRows(
+	resourceMediaList []databasegen.FindResourceMediaRow,
+) ListView {
 	mediaViewList := make(ListView, len(resourceMediaList))
 	for i, resourceMedia := range resourceMediaList {
 		mediaViewList[i] = ToDetailViewFromResourceMediaRows(resourceMedia)

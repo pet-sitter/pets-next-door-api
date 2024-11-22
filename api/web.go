@@ -40,7 +40,9 @@ func ParseOptionalUUIDQuery(c echo.Context, query string) (uuid.NullUUID, *AppEr
 
 	id, err := uuid.Parse(queryStr)
 	if err != nil {
-		return uuid.NullUUID{}, ErrInvalidQuery(fmt.Errorf("expected valid UUID for query: %s", query))
+		return uuid.NullUUID{}, ErrInvalidQuery(
+			fmt.Errorf("expected valid UUID for query: %s", query),
+		)
 	}
 
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
@@ -79,7 +81,10 @@ func ParseOptionalStringQuery(c echo.Context, query string) *string {
 }
 
 // ParsePaginationQueries parses pagination parameters from query string: page, size.
-func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page, size int, err *AppError) {
+func ParsePaginationQueries(
+	c echo.Context,
+	defaultPage, defaultLimit int,
+) (page, size int, err *AppError) {
 	pageQuery := c.QueryParam("page")
 	sizeQuery := c.QueryParam("size")
 
@@ -90,7 +95,9 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 		var atoiError error
 		page, atoiError = strconv.Atoi(pageQuery)
 		if atoiError != nil || page <= 0 {
-			return 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: page"))
+			return 0, 0, ErrInvalidPagination(
+				errors.New("expected integer value bigger than 0 for query: page"),
+			)
 		}
 	}
 
@@ -98,7 +105,9 @@ func ParsePaginationQueries(c echo.Context, defaultPage, defaultLimit int) (page
 		var atoiError error
 		size, atoiError = strconv.Atoi(sizeQuery)
 		if atoiError != nil || size <= 0 {
-			return 0, 0, ErrInvalidPagination(errors.New("expected integer value bigger than 0 for query: size"))
+			return 0, 0, ErrInvalidPagination(
+				errors.New("expected integer value bigger than 0 for query: size"),
+			)
 		}
 	}
 

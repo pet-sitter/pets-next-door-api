@@ -63,7 +63,10 @@ func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	exists, err := h.userService.ExistsByNickname(c.Request().Context(), checkUserNicknameRequest.Nickname)
+	exists, err := h.userService.ExistsByNickname(
+		c.Request().Context(),
+		checkUserNicknameRequest.Nickname,
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -86,7 +89,10 @@ func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	userData, err := h.userService.FindUser(c.Request().Context(), user.FindUserParams{Email: &providerRequest.Email})
+	userData, err := h.userService.FindUser(
+		c.Request().Context(),
+		user.FindUserParams{Email: &providerRequest.Email},
+	)
 	if err != nil {
 		return c.JSON(http.StatusOK, user.StatusView{
 			Status: user.StatusNotRegistered,
@@ -108,7 +114,10 @@ func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 // @Success 200 {object} user.ListWithoutPrivateInfo
 // @Router /users [get]
 func (h *UserHandler) FindUsers(c echo.Context) error {
-	_, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	_, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -140,7 +149,10 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 // @Success 200 {object} user.ProfileView
 // @Router /users/{userID} [get]
 func (h *UserHandler) FindUserByID(c echo.Context) error {
-	_, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	_, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -170,7 +182,10 @@ func (h *UserHandler) FindUserByID(c echo.Context) error {
 // @Success 200 {object} user.MyProfileView
 // @Router /users/me [get]
 func (h *UserHandler) FindMyProfile(c echo.Context) error {
-	res, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	res, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -189,7 +204,10 @@ func (h *UserHandler) FindMyProfile(c echo.Context) error {
 // @Success 200 {object} user.MyProfileView
 // @Router /users/me [put]
 func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -222,7 +240,10 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 // @Success 204
 // @Router /users/me [delete]
 func (h *UserHandler) DeleteMyAccount(c echo.Context) error {
-	loggedInUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	loggedInUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -245,7 +266,10 @@ func (h *UserHandler) DeleteMyAccount(c echo.Context) error {
 // @Success 200
 // @Router /users/me/pets [put]
 func (h *UserHandler) AddMyPets(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -273,7 +297,10 @@ func (h *UserHandler) AddMyPets(c echo.Context) error {
 // @Success 200 {object} pet.ListView
 // @Router /users/me/pets [get]
 func (h *UserHandler) FindMyPets(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -303,7 +330,10 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 // @Success 200 {object} pet.DetailView
 // @Router /users/me/pets/{petID} [put]
 func (h *UserHandler) UpdateMyPet(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -336,7 +366,10 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 // @Success 204
 // @Router /users/me/pets/{petID} [delete]
 func (h *UserHandler) DeleteMyPet(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

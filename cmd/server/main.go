@@ -36,7 +36,9 @@ func main() {
 	var app *firebaseinfra.FirebaseApp
 	var err error
 	if configs.GetFirebaseCredentialsJSON() != (configs.FirebaseCredentialsJSONType{}) {
-		app, err = firebaseinfra.NewFirebaseAppFromCredentialsJSON(configs.GetFirebaseCredentialsJSON())
+		app, err = firebaseinfra.NewFirebaseAppFromCredentialsJSON(
+			configs.GetFirebaseCredentialsJSON(),
+		)
 		if err != nil {
 			log.Fatal(err)
 		}

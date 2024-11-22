@@ -60,19 +60,28 @@ func TestCreateSOSPost(t *testing.T) {
 
 		// when
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 		sosPostData := tests.NewDummyWriteSOSPostRequest(
 			[]uuid.UUID{sosPostImage.ID, sosPostImage2.ID},
 			[]uuid.UUID{addPets.Pets[0].ID},
 			0,
 			conditionIDs,
 		)
-		created, err := sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, tests.NewDummyWriteSOSPostRequest(
-			[]uuid.UUID{sosPostImage.ID, sosPostImage2.ID},
-			[]uuid.UUID{addPets.Pets[0].ID},
-			0,
-			conditionIDs,
-		))
+		created, err := sosPostService.WriteSOSPost(
+			ctx,
+			owner.FirebaseUID,
+			tests.NewDummyWriteSOSPostRequest(
+				[]uuid.UUID{sosPostImage.ID, sosPostImage2.ID},
+				[]uuid.UUID{addPets.Pets[0].ID},
+				0,
+				conditionIDs,
+			),
+		)
 		if err != nil {
 			t.Errorf("got %v want %v", err, nil)
 		}
@@ -103,9 +112,16 @@ func TestFindSOSPosts(t *testing.T) {
 		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		addPets, _ := userService.AddPetsToOwner(
 			ctx,
@@ -167,9 +183,16 @@ func TestFindSOSPosts(t *testing.T) {
 		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		uid := owner.FirebaseUID
 		addPetRequest, _ := userService.AddPetsToOwner(ctx, uid, pet.AddPetsToOwnerRequest{
@@ -201,7 +224,12 @@ func TestFindSOSPosts(t *testing.T) {
 
 		sosPostRequests := make([]sospost.WriteSOSPostRequest, 0)
 		for i := 1; i < 4; i++ {
-			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []uuid.UUID{addPetRequest.Pets[i-1].ID}, i, conditionIDs)
+			request := tests.NewDummyWriteSOSPostRequest(
+				imageIDs,
+				[]uuid.UUID{addPetRequest.Pets[i-1].ID},
+				i,
+				conditionIDs,
+			)
 			sosPostService.WriteSOSPost(ctx, uid, request)
 			sosPostRequests = append(sosPostRequests, *request)
 		}
@@ -237,7 +265,12 @@ func TestFindSOSPosts(t *testing.T) {
 		)
 
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 		uid := owner.FirebaseUID
 		petList, _ := userService.AddPetsToOwner(ctx, uid, pet.AddPetsToOwnerRequest{
 			Pets: []pet.AddPetRequest{
@@ -260,13 +293,23 @@ func TestFindSOSPosts(t *testing.T) {
 		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
 		// 강아지인 경우
 		for i := 1; i < 3; i++ {
-			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []uuid.UUID{petList.Pets[i-1].ID}, i, conditionIDs)
+			request := tests.NewDummyWriteSOSPostRequest(
+				imageIDs,
+				[]uuid.UUID{petList.Pets[i-1].ID},
+				i,
+				conditionIDs,
+			)
 			sosPostService.WriteSOSPost(ctx, uid, request)
 			writeRequests = append(writeRequests, *request)
 		}
 
 		// 고양이인 경우
-		request := tests.NewDummyWriteSOSPostRequest(imageIDs, []uuid.UUID{petList.Pets[2].ID}, 3, conditionIDs)
+		request := tests.NewDummyWriteSOSPostRequest(
+			imageIDs,
+			[]uuid.UUID{petList.Pets[2].ID},
+			3,
+			conditionIDs,
+		)
 		sosPostService.WriteSOSPost(ctx, uid, request)
 		writeRequests = append(writeRequests, *request)
 
@@ -306,9 +349,16 @@ func TestFindSOSPosts(t *testing.T) {
 		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		author := &user.WithoutPrivateInfo{
 			ID:              owner.ID,
@@ -332,7 +382,12 @@ func TestFindSOSPosts(t *testing.T) {
 
 		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
 		for i := 1; i < 4; i++ {
-			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []uuid.UUID{petList.Pets[0].ID}, i, conditionIDs)
+			request := tests.NewDummyWriteSOSPostRequest(
+				imageIDs,
+				[]uuid.UUID{petList.Pets[0].ID},
+				i,
+				conditionIDs,
+			)
 			sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
 			writeRequests = append(writeRequests, *request)
 		}
@@ -365,9 +420,16 @@ func TestFindSOSPostByID(t *testing.T) {
 		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		author := &user.WithoutPrivateInfo{
 			ID:              owner.ID,
@@ -390,7 +452,12 @@ func TestFindSOSPostByID(t *testing.T) {
 		writeRequests := make([]sospost.WriteSOSPostRequest, 0)
 		writtenIDs := make([]uuid.UUID, 0)
 		for i := 1; i < 4; i++ {
-			request := tests.NewDummyWriteSOSPostRequest(imageIDs, []uuid.UUID{addPets.Pets[0].ID}, i, conditionIDs)
+			request := tests.NewDummyWriteSOSPostRequest(
+				imageIDs,
+				[]uuid.UUID{addPets.Pets[0].ID},
+				i,
+				conditionIDs,
+			)
 			sosPost, _ := sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
 			writeRequests = append(writeRequests, *request)
 			writtenIDs = append(writtenIDs, sosPost.ID)
@@ -421,9 +488,16 @@ func TestUpdateSOSPost(t *testing.T) {
 		// given
 		profileImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "profile_image.jpg")
 		sosPostImage, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image.jpg")
-		sosPostImage2, _ := mediaService.UploadMedia(ctx, nil, media.TypeImage, "sos_post_image2.jpg")
+		sosPostImage2, _ := mediaService.UploadMedia(
+			ctx,
+			nil,
+			media.TypeImage,
+			"sos_post_image2.jpg",
+		)
 
-		userRequest := tests.NewDummyRegisterUserRequest(uuid.NullUUID{UUID: profileImage.ID, Valid: true})
+		userRequest := tests.NewDummyRegisterUserRequest(
+			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
+		)
 		owner, _ := userService.RegisterUser(ctx, userRequest)
 		addPets, _ := userService.AddPetsToOwner(
 			ctx,
@@ -441,8 +515,14 @@ func TestUpdateSOSPost(t *testing.T) {
 		conditions, _ := service.NewSOSConditionService(db).FindConditions(ctx)
 		conditionIDs := []uuid.UUID{conditions[0].ID, conditions[1].ID}
 		sosPost, _ := sosPostService.WriteSOSPost(
-			ctx, owner.FirebaseUID,
-			tests.NewDummyWriteSOSPostRequest([]uuid.UUID{sosPostImage.ID}, []uuid.UUID{addPets.Pets[0].ID}, 1, conditionIDs),
+			ctx,
+			owner.FirebaseUID,
+			tests.NewDummyWriteSOSPostRequest(
+				[]uuid.UUID{sosPostImage.ID},
+				[]uuid.UUID{addPets.Pets[0].ID},
+				1,
+				conditionIDs,
+			),
 		)
 
 		// when
@@ -496,7 +576,11 @@ func assertPetEquals(t *testing.T, want, got pet.DetailView) {
 	assert.Equal(t, want.ProfileImageURL, got.ProfileImageURL)
 }
 
-func writtenAndFoundSOSPostEquals(t *testing.T, want sospost.WriteSOSPostRequest, got sospost.FindSOSPostView) {
+func writtenAndFoundSOSPostEquals(
+	t *testing.T,
+	want sospost.WriteSOSPostRequest,
+	got sospost.FindSOSPostView,
+) {
 	t.Helper()
 
 	assert.Equal(t, want.Title, got.Title)

@@ -35,55 +35,135 @@ type FK struct {
 
 var Targets = []Target{
 	{"users", "uuid", []FK{
-		{Column: "profile_image_id", UUIDColumn: "profile_image_uuid", ReferencedTable: "media", ReferencedColumn: "uuid"},
+		{
+			Column:           "profile_image_id",
+			UUIDColumn:       "profile_image_uuid",
+			ReferencedTable:  "media",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{"media", "uuid", []FK{}},
 	{"breeds", "uuid", []FK{}},
 	{"pets", "uuid", []FK{
-		{Column: "owner_id", UUIDColumn: "owner_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
-		{Column: "profile_image_id", UUIDColumn: "profile_image_uuid", ReferencedTable: "media", ReferencedColumn: "uuid"},
+		{
+			Column:           "owner_id",
+			UUIDColumn:       "owner_uuid",
+			ReferencedTable:  "users",
+			ReferencedColumn: "uuid",
+		},
+		{
+			Column:           "profile_image_id",
+			UUIDColumn:       "profile_image_uuid",
+			ReferencedTable:  "media",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{"base_posts", "uuid", []FK{
-		{Column: "author_id", UUIDColumn: "author_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
+		{
+			Column:           "author_id",
+			UUIDColumn:       "author_uuid",
+			ReferencedTable:  "users",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{"sos_posts", "uuid", []FK{
-		{Column: "thumbnail_id", UUIDColumn: "thumbnail_uuid", ReferencedTable: "media", ReferencedColumn: "uuid"},
+		{
+			Column:           "thumbnail_id",
+			UUIDColumn:       "thumbnail_uuid",
+			ReferencedTable:  "media",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{"sos_dates", "uuid", []FK{}},
 	{"sos_posts_dates", "uuid", []FK{
-		{Column: "sos_post_id", UUIDColumn: "sos_post_uuid", ReferencedTable: "sos_posts", ReferencedColumn: "uuid"},
-		{Column: "sos_dates_id", UUIDColumn: "sos_dates_uuid", ReferencedTable: "sos_dates", ReferencedColumn: "uuid"},
+		{
+			Column:           "sos_post_id",
+			UUIDColumn:       "sos_post_uuid",
+			ReferencedTable:  "sos_posts",
+			ReferencedColumn: "uuid",
+		},
+		{
+			Column:           "sos_dates_id",
+			UUIDColumn:       "sos_dates_uuid",
+			ReferencedTable:  "sos_dates",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{"sos_conditions", "uuid", []FK{}},
 	{"sos_posts_conditions", "uuid", []FK{
-		{Column: "sos_post_id", UUIDColumn: "sos_post_uuid", ReferencedTable: "sos_posts", ReferencedColumn: "uuid"},
+		{
+			Column:           "sos_post_id",
+			UUIDColumn:       "sos_post_uuid",
+			ReferencedTable:  "sos_posts",
+			ReferencedColumn: "uuid",
+		},
 		{
 			Column: "sos_condition_id", UUIDColumn: "sos_condition_uuid", ReferencedTable: "sos_conditions",
 			ReferencedColumn: "uuid",
 		},
 	}},
 	{"sos_posts_pets", "uuid", []FK{
-		{Column: "sos_post_id", UUIDColumn: "sos_post_uuid", ReferencedTable: "sos_posts", ReferencedColumn: "uuid"},
-		{Column: "pet_id", UUIDColumn: "pet_uuid", ReferencedTable: "pets", ReferencedColumn: "uuid"},
+		{
+			Column:           "sos_post_id",
+			UUIDColumn:       "sos_post_uuid",
+			ReferencedTable:  "sos_posts",
+			ReferencedColumn: "uuid",
+		},
+		{
+			Column:           "pet_id",
+			UUIDColumn:       "pet_uuid",
+			ReferencedTable:  "pets",
+			ReferencedColumn: "uuid",
+		},
 	}},
 	{
 		"resource_media", "uuid", []FK{
-			{Column: "media_id", UUIDColumn: "media_uuid", ReferencedTable: "media", ReferencedColumn: "uuid"},
+			{
+				Column:           "media_id",
+				UUIDColumn:       "media_uuid",
+				ReferencedTable:  "media",
+				ReferencedColumn: "uuid",
+			},
 			// Conditional FK -- Thankfully, we only have SOS post for resource
-			{Column: "resource_id", UUIDColumn: "resource_uuid", ReferencedTable: "sos_posts", ReferencedColumn: "uuid"},
+			{
+				Column:           "resource_id",
+				UUIDColumn:       "resource_uuid",
+				ReferencedTable:  "sos_posts",
+				ReferencedColumn: "uuid",
+			},
 		},
 	},
 	{"chat_rooms", "uuid", []FK{}},
 	{
 		"chat_messages", "uuid", []FK{
-			{Column: "room_id", UUIDColumn: "room_uuid", ReferencedTable: "chat_rooms", ReferencedColumn: "uuid"},
-			{Column: "user_id", UUIDColumn: "user_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
+			{
+				Column:           "room_id",
+				UUIDColumn:       "room_uuid",
+				ReferencedTable:  "chat_rooms",
+				ReferencedColumn: "uuid",
+			},
+			{
+				Column:           "user_id",
+				UUIDColumn:       "user_uuid",
+				ReferencedTable:  "users",
+				ReferencedColumn: "uuid",
+			},
 		},
 	},
 	{
 		"user_chat_rooms", "uuid", []FK{
-			{Column: "room_id", UUIDColumn: "room_uuid", ReferencedTable: "chat_rooms", ReferencedColumn: "uuid"},
-			{Column: "user_id", UUIDColumn: "user_uuid", ReferencedTable: "users", ReferencedColumn: "uuid"},
+			{
+				Column:           "room_id",
+				UUIDColumn:       "room_uuid",
+				ReferencedTable:  "chat_rooms",
+				ReferencedColumn: "uuid",
+			},
+			{
+				Column:           "user_id",
+				UUIDColumn:       "user_uuid",
+				ReferencedTable:  "users",
+				ReferencedColumn: "uuid",
+			},
 		},
 	},
 }
@@ -146,7 +226,9 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 		var count int
 		err := tx.QueryRow("SELECT COUNT(*) FROM " + target.Table).Scan(&count)
 		if err != nil {
-			return pnd.ErrUnknown(fmt.Errorf("error counting rows from table %s due to %w", target.Table, err))
+			return pnd.ErrUnknown(
+				fmt.Errorf("error counting rows from table %s due to %w", target.Table, err),
+			)
 		}
 		log.Printf(" - Total rows: %d\n", count)
 		total += count
@@ -169,7 +251,12 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 			err = rows.Scan(&row.ID, &row.UUID)
 			if err != nil {
 				return pnd.ErrUnknown(
-					fmt.Errorf("error scanning row from table %s with id %d due to %w", target.Table, row.ID, err),
+					fmt.Errorf(
+						"error scanning row from table %s with id %d due to %w",
+						target.Table,
+						row.ID,
+						err,
+					),
 				)
 			}
 			rowData = append(rowData, row)
@@ -194,10 +281,19 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 			}
 
 			if !options.ReadOnly {
-				_, err = tx.Exec("UPDATE "+target.Table+" SET "+target.UUIDColumn+" = $1 WHERE id = $2", newUUID, row.ID)
+				_, err = tx.Exec(
+					"UPDATE "+target.Table+" SET "+target.UUIDColumn+" = $1 WHERE id = $2",
+					newUUID,
+					row.ID,
+				)
 				if err != nil {
 					return pnd.ErrUnknown(
-						fmt.Errorf("error updating UUID column in table %s with id %d due to %w", target.Table, row.ID, err),
+						fmt.Errorf(
+							"error updating UUID column in table %s with id %d due to %w",
+							target.Table,
+							row.ID,
+							err,
+						),
 					)
 				}
 				log.Printf(" - Updated row %d with UUID %s\n", row.ID, newUUID)
@@ -241,7 +337,12 @@ func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 				err = rows.Scan(&row.ID, &fkValue)
 				if err != nil {
 					return pnd.ErrUnknown(
-						fmt.Errorf("error scanning row from table %s with id %d due to %w", target.Table, row.ID, err),
+						fmt.Errorf(
+							"error scanning row from table %s with id %d due to %w",
+							target.Table,
+							row.ID,
+							err,
+						),
 					)
 				}
 
@@ -255,7 +356,11 @@ func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 			for _, row := range rowData {
 				// Skip if FK is not set
 				if row.FKValue == nil {
-					log.Printf(" - Skipping row %d with FK %s due to null value\n", row.ID, fk.Column)
+					log.Printf(
+						" - Skipping row %d with FK %s due to null value\n",
+						row.ID,
+						fk.Column,
+					)
 					skipped++
 					continue
 				}
@@ -266,23 +371,41 @@ func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 					row.FKValue).Scan(&uuidValue)
 				if err != nil && err.Error() != "sql: no rows in result set" {
 					return pnd.ErrUnknown(
-						fmt.Errorf("error selecting UUID from table %s with id %d due to %w", fk.ReferencedTable, row.FKValue, err),
+						fmt.Errorf(
+							"error selecting UUID from table %s with id %d due to %w",
+							fk.ReferencedTable,
+							row.FKValue,
+							err,
+						),
 					)
 				}
 
 				// Skip if UUID is not set
 				if uuidValue == nil {
 					// Perhaps you forgot to run MigrateUUID() before MigrateFK()
-					log.Printf(" - Skipping row %d with FK %s due to missing UUID\n", row.ID, fk.Column)
+					log.Printf(
+						" - Skipping row %d with FK %s due to missing UUID\n",
+						row.ID,
+						fk.Column,
+					)
 					skipped++
 					continue
 				}
 
 				if !options.ReadOnly {
-					_, err = tx.Exec("UPDATE "+target.Table+" SET "+fk.UUIDColumn+" = $1 WHERE id = $2", *uuidValue, row.ID)
+					_, err = tx.Exec(
+						"UPDATE "+target.Table+" SET "+fk.UUIDColumn+" = $1 WHERE id = $2",
+						*uuidValue,
+						row.ID,
+					)
 					if err != nil {
 						return pnd.ErrUnknown(
-							fmt.Errorf("error updating UUID column in table %s with id %d due to %w", target.Table, row.ID, err),
+							fmt.Errorf(
+								"error updating UUID column in table %s with id %d due to %w",
+								target.Table,
+								row.ID,
+								err,
+							),
 						)
 					}
 				}
@@ -290,7 +413,13 @@ func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 				succeeded++
 			}
 
-			log.Printf(" - FK %s, Total rows: %d, Succeeded: %d, Skipped: %d\n", fk.Column, total, succeeded, skipped)
+			log.Printf(
+				" - FK %s, Total rows: %d, Succeeded: %d, Skipped: %d\n",
+				fk.Column,
+				total,
+				succeeded,
+				skipped,
+			)
 		}
 	}
 

@@ -53,8 +53,14 @@ func NewDummyWriteSOSPostRequest(
 		ImageIDs: imageID,
 		Reward:   "Reward",
 		Dates: []sospost.SOSDateView{
-			{DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-04-2%d", sosPostCnt)},
-			{DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt), DateEndAt: fmt.Sprintf("2024-05-2%d", sosPostCnt)},
+			{
+				DateStartAt: fmt.Sprintf("2024-04-1%d", sosPostCnt),
+				DateEndAt:   fmt.Sprintf("2024-04-2%d", sosPostCnt),
+			},
+			{
+				DateStartAt: fmt.Sprintf("2024-05-1%d", sosPostCnt),
+				DateEndAt:   fmt.Sprintf("2024-05-2%d", sosPostCnt),
+			},
 		},
 		CareType:     sospost.CareTypeFoster,
 		CarerGender:  sospost.CarerGenderMale,

@@ -44,7 +44,9 @@ func (service *UserService) RegisterUser(
 		return nil, err
 	}
 
-	_, err2 := databasegen.New(service.conn).WithTx(tx.Tx).CreateUser(ctx, registerUserRequest.ToDBParams())
+	_, err2 := databasegen.New(service.conn).
+		WithTx(tx.Tx).
+		CreateUser(ctx, registerUserRequest.ToDBParams())
 	if err2 != nil {
 		return nil, pnd.FromPostgresError(err2)
 	}
@@ -103,7 +105,10 @@ func (service *UserService) FindUserProfile(
 	return user.NewProfileView(row, pets), nil
 }
 
-func (service *UserService) ExistsByNickname(ctx context.Context, nickname string) (bool, *pnd.AppError) {
+func (service *UserService) ExistsByNickname(
+	ctx context.Context,
+	nickname string,
+) (bool, *pnd.AppError) {
 	existsByNickname, err := databasegen.New(service.conn).ExistsUserByNickname(ctx, nickname)
 	if err != nil {
 		return existsByNickname, pnd.FromPostgresError(err)
@@ -121,11 +126,13 @@ func (service *UserService) UpdateUserByUID(
 		return nil, err
 	}
 
-	_, err2 := databasegen.New(service.conn).WithTx(tx.Tx).UpdateUserByFbUID(ctx, databasegen.UpdateUserByFbUIDParams{
-		Nickname:       nickname,
-		ProfileImageID: profileImageID,
-		FbUid:          utils.StrToNullStr(uid),
-	})
+	_, err2 := databasegen.New(service.conn).
+		WithTx(tx.Tx).
+		UpdateUserByFbUID(ctx, databasegen.UpdateUserByFbUIDParams{
+			Nickname:       nickname,
+			ProfileImageID: profileImageID,
+			FbUid:          utils.StrToNullStr(uid),
+		})
 	if err2 != nil {
 		return nil, pnd.FromPostgresError(err2)
 	}
@@ -169,7 +176,10 @@ func (service *UserService) FindPet(
 	return pet.ToWithProfileImage(row), nil
 }
 
-func (service *UserService) FindPets(ctx context.Context, params pet.FindPetsParams) (*pet.ListView, *pnd.AppError) {
+func (service *UserService) FindPets(
+	ctx context.Context,
+	params pet.FindPetsParams,
+) (*pet.ListView, *pnd.AppError) {
 	rows, err := databasegen.New(service.conn).FindPets(ctx, params.ToDBParams())
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -199,7 +209,9 @@ func (service *UserService) AddPetsToOwner(
 	for _, item := range addPetsRequest.Pets {
 		if item.ProfileImageID.Valid {
 			if _, err := service.mediaService.FindMediaByID(ctx, item.ProfileImageID.UUID); err != nil {
-				return nil, pnd.ErrInvalidBody(fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %s", item.ProfileImageID.UUID))
+				return nil, pnd.ErrInvalidBody(
+					fmt.Errorf("존재하지 않는 프로필 이미지 ID입니다. ID: %s", item.ProfileImageID.UUID),
+				)
 			}
 		}
 	}
@@ -310,13 +322,20 @@ func (service *UserService) UpdatePet(
 	return updatedPet.ToDetailView(), nil
 }
 
-func (service *UserService) DeletePet(ctx context.Context, uid string, petID uuid.UUID) *pnd.AppError {
+func (service *UserService) DeletePet(
+	ctx context.Context,
+	uid string,
+	petID uuid.UUID,
+) *pnd.AppError {
 	owner, err := service.FindUser(ctx, user.FindUserParams{FbUID: &uid})
 	if err != nil {
 		return err
 	}
 
-	petToDelete, err := service.FindPet(ctx, pet.FindPetParams{ID: uuid.NullUUID{UUID: petID, Valid: true}})
+	petToDelete, err := service.FindPet(
+		ctx,
+		pet.FindPetParams{ID: uuid.NullUUID{UUID: petID, Valid: true}},
+	)
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,10 @@ import (
 
 type StubUploader struct{}
 
-func (u StubUploader) UploadFile(_ io.ReadSeeker, fileName string) (url string, appError *pnd.AppError) {
+func (u StubUploader) UploadFile(
+	_ io.ReadSeeker,
+	fileName string,
+) (url string, appError *pnd.AppError) {
 	return "https://example.com/files/" + fileName, nil
 }
 
@@ -57,7 +60,9 @@ func AddDummyPet(
 ) *pet.DetailView {
 	t.Helper()
 	petList, err := userService.AddPetsToOwner(ctx, ownerUID, pet.AddPetsToOwnerRequest{
-		Pets: []pet.AddPetRequest{*NewDummyAddPetRequest(profileImageID, commonvo.PetTypeDog, pet.GenderMale, "poodle")},
+		Pets: []pet.AddPetRequest{
+			*NewDummyAddPetRequest(profileImageID, commonvo.PetTypeDog, pet.GenderMale, "poodle"),
+		},
 	})
 	if err != nil {
 		t.Errorf("got %v want %v", err, nil)

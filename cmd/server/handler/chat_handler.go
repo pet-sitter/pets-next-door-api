@@ -35,7 +35,10 @@ func NewChatHandler(
 // @Success 200 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms/{roomID} [get]
 func (h ChatHandler) FindRoomByID(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -45,7 +48,11 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 		return c.JSON(err.StatusCode, err)
 	}
 
-	res, err := h.chatService.FindChatRoomByUIDAndRoomID(c.Request().Context(), foundUser.FirebaseUID, roomID)
+	res, err := h.chatService.FindChatRoomByUIDAndRoomID(
+		c.Request().Context(),
+		foundUser.FirebaseUID,
+		roomID,
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -64,7 +71,10 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 // @Success 201 {object} domain.RoomSimpleInfo
 // @Router /chat/rooms [post]
 func (h ChatHandler) CreateRoom(c echo.Context) error {
-	user, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	user, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -98,7 +108,10 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 // @Success 200 {object} domain.JoinRoomsView
 // @Router /chat/rooms/{roomID}/join [post]
 func (h ChatHandler) JoinChatRoom(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -127,7 +140,10 @@ func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 // @Success 200
 // @Router /chat/rooms/{roomID}/leave [post]
 func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}
@@ -151,7 +167,10 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 // @Success 200 {object} domain.JoinRoomsView
 // @Router /chat/rooms [get]
 func (h ChatHandler) FindAllRooms(c echo.Context) error {
-	foundUser, err := h.authService.VerifyAuthAndGetUser(c.Request().Context(), c.Request().Header.Get("Authorization"))
+	foundUser, err := h.authService.VerifyAuthAndGetUser(
+		c.Request().Context(),
+		c.Request().Header.Get("Authorization"),
+	)
 	if err != nil {
 		return c.JSON(err.StatusCode, err)
 	}

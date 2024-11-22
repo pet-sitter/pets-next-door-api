@@ -75,7 +75,9 @@ func (c *S3Client) uploadToS3(file io.ReadSeeker, fullPath string) (*s3.PutObjec
 	return result, nil
 }
 
-func (c *S3Client) GetFileRequest(fileName string) (req *request.Request, output *s3.GetObjectOutput) {
+func (c *S3Client) GetFileRequest(
+	fileName string,
+) (req *request.Request, output *s3.GetObjectOutput) {
 	return c.s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(c.bucketName),
 		Key:    aws.String(fileName),

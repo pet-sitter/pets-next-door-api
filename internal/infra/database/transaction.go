@@ -85,11 +85,19 @@ func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError
 	return tx.Commit()
 }
 
-func (tx *Tx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (tx *Tx) ExecContext(
+	ctx context.Context,
+	query string,
+	args ...interface{},
+) (sql.Result, error) {
 	return tx.Tx.ExecContext(ctx, query, args...)
 }
 
-func (tx *Tx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (tx *Tx) QueryContext(
+	ctx context.Context,
+	query string,
+	args ...interface{},
+) (*sql.Rows, error) {
 	return tx.Tx.QueryContext(ctx, query, args...)
 }
 

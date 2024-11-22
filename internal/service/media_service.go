@@ -74,10 +74,14 @@ func (s *MediaService) CreateMedia(
 	return media.ToDetailViewFromCreated(created), nil
 }
 
-func (s *MediaService) FindMediaByID(ctx context.Context, id uuid.UUID) (*media.DetailView, *pnd.AppError) {
-	mediaData, err := databasegen.New(s.conn).FindSingleMedia(ctx, databasegen.FindSingleMediaParams{
-		ID: uuid.NullUUID{UUID: id, Valid: true},
-	})
+func (s *MediaService) FindMediaByID(
+	ctx context.Context,
+	id uuid.UUID,
+) (*media.DetailView, *pnd.AppError) {
+	mediaData, err := databasegen.New(s.conn).
+		FindSingleMedia(ctx, databasegen.FindSingleMediaParams{
+			ID: uuid.NullUUID{UUID: id, Valid: true},
+		})
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}
@@ -85,7 +89,10 @@ func (s *MediaService) FindMediaByID(ctx context.Context, id uuid.UUID) (*media.
 	return media.ToDetailView(mediaData), nil
 }
 
-func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []uuid.UUID) ([]media.DetailView, *pnd.AppError) {
+func (s *MediaService) FindMediasByIDs(
+	ctx context.Context,
+	ids []uuid.UUID,
+) ([]media.DetailView, *pnd.AppError) {
 	if len(ids) == 0 {
 		return make([]media.DetailView, 0), nil
 	}
@@ -93,10 +100,11 @@ func (s *MediaService) FindMediasByIDs(ctx context.Context, ids []uuid.UUID) ([]
 	// TODO: filter unique IDs
 	idsToGet := make([]uuid.UUID, 0)
 	idsToGet = append(idsToGet, ids...)
-	mediaDataList, err := databasegen.New(s.conn).FindMediasByIDs(ctx, databasegen.FindMediasByIDsParams{
-		Ids:            idsToGet,
-		IncludeDeleted: false,
-	})
+	mediaDataList, err := databasegen.New(s.conn).
+		FindMediasByIDs(ctx, databasegen.FindMediasByIDsParams{
+			Ids:            idsToGet,
+			IncludeDeleted: false,
+		})
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
 	}

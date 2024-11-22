@@ -98,7 +98,10 @@ type ListWithoutPrivateInfo struct {
 	*pnd.PaginatedView[WithoutPrivateInfo]
 }
 
-func ToListWithoutPrivateInfo(page, size int, rows []databasegen.FindUsersRow) *ListWithoutPrivateInfo {
+func ToListWithoutPrivateInfo(
+	page, size int,
+	rows []databasegen.FindUsersRow,
+) *ListWithoutPrivateInfo {
 	ul := &ListWithoutPrivateInfo{PaginatedView: pnd.NewPaginatedView(
 		page, size, false, make([]WithoutPrivateInfo, 0),
 	)}

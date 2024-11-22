@@ -38,10 +38,14 @@ type FirebaseCredentialsJSONType struct {
 
 func GetFirebaseCredentialsJSON() FirebaseCredentialsJSONType {
 	return FirebaseCredentialsJSONType{
-		Type:                    os.Getenv("FIREBASE_CREDENTIALS_TYPE"),
-		ProjectID:               os.Getenv("FIREBASE_CREDENTIALS_PROJECT_ID"),
-		PrivateKeyID:            os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY_ID"),
-		PrivateKey:              strings.ReplaceAll(os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY"), "\\n", "\n"),
+		Type:         os.Getenv("FIREBASE_CREDENTIALS_TYPE"),
+		ProjectID:    os.Getenv("FIREBASE_CREDENTIALS_PROJECT_ID"),
+		PrivateKeyID: os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY_ID"),
+		PrivateKey: strings.ReplaceAll(
+			os.Getenv("FIREBASE_CREDENTIALS_PRIVATE_KEY"),
+			"\\n",
+			"\n",
+		),
 		ClientEmail:             os.Getenv("FIREBASE_CREDENTIALS_CLIENT_EMAIL"),
 		ClientID:                os.Getenv("FIREBASE_CREDENTIALS_CLIENT_ID"),
 		AuthURI:                 os.Getenv("FIREBASE_CREDENTIALS_AUTH_URI"),
@@ -87,7 +91,8 @@ func init() {
 		panic("KAKAO_REDIRECT_URI is required")
 	}
 
-	if FirebaseCredentialsPath == "" && GetFirebaseCredentialsJSON() == (FirebaseCredentialsJSONType{}) {
+	if FirebaseCredentialsPath == "" &&
+		GetFirebaseCredentialsJSON() == (FirebaseCredentialsJSONType{}) {
 		panic("FIREBASE_CREDENTIALS_PATH or FIREBASE_CREDENTIALS_JSON is required")
 	}
 
