@@ -6,12 +6,13 @@ type CreateRequest struct {
 }
 
 type BaseCreateRequest struct {
-	EventType   EventType    `json:"type"`
-	AuthorID    int          `json:"authorId"`
-	Name        string       `json:"name"`
-	Description string       `json:"description"`
-	MediaID     int          `json:"mediaId"`
-	Topics      []EventTopic `json:"topics"`
+	EventType       EventType    `json:"type"`
+	AuthorID        int          `json:"authorId"`
+	Name            string       `json:"name"`
+	Description     string       `json:"description"`
+	MediaID         int          `json:"mediaId"`
+	Topics          []EventTopic `json:"topics"`
+	GenderCondition string       `json:"genderCondition" enums:"male,female,all"`
 }
 
 type ShortTermCreateRequest struct {
@@ -29,11 +30,12 @@ type UpdateRequest struct {
 }
 
 type BaseUpdateRequest struct {
-	AuthorID    int          `json:"authorId"`
-	Name        string       `json:"name"`
-	Description string       `json:"description"`
-	MediaID     int          `json:"mediaId"`
-	Topics      []EventTopic `json:"topics"`
+	AuthorID        int          `json:"authorId"`
+	Name            string       `json:"name"`
+	Description     string       `json:"description"`
+	MediaID         int          `json:"mediaId"`
+	Topics          []EventTopic `json:"topics"`
+	GenderCondition string       `json:"genderCondition" enums:"male,female,all"`
 }
 
 type ShortTermUpdateRequest struct {

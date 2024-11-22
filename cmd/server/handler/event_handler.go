@@ -47,9 +47,10 @@ func generateDummyEvent() event.ShortTermView {
 					"M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 				CreatedAt: now,
 			},
-			Topics:    []event.EventTopic{event.ETC},
-			CreatedAt: now,
-			UpdatedAt: now,
+			Topics:          []event.EventTopic{event.ETC},
+			GenderCondition: "all",
+			CreatedAt:       now,
+			UpdatedAt:       now,
 		},
 	}
 }
