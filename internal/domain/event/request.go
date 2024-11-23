@@ -1,5 +1,7 @@
 package event
 
+import "time"
+
 type CreateRequest struct {
 	BaseCreateRequest
 	RecurringPeriod *EventRecurringPeriod `json:"recurringPeriod,omitempty"`
@@ -14,6 +16,7 @@ type BaseCreateRequest struct {
 	Topics          []EventTopic `json:"topics"`
 	MaxParticipants *int         `json:"maxParticipants,omitempty"`
 	GenderCondition string       `json:"genderCondition"           enums:"male,female,all"`
+	StartAt         *time.Time   `json:"startAt,omitempty"`
 }
 
 type ShortTermCreateRequest struct {
@@ -38,6 +41,7 @@ type BaseUpdateRequest struct {
 	Topics          []EventTopic `json:"topics"`
 	MaxParticipants *int         `json:"maxParticipants,omitempty"`
 	GenderCondition string       `json:"genderCondition"           enums:"male,female,all"`
+	StartAt         *time.Time   `json:"startAt,omitempty"`
 }
 
 type ShortTermUpdateRequest struct {
