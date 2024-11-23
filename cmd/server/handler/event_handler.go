@@ -27,6 +27,7 @@ func NewEventHandler(authService service.AuthService) *EventHandler {
 func generateDummyEvent() event.ShortTermView {
 	profileImageURL := "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
 	now := time.Now()
+	maxParticipants := 3
 	return event.ShortTermView{
 		BaseView: event.BaseView{
 			ID:        uuid.New(),
@@ -48,6 +49,7 @@ func generateDummyEvent() event.ShortTermView {
 				CreatedAt: now,
 			},
 			Topics:          []event.EventTopic{event.ETC},
+			MaxParticipants: &maxParticipants,
 			GenderCondition: "all",
 			CreatedAt:       now,
 			UpdatedAt:       now,
