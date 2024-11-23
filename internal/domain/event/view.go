@@ -21,6 +21,7 @@ type BaseView struct {
 	Description     string                  `json:"description"`
 	Media           media.DetailView        `json:"media"`
 	Topics          []EventTopic            `json:"topics"`
+	MaxParticipants *int                    `json:"maxParticipants,omitempty"`
 	GenderCondition string                  `json:"genderCondition"`
 	CreatedAt       time.Time               `json:"createdAt"`
 	UpdatedAt       time.Time               `json:"updatedAt"`
