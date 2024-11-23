@@ -23,6 +23,7 @@ type BaseView struct {
 	Topics          []EventTopic            `json:"topics"`
 	MaxParticipants *int                    `json:"maxParticipants,omitempty"`
 	GenderCondition string                  `json:"genderCondition"`
+	Fee             int                     `json:"fee"`
 	StartAt         *time.Time              `json:"startAt,omitempty"`
 	CreatedAt       time.Time               `json:"createdAt"`
 	UpdatedAt       time.Time               `json:"updatedAt"`

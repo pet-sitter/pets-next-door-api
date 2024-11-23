@@ -52,6 +52,7 @@ func generateDummyEvent() event.ShortTermView {
 			Topics:          []event.EventTopic{event.ETC},
 			MaxParticipants: &maxParticipants,
 			GenderCondition: "all",
+			Fee:             10000,
 			StartAt:         &startAt,
 			CreatedAt:       now,
 			UpdatedAt:       now,
