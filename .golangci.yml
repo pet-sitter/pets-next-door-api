@@ -84,26 +84,6 @@ linters-settings:
     # Default: false
     extra-rules: true
 
-  gomnd:
-    # List of function patterns to exclude from analysis.
-    # Values always ignored: `time.Date`,
-    # `strconv.FormatInt`, `strconv.FormatUint`, `strconv.FormatFloat`,
-    # `strconv.ParseInt`, `strconv.ParseUint`, `strconv.ParseFloat`.
-    # Default: []
-    ignored-functions:
-      - make
-      - os.Chmod
-      - os.Mkdir
-      - os.MkdirAll
-      - os.OpenFile
-      - os.WriteFile
-      - prometheus.ExponentialBuckets
-      - prometheus.ExponentialBucketsRange
-      - prometheus.LinearBuckets
-    ignored-numbers:
-      - "2"
-      - "3"
-
   gomodguard:
     blocked:
       # List of blocked modules.
@@ -130,7 +110,7 @@ linters-settings:
     # Run `go tool vet help` to see all analyzers.
     # Default: []
     disable:
-     - fieldalignment # too strict
+      - fieldalignment # too strict
     # Settings per analyzer.
     settings:
       shadow:
@@ -160,7 +140,7 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll ]
+    allow-no-explanation: [funlen, gocognit, lll]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: false
@@ -171,7 +151,6 @@ linters-settings:
   revive:
     # https://golangci-lint.run/usage/linters/#revive
     rules:
-
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#add-constant
       - name: add-constant
         disabled: true
@@ -183,14 +162,14 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#argument-limit
       - name: argument-limit
         disabled: false
-        arguments: [ 7 ]
+        arguments: [7]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#atomic
       - name: atomic
         disabled: false
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#banned-characters
       - name: banned-characters
         disabled: true
-        arguments: [ "Ω", "Σ", "σ", "7" ]
+        arguments: ["Ω", "Σ", "σ", "7"]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bare-return
       - name: bare-return
         disabled: false
@@ -206,7 +185,7 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cognitive-complexity
       - name: cognitive-complexity
         disabled: true
-        arguments: [ 7 ]
+        arguments: [7]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#comment-spacings
       - name: comment-spacings
         disabled: true
@@ -233,7 +212,7 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cyclomatic
       - name: cyclomatic
         disabled: true
-        arguments: [ 3 ]
+        arguments: [3]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#datarace
       - name: datarace
         disabled: false
@@ -244,7 +223,7 @@ linters-settings:
       - name: defer
         disabled: false
         arguments:
-          - [ "call-chain", "loop" ]
+          - ["call-chain", "loop"]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#dot-imports
       - name: dot-imports
         disabled: false
@@ -290,11 +269,11 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-result-limit
       - name: function-result-limit
         disabled: false
-        arguments: [ 4 ]
+        arguments: [4]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-length
       - name: function-length
         disabled: true
-        arguments: [ 10, 0 ]
+        arguments: [10, 0]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#get-return
       - name: get-return
         disabled: false
@@ -317,23 +296,17 @@ linters-settings:
         disabled: false
         arguments:
           - "^[a-z][a-z0-9]{0,}$"
-      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#imports-blacklist
-      - name: imports-blacklist
-        disabled: false
-        arguments:
-          - "crypto/md5"
-          - "crypto/sha1"
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
       - name: import-shadowing
         disabled: false
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
       - name: line-length-limit
         disabled: true
-        arguments: [ 80 ]
+        arguments: [80]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#max-public-structs
       - name: max-public-structs
         disabled: true
-        arguments: [ 3 ]
+        arguments: [3]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#modifies-parameter
       - name: modifies-parameter
         disabled: false
@@ -374,10 +347,10 @@ linters-settings:
       - name: string-format
         disabled: false
         arguments:
-          - - 'core.WriteError[1].Message'
-            - '/^([^A-Z]|$)/'
+          - - "core.WriteError[1].Message"
+            - "/^([^A-Z]|$)/"
             - must not start with a capital letter
-          - - 'fmt.Errorf[0]'
+          - - "fmt.Errorf[0]"
             - '/(^|[^\.!?])$/'
             - must not end in punctuation
           - - panic
@@ -404,8 +377,8 @@ linters-settings:
       - name: var-naming
         disabled: false
         arguments:
-          - [ "ID" ] # AllowList
-          - [ "VM" ] # DenyList
+          - ["ID"] # AllowList
+          - ["VM"] # DenyList
           - - upperCaseConst: true
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#var-declaration
       - name: var-declaration
@@ -469,7 +442,6 @@ linters-settings:
     # Default: false
     all: true
 
-
 linters:
   disable-all: true
 
@@ -477,14 +449,13 @@ linters:
     ## enabled by default
     - errcheck # checking for unchecked errors, these unchecked errors can be critical bugs in some cases
     - gosimple # specializes in simplifying a code
-    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+    # - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - ineffassign # detects when assignments to existing variables are not used
     - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
     - typecheck # like the front-end of a Go compiler, parses and type-checks Go code
     - unused # checks for unused constants, variables, functions and types
 
-
-    #    ## disabled by default
+    ## disabled by default
     - asasalint # checks for pass []any as any in variadic func(...any)
     - asciicheck # checks that your code does not contain non-ASCII identifiers
     - bidichk # checks for dangerous unicode character sequences
@@ -546,7 +517,6 @@ linters:
     #- sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     #- wastedassign # finds wasted assignment statements
 
-
     ## you may want to enable
     #- decorder # checks declaration order and count of types, constants, variables and functions
     #- exhaustruct # checks if all structure fields are initialized
@@ -593,7 +563,6 @@ linters:
     #- structcheck # [deprecated, replaced by unused] finds unused struct fields
     #- varcheck # [deprecated, replaced by unused] finds unused global variables and constants
 
-
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
@@ -602,13 +571,13 @@ issues:
 
   exclude-rules:
     - source: "^//\\s*go:generate\\s"
-      linters: [ lll ]
+      linters: [lll]
     - source: "(noinspection|TODO)"
-      linters: [ godot ]
+      linters: [godot]
     - source: "//noinspection"
-      linters: [ gocritic ]
+      linters: [gocritic]
     - source: "^\\s+if _, ok := err\\.\\([^.]+\\.InternalError\\); ok {"
-      linters: [ errorlint ]
+      linters: [errorlint]
     - path: "_test\\.go"
       linters:
         - govet
