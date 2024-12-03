@@ -66,7 +66,8 @@ func generateDummyEvent() event.ShortTermView {
 // @Accept  json
 // @Produce  json
 // @Param author_id query string false "작성자 ID"
-// @Param page query int false "페이지 번호" default(1)
+// @Param prev query int false "이전 페이지"
+// @Param next query int false "다음 페이지"
 // @Param size query int false "페이지 사이즈" default(20)
 // @Success 200 {object} pnd.CursorPaginatedView[event.View]
 // @Router /events [get]
