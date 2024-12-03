@@ -15,7 +15,6 @@ type BaseCreateRequest struct {
 	MediaID         int          `json:"mediaId"`
 	Topics          []EventTopic `json:"topics"`
 	MaxParticipants *int         `json:"maxParticipants,omitempty"`
-	GenderCondition string       `json:"genderCondition"           enums:"male,female,all"`
 	Fee             *int         `json:"fee,omitempty"`
 	StartAt         *time.Time   `json:"startAt,omitempty"`
 }
@@ -41,7 +40,6 @@ type BaseUpdateRequest struct {
 	MediaID         int          `json:"mediaId"`
 	Topics          []EventTopic `json:"topics"`
 	MaxParticipants *int         `json:"maxParticipants,omitempty"`
-	GenderCondition string       `json:"genderCondition"           enums:"male,female,all"`
 	Fee             *int         `json:"fee,omitempty"`
 	StartAt         *time.Time   `json:"startAt,omitempty"`
 }
