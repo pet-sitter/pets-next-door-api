@@ -9,7 +9,6 @@ type CreateRequest struct {
 
 type BaseCreateRequest struct {
 	EventType       EventType    `json:"type"`
-	AuthorID        int          `json:"authorId"`
 	Name            string       `json:"name"`
 	Description     string       `json:"description"`
 	MediaID         int          `json:"mediaId"`
@@ -34,7 +33,6 @@ type UpdateRequest struct {
 }
 
 type BaseUpdateRequest struct {
-	AuthorID        int          `json:"authorId"`
 	Name            string       `json:"name"`
 	Description     string       `json:"description"`
 	MediaID         int          `json:"mediaId"`
