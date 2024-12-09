@@ -57,6 +57,7 @@ clean:
 	make docs:clean
 
 compile:
+	go generate ./...
 	go build -o ${BUILD_DIR}/${SERVER_BINARY_NAME} ./cmd/server
 
 build:
