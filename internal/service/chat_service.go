@@ -398,7 +398,7 @@ func (s *ChatService) SaveChatMessage(
 	defer tx.Rollback()
 
 	if transactionError != nil {
-		return nil, pnd.FromPostgresError(fmt.Errorf("failed to start transaction: %w", transactionError))
+		return nil, pnd.FromPostgresError(transactionError.Err)
 	}
 
 	q := databasegen.New(tx)
