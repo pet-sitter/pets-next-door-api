@@ -184,3 +184,14 @@ WHERE chat_messages.deleted_at IS NULL
   AND room_id = $2
 ORDER BY chat_messages.created_at DESC
 LIMIT $1;
+
+-- name: SaveChatMessage :one
+INSERT INTO chat_messages
+(id,
+ user_id,
+ room_id,
+ message_type,
+ content,
+ created_at)
+VALUES ($1, $2, $3, $4, $5, NOW())
+RETURNING id, user_id, room_id, message_type, content, created_at;
