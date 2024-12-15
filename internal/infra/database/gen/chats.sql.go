@@ -597,6 +597,55 @@ func (q *Queries) LeaveRoom(ctx context.Context, arg LeaveRoomParams) error {
 	return err
 }
 
+const saveChatMessage = `-- name: SaveChatMessage :one
+INSERT INTO chat_messages
+(id,
+ user_id,
+ room_id,
+ message_type,
+ content,
+ created_at)
+VALUES ($1, $2, $3, $4, $5, NOW())
+RETURNING id, user_id, room_id, message_type, content, created_at
+`
+
+type SaveChatMessageParams struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
+	MessageType string
+	Content     string
+}
+
+type SaveChatMessageRow struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	RoomID      uuid.UUID
+	MessageType string
+	Content     string
+	CreatedAt   time.Time
+}
+
+func (q *Queries) SaveChatMessage(ctx context.Context, arg SaveChatMessageParams) (SaveChatMessageRow, error) {
+	row := q.db.QueryRowContext(ctx, saveChatMessage,
+		arg.ID,
+		arg.UserID,
+		arg.RoomID,
+		arg.MessageType,
+		arg.Content,
+	)
+	var i SaveChatMessageRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RoomID,
+		&i.MessageType,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const userExistsInRoom = `-- name: UserExistsInRoom :one
 SELECT EXISTS (SELECT 1
                FROM user_chat_rooms
