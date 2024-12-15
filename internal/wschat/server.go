@@ -22,12 +22,14 @@ type WSServer struct {
 
 	authService  service.AuthService
 	mediaService service.MediaService
+	chatService  service.ChatService
 }
 
 func NewWSServer(
 	upgrader websocket.Upgrader,
 	authService service.AuthService,
 	mediaService service.MediaService,
+	chatService service.ChatService,
 ) *WSServer {
 	return &WSServer{
 		clients:      make(map[uuid.UUID]WSClient),
@@ -35,6 +37,7 @@ func NewWSServer(
 		upgrader:     upgrader,
 		authService:  authService,
 		mediaService: mediaService,
+		chatService:  chatService,
 	}
 }
 
@@ -101,6 +104,7 @@ func (s *WSServer) HandleConnections(
 }
 
 // Broadcast messages to all clients
+// TODO : 각 메시지 별 타입에 따라, 메시지 처리하고 있음 (plain, media) 저장로직 추가해야 함
 func (s *WSServer) LoopOverClientMessages() {
 	log.Info().Msg("Looping over client messages")
 	ctx := context.Background()
@@ -121,6 +125,14 @@ func (s *WSServer) LoopOverClientMessages() {
 			var msg MessageResponse
 			switch msgReq.MessageType {
 			case "plain":
+				s.chatService.SaveChatMessage(
+					ctx,
+					msgReq.Sender.ID,
+					msgReq.Room.ID,
+					msgReq.MessageType,
+					msgReq.Message,
+				)
+
 				msg = NewPlainMessageResponse(
 					msgReq.MessageID,
 					msgReq.Sender,
