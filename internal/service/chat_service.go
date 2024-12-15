@@ -384,3 +384,37 @@ func (s *ChatService) HasNextMessages(
 
 	return hasNext, nil
 }
+
+// 채팅 메시지를 저장합니다.
+func (s *ChatService) SaveChatMessage(
+	ctx context.Context, userID, roomID uuid.UUID, messageType, content string,
+) (*chat.Message, *pnd.AppError) {
+	chatMessageID, uuidError := uuid.NewV7()
+	if uuidError != nil {
+		return nil, pnd.ErrUnknown(fmt.Errorf("failed to generate UUID: %w", uuidError))
+	}
+
+	tx, transactionError := s.conn.BeginTx(ctx)
+	defer tx.Rollback()
+
+	if transactionError != nil {
+		return nil, pnd.FromPostgresError(fmt.Errorf("failed to start transaction: %w", transactionError))
+	}
+
+	q := databasegen.New(tx)
+	row, databaseGenError := q.SaveChatMessage(ctx, databasegen.SaveChatMessageParams{
+		ID:          chatMessageID,
+		UserID:      userID,
+		RoomID:      roomID,
+		MessageType: messageType,
+		Content:     content,
+	})
+
+	if databaseGenError != nil {
+		return nil, pnd.FromPostgresError(databaseGenError)
+	}
+
+	tx.Commit()
+
+	return chat.ToChatRoomMessage(row), nil
+}
