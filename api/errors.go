@@ -129,7 +129,9 @@ func FromPostgresError(err error) *AppError {
 		return NewAppError(err, http.StatusBadRequest, ErrCodeBadRequest, "잘못된 값입니다")
 	case strings.Contains(errStr, "violates unique constraint"):
 		return NewAppError(err, http.StatusConflict, ErrCodeConflict, "중복된 값입니다")
-	default:
+	case strings.Contains(errStr, "pq:"):
 		return NewAppError(err, http.StatusInternalServerError, ErrCodeUnknown, "알 수 없는 오류가 발생했습니다")
+	default:
+		return nil
 	}
 }

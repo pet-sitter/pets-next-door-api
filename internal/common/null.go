@@ -3,8 +3,6 @@ package utils
 import (
 	"database/sql"
 	"time"
-
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
 func DerefOrEmpty[T any](val *T) T {
@@ -106,7 +104,7 @@ func StrToNullTime(val string) (sql.NullTime, error) {
 	if err != nil {
 		return sql.NullTime{
 			Valid: false,
-		}, pnd.FromPostgresError(err)
+		}, err
 	}
 	return sql.NullTime{
 		Time:  parsedTime,

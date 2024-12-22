@@ -5,7 +5,6 @@ import (
 
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/breed"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -25,7 +24,7 @@ func (s *BreedService) FindBreeds(
 ) (*breed.ListView, error) {
 	rows, err := databasegen.New(s.conn).FindBreeds(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return breed.ToListViewFromRows(params.Page, params.Size, rows), nil
