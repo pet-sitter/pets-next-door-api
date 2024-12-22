@@ -100,7 +100,7 @@ func Int64PtrToNullInt32(val *int64) sql.NullInt32 {
 	}
 }
 
-func StrToNullTime(val string) (sql.NullTime, *pnd.AppError) {
+func StrToNullTime(val string) (sql.NullTime, error) {
 	const timeLayout = "2006-01-02"
 	parsedTime, err := time.Parse(timeLayout, val)
 	if err != nil {

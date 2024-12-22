@@ -77,7 +77,7 @@ func TestRegisterUser(t *testing.T) {
 		userRequest := tests.NewDummyRegisterUserRequest(
 			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
 		)
-		userService.RegisterUser(ctx, userRequest)
+		_, _ = userService.RegisterUser(ctx, userRequest)
 
 		// When
 		_, err := userService.RegisterUser(ctx, userRequest)
@@ -108,9 +108,9 @@ func TestFindUsers(t *testing.T) {
 			FirebaseUID:          "uid",
 		}
 
-		userService.RegisterUser(ctx, targetUserRequest)
+		_, _ = userService.RegisterUser(ctx, targetUserRequest)
 		for i := 0; i < 2; i++ {
-			userService.RegisterUser(ctx, &user.RegisterUserRequest{
+			_, _ = userService.RegisterUser(ctx, &user.RegisterUserRequest{
 				Email:                fmt.Sprintf("test%d@example.com", i),
 				Nickname:             fmt.Sprintf("nickname%d", i),
 				Fullname:             fmt.Sprintf("fullname%d", i),
@@ -246,7 +246,7 @@ func TestExistsByEmail(t *testing.T) {
 		userRequest := tests.NewDummyRegisterUserRequest(
 			uuid.NullUUID{UUID: profileImage.ID, Valid: true},
 		)
-		userService.RegisterUser(ctx, userRequest)
+		_, _ = userService.RegisterUser(ctx, userRequest)
 
 		// When
 		exists, _ := userService.ExistsByNickname(ctx, userRequest.Nickname)
@@ -279,7 +279,7 @@ func TestUpdateUserByUID(t *testing.T) {
 			media.TypeImage,
 			"updated_profile_image.jpg",
 		)
-		userService.UpdateUserByUID(
+		_, _ = userService.UpdateUserByUID(
 			ctx,
 			targetUser.FirebaseUID,
 			updatedNickname,
@@ -461,7 +461,7 @@ func TestDeletePet(t *testing.T) {
 		createdPet := createdPets.Pets[0]
 
 		// When
-		userService.DeletePet(ctx, registeredUser.FirebaseUID, createdPet.ID)
+		_ = userService.DeletePet(ctx, registeredUser.FirebaseUID, createdPet.ID)
 
 		// Then
 		found, _ := userService.FindPets(ctx, pet.FindPetsParams{

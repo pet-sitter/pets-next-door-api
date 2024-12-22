@@ -17,7 +17,7 @@ import (
 )
 
 type FileUploader interface {
-	UploadFile(file io.ReadSeeker, fileName string) (url string, appError *pnd.AppError)
+	UploadFile(file io.ReadSeeker, fileName string) (string, error)
 }
 
 type S3Client struct {
@@ -45,7 +45,7 @@ func NewS3Client(keyID, key, endpoint, region, bucketName string) (*S3Client, er
 	}, nil
 }
 
-func (c *S3Client) UploadFile(file io.ReadSeeker, fileName string) (string, *pnd.AppError) {
+func (c *S3Client) UploadFile(file io.ReadSeeker, fileName string) (string, error) {
 	randomFileName := generateRandomFileName(fileName)
 	fullPath := "media/" + randomFileName
 

@@ -41,12 +41,12 @@ func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	var writeSOSPostRequest sospost.WriteSOSPostRequest
 	if err = pnd.ParseBody(c, &writeSOSPostRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.sosPostService.WriteSOSPost(
@@ -55,7 +55,7 @@ func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 		&writeSOSPostRequest,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, res)
@@ -77,7 +77,7 @@ func (h *SOSPostHandler) WriteSOSPost(c echo.Context) error {
 func (h *SOSPostHandler) FindSOSPosts(c echo.Context) error {
 	authorID, err := pnd.ParseOptionalUUIDQuery(c, "author_id")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	sortBy := "newest"
@@ -91,7 +91,7 @@ func (h *SOSPostHandler) FindSOSPosts(c echo.Context) error {
 
 	page, size, err := pnd.ParsePaginationQueries(c, 1, 20)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	var res *sospost.FindSOSPostListView
@@ -99,12 +99,12 @@ func (h *SOSPostHandler) FindSOSPosts(c echo.Context) error {
 		res, err = h.sosPostService.FindSOSPostsByAuthorID(
 			c.Request().Context(), authorID.UUID, page, size, sortBy, filterType)
 		if err != nil {
-			return c.JSON(err.StatusCode, err)
+			return err
 		}
 	} else {
 		res, err = h.sosPostService.FindSOSPosts(c.Request().Context(), page, size, sortBy, filterType)
 		if err != nil {
-			return c.JSON(err.StatusCode, err)
+			return err
 		}
 	}
 
@@ -122,11 +122,11 @@ func (h *SOSPostHandler) FindSOSPosts(c echo.Context) error {
 func (h *SOSPostHandler) FindSOSPostByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	res, err := h.sosPostService.FindSOSPostByID(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -148,12 +148,12 @@ func (h *SOSPostHandler) UpdateSOSPost(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	var updateSOSPostRequest sospost.UpdateSOSPostRequest
 	if err = pnd.ParseBody(c, &updateSOSPostRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	permission, err := h.sosPostService.CheckUpdatePermission(
@@ -162,16 +162,15 @@ func (h *SOSPostHandler) UpdateSOSPost(c echo.Context) error {
 		updateSOSPostRequest.ID,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	if !permission {
-		pndErr := pnd.ErrForbidden(errors.New("해당 게시글에 대한 수정 권한이 없습니다"))
-		return c.JSON(pndErr.StatusCode, pndErr)
+		return pnd.ErrForbidden(errors.New("해당 게시글에 대한 수정 권한이 없습니다"))
 	}
 
 	res, err := h.sosPostService.UpdateSOSPost(c.Request().Context(), &updateSOSPostRequest)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

@@ -56,20 +56,20 @@ func (s *WSServer) HandleConnections(
 ) error {
 	log.Info().Msg("Handling connections")
 
-	foundUser, err2 := s.authService.VerifyAuthAndGetUser(
+	foundUser, err := s.authService.VerifyAuthAndGetUser(
 		c.Request().Context(),
 		c.Request().Header.Get("Authorization"),
 	)
-	if err2 != nil {
-		return c.JSON(err2.StatusCode, err2)
+	if err != nil {
+		return err
 	}
 	userID := foundUser.ID
 
 	conn, err := s.upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
 	defer func() {
-		err2 := conn.Close()
-		if err2 != nil {
-			log.Error().Err(err2).Msg("Failed to close connection")
+		err := conn.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to close connection")
 		}
 		delete(s.clients, userID)
 	}()
@@ -145,7 +145,7 @@ func (s *WSServer) LoopOverClientMessages() {
 					}
 					medias, err := s.mediaService.FindMediasByIDs(ctx, ids)
 					if err != nil {
-						log.Error().Err(err.Err).Msg("Failed to find media")
+						log.Error().Err(err).Msg("Failed to find media")
 						msg = NewErrorMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, "Failed to find media", time.Now())
 					} else {
 						msg = NewMediaMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, medias, time.Now())

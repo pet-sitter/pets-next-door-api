@@ -66,12 +66,12 @@ func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	customToken, err2 := h.authService.CustomToken(
+	customToken, err := h.authService.CustomToken(
 		c.Request().Context(),
 		strconv.FormatInt(userProfile.ID, 10),
 	)
-	if err2 != nil {
-		return c.JSON(err2.StatusCode, err2)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, auth.NewKakaoCallbackView(*customToken, userProfile))
@@ -90,16 +90,15 @@ func (h *AuthHandler) KakaoCallback(c echo.Context) error {
 func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 	var tokenRequest auth.GenerateFBCustomTokenRequest
 	if err := pnd.ParseBody(c, &tokenRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
-	userProfile, err2 := h.kakaoClient.FetchUserProfile(
+	userProfile, err := h.kakaoClient.FetchUserProfile(
 		c.Request().Context(),
 		tokenRequest.OAuthToken,
 	)
-	if err2 != nil {
-		pndErr := pnd.ErrBadRequest(errors.New("유효하지 않은 Kakao 인증 정보입니다"))
-		return c.JSON(pndErr.StatusCode, pndErr)
+	if err != nil {
+		return pnd.ErrBadRequest(errors.New("유효하지 않은 Kakao 인증 정보입니다"))
 	}
 
 	customToken, err := h.authService.CustomToken(
@@ -107,7 +106,7 @@ func (h *AuthHandler) GenerateFBCustomTokenFromKakao(c echo.Context) error {
 		strconv.FormatInt(userProfile.ID, 10),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(

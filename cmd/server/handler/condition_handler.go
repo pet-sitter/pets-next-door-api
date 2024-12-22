@@ -27,7 +27,7 @@ func NewConditionHandler(conditionService service.SOSConditionService) *Conditio
 func (h *ConditionHandler) FindConditions(c echo.Context) error {
 	res, err := h.conditionService.FindConditions(c.Request().Context())
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

@@ -5,7 +5,7 @@ import (
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
 )
 
-func NewV7() (uuid.UUID, *pnd.AppError) {
+func NewV7() (uuid.UUID, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return uuid.Nil, pnd.ErrUnknown(err)

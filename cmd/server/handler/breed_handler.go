@@ -33,7 +33,7 @@ func (h *BreedHandler) FindBreeds(c echo.Context) error {
 	petType := pnd.ParseOptionalStringQuery(c, "pet_type")
 	page, size, err := pnd.ParsePaginationQueries(c, 1, 20)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.breedService.FindBreeds(c.Request().Context(), &breed.FindBreedsParams{
@@ -42,7 +42,7 @@ func (h *BreedHandler) FindBreeds(c echo.Context) error {
 		PetType: petType,
 	})
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

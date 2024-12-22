@@ -174,7 +174,7 @@ type MigrateOptions struct {
 	Log      bool
 }
 
-func migrate(ctx context.Context, db *database.DB, options MigrateOptions) *pnd.AppError {
+func migrate(ctx context.Context, db *database.DB, options MigrateOptions) error {
 	log.Println("Migrating UUIDs for tables")
 	tx, err := db.BeginTx(ctx)
 	if err != nil {
@@ -210,7 +210,7 @@ func migrate(ctx context.Context, db *database.DB, options MigrateOptions) *pnd.
 	return nil
 }
 
-func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
+func MigrateUUID(tx *database.Tx, options MigrateOptions) error {
 	type Row struct {
 		ID   int
 		UUID *string
@@ -309,7 +309,7 @@ func MigrateUUID(tx *database.Tx, options MigrateOptions) *pnd.AppError {
 }
 
 // FK 컬럼을 연관된 테이블의 uuid 컬럼을 조회해 업데이트
-func MigrateFK(tx *database.Tx, options MigrateOptions) *pnd.AppError {
+func MigrateFK(tx *database.Tx, options MigrateOptions) error {
 	for _, target := range Targets {
 		log.Printf("Processing table %s\n", target.Table)
 

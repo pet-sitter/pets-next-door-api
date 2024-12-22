@@ -22,8 +22,8 @@ func setUp(ctx context.Context, t *testing.T) (*database.DB, func(t *testing.T))
 	db, tearDown := tests.SetUp(t)
 
 	conditionService := service.NewSOSConditionService(db)
-	if _, err2 := conditionService.InitConditions(ctx); err2 != nil {
-		t.Errorf("InitConditions failed: %v", err2)
+	if _, err := conditionService.InitConditions(ctx); err != nil {
+		t.Errorf("InitConditions failed: %v", err)
 	}
 
 	return db, tearDown
@@ -230,7 +230,7 @@ func TestFindSOSPosts(t *testing.T) {
 				i,
 				conditionIDs,
 			)
-			sosPostService.WriteSOSPost(ctx, uid, request)
+			_, _ = sosPostService.WriteSOSPost(ctx, uid, request)
 			sosPostRequests = append(sosPostRequests, *request)
 		}
 
@@ -299,7 +299,7 @@ func TestFindSOSPosts(t *testing.T) {
 				i,
 				conditionIDs,
 			)
-			sosPostService.WriteSOSPost(ctx, uid, request)
+			_, _ = sosPostService.WriteSOSPost(ctx, uid, request)
 			writeRequests = append(writeRequests, *request)
 		}
 
@@ -310,7 +310,7 @@ func TestFindSOSPosts(t *testing.T) {
 			3,
 			conditionIDs,
 		)
-		sosPostService.WriteSOSPost(ctx, uid, request)
+		_, _ = sosPostService.WriteSOSPost(ctx, uid, request)
 		writeRequests = append(writeRequests, *request)
 
 		// 강아지, 고양이인 경우
@@ -320,7 +320,7 @@ func TestFindSOSPosts(t *testing.T) {
 			4,
 			conditionIDs,
 		)
-		sosPostService.WriteSOSPost(ctx, uid, request)
+		_, _ = sosPostService.WriteSOSPost(ctx, uid, request)
 		writeRequests = append(writeRequests, *request)
 
 		// when
@@ -388,7 +388,7 @@ func TestFindSOSPosts(t *testing.T) {
 				i,
 				conditionIDs,
 			)
-			sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
+			_, _ = sosPostService.WriteSOSPost(ctx, owner.FirebaseUID, request)
 			writeRequests = append(writeRequests, *request)
 		}
 

@@ -11,13 +11,13 @@ import (
 )
 
 type Transactioner interface {
-	Rollback() *pnd.AppError
-	Commit() *pnd.AppError
-	EndTx(f func() *pnd.AppError) *pnd.AppError
-	BeginTx() (*DB, *pnd.AppError)
+	Rollback() error
+	Commit() error
+	EndTx(f func() error) error
+	BeginTx() (*DB, error)
 }
 
-func (db *DB) BeginTx(ctx context.Context) (*Tx, *pnd.AppError) {
+func (db *DB) BeginTx(ctx context.Context) (*Tx, error) {
 	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
@@ -26,8 +26,8 @@ func (db *DB) BeginTx(ctx context.Context) (*Tx, *pnd.AppError) {
 	return &Tx{tx}, nil
 }
 
-func (tx *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
-	var err *pnd.AppError
+func (tx *Tx) EndTx(f func() error) error {
+	var err error
 	defer func() {
 		if p := recover(); p != nil {
 			if err2 := tx.Tx.Rollback(); err2 != nil {
@@ -49,7 +49,7 @@ func (tx *Tx) EndTx(f func() *pnd.AppError) *pnd.AppError {
 	return err
 }
 
-func (tx *Tx) Rollback() *pnd.AppError {
+func (tx *Tx) Rollback() error {
 	if err := tx.Tx.Rollback(); err != nil {
 		if errors.Is(err, sql.ErrTxDone) {
 			return nil
@@ -60,7 +60,7 @@ func (tx *Tx) Rollback() *pnd.AppError {
 	return nil
 }
 
-func (tx *Tx) Commit() *pnd.AppError {
+func (tx *Tx) Commit() error {
 	if err := tx.Tx.Commit(); err != nil {
 		return pnd.FromPostgresError(err)
 	}
@@ -68,7 +68,7 @@ func (tx *Tx) Commit() *pnd.AppError {
 	return nil
 }
 
-func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) *pnd.AppError) *pnd.AppError {
+func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) error) error {
 	tx, err := conn.BeginTx(ctx)
 	if err != nil {
 		return err

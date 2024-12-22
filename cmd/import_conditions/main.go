@@ -21,9 +21,9 @@ func main() {
 	ctx := context.Background()
 
 	conditionService := service.NewSOSConditionService(db)
-	conditionList, err2 := conditionService.InitConditions(ctx)
-	if err2 != nil {
-		log.Fatalf("error initializing conditions: %v\n", err2)
+	conditionList, err := conditionService.InitConditions(ctx)
+	if err != nil {
+		log.Fatalf("error initializing conditions: %v\n", err)
 	}
 
 	log.Println("Total conditions imported: ", len(conditionList))

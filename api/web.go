@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ParseBody(c echo.Context, payload interface{}) *AppError {
+func ParseBody(c echo.Context, payload interface{}) error {
 	if err := c.Bind(payload); err != nil {
 		return ErrInvalidBody(err)
 	}
@@ -22,7 +22,7 @@ func ParseBody(c echo.Context, payload interface{}) *AppError {
 	return nil
 }
 
-func ParseIDFromPath(c echo.Context, path string) (uuid.UUID, *AppError) {
+func ParseIDFromPath(c echo.Context, path string) (uuid.UUID, error) {
 	idStr := c.Param(path)
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -32,7 +32,7 @@ func ParseIDFromPath(c echo.Context, path string) (uuid.UUID, *AppError) {
 	return id, nil
 }
 
-func ParseOptionalUUIDQuery(c echo.Context, query string) (uuid.NullUUID, *AppError) {
+func ParseOptionalUUIDQuery(c echo.Context, query string) (uuid.NullUUID, error) {
 	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return uuid.NullUUID{}, nil
@@ -48,7 +48,7 @@ func ParseOptionalUUIDQuery(c echo.Context, query string) (uuid.NullUUID, *AppEr
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
 }
 
-func ParseOptionalIntQuery(c echo.Context, query string) (*int, *AppError) {
+func ParseOptionalIntQuery(c echo.Context, query string) (*int, error) {
 	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return nil, nil
@@ -62,7 +62,7 @@ func ParseOptionalIntQuery(c echo.Context, query string) (*int, *AppError) {
 	return &value, nil
 }
 
-func ParseRequiredStringQuery(c echo.Context, query string) (*string, *AppError) {
+func ParseRequiredStringQuery(c echo.Context, query string) (*string, error) {
 	queryStr := c.QueryParam(query)
 	if queryStr == "" {
 		return nil, ErrInvalidQuery(fmt.Errorf("expected non-empty string for query: %s", query))
@@ -84,7 +84,7 @@ func ParseOptionalStringQuery(c echo.Context, query string) *string {
 func ParsePaginationQueries(
 	c echo.Context,
 	defaultPage, defaultLimit int,
-) (page, size int, err *AppError) {
+) (page, size int, err error) {
 	pageQuery := c.QueryParam("page")
 	sizeQuery := c.QueryParam("size")
 
@@ -116,7 +116,7 @@ func ParsePaginationQueries(
 
 func ParseCursorPaginationQueries(
 	c echo.Context, defaultLimit int,
-) (prev, next uuid.NullUUID, limit int, err *AppError) {
+) (prev, next uuid.NullUUID, limit int, err error) {
 	prevQuery := c.QueryParam("prev")
 	nextQuery := c.QueryParam("next")
 	sizeQuery := c.QueryParam("size")

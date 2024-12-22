@@ -27,7 +27,7 @@ func NewChatService(conn *database.DB) *ChatService {
 func (s *ChatService) CreateRoom(
 	ctx context.Context, name, roomType, userFirebaseUID string,
 ) (
-	*chat.RoomSimpleInfo, *pnd.AppError,
+	*chat.RoomSimpleInfo, error,
 ) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(userFirebaseUID),
@@ -65,17 +65,18 @@ func (s *ChatService) CreateRoom(
 		return nil, pnd.ErrUnknown(fmt.Errorf("failed to generate UUID: %w", joinRoomUUIDError))
 	}
 
-	_, err3 := q.JoinRoom(ctx, databasegen.JoinRoomParams{
+	_, err = q.JoinRoom(ctx, databasegen.JoinRoomParams{
 		ID:     joinRoomUUID,
 		UserID: userData.ID,
 		RoomID: row.ID,
 	})
-
-	if err3 != nil {
-		return nil, pnd.FromPostgresError(err3)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 
 	return chat.ToCreateRoom(row, chat.ToJoinUsers(userData)), nil
 }
@@ -84,7 +85,7 @@ func (s *ChatService) JoinRoom(
 	ctx context.Context,
 	roomID uuid.UUID,
 	fbUID string,
-) (*chat.JoinRoom, *pnd.AppError) {
+) (*chat.JoinRoom, error) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -131,7 +132,7 @@ func (s *ChatService) JoinRoom(
 	return nil, pnd.ErrBadRequest(errors.New("user already joined in the room"))
 }
 
-func (s *ChatService) LeaveRoom(ctx context.Context, roomID uuid.UUID, fbUID string) *pnd.AppError {
+func (s *ChatService) LeaveRoom(ctx context.Context, roomID uuid.UUID, fbUID string) error {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -163,7 +164,7 @@ func (s *ChatService) LeaveRoom(ctx context.Context, roomID uuid.UUID, fbUID str
 func (s *ChatService) FindAllByUserUID(
 	ctx context.Context,
 	fbUID string,
-) (*chat.JoinRoomsView, *pnd.AppError) {
+) (*chat.JoinRoomsView, error) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
@@ -184,7 +185,7 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(
 	fbUID string,
 	roomID uuid.UUID,
 ) (
-	*chat.RoomSimpleInfo, *pnd.AppError,
+	*chat.RoomSimpleInfo, error,
 ) {
 	userData, err := databasegen.New(s.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
@@ -211,7 +212,7 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(
  */
 func (s *ChatService) FindChatRoomMessagesByRoomID(
 	ctx context.Context, roomID uuid.UUID, prev, next uuid.NullUUID, limit int64,
-) (*chat.MessageCursorView, *pnd.AppError) {
+) (*chat.MessageCursorView, error) {
 	// prev와 next에 따라 다른 쿼리를 실행
 	if prev.Valid && next.Valid {
 		// prev와 next 모두 존재하는 경우
@@ -361,7 +362,7 @@ func (s *ChatService) FindChatRoomMessagesByRoomID(
 // hasPrev 메시지가 있는지 확인
 func (s *ChatService) HasPrevMessages(
 	ctx context.Context, roomID, messageID uuid.UUID,
-) (bool, *pnd.AppError) {
+) (bool, error) {
 	hasPrev, err := databasegen.New(s.conn).HasPrevMessages(ctx, databasegen.HasPrevMessagesParams{
 		ID:     messageID,
 		RoomID: roomID,
@@ -376,7 +377,7 @@ func (s *ChatService) HasPrevMessages(
 // hasNext 메시지가 있는지 확인
 func (s *ChatService) HasNextMessages(
 	ctx context.Context, roomID, messageID uuid.UUID,
-) (bool, *pnd.AppError) {
+) (bool, error) {
 	hasNext, err := databasegen.New(s.conn).HasNextMessages(ctx, databasegen.HasNextMessagesParams{
 		ID:     messageID,
 		RoomID: roomID,

@@ -46,7 +46,7 @@ func main() {
 
 	pndErr := migrate(ctx, db, MigrateOptions{ReadOnly: *readOnlyPtr, Force: *forcePtr})
 	if pndErr != nil {
-		panic(pndErr.Err)
+		panic(pndErr)
 	}
 
 	log.Println("Completed migration")

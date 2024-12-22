@@ -11,8 +11,8 @@ import (
 )
 
 type AuthService interface {
-	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.InternalView, *pnd.AppError)
-	CustomToken(ctx context.Context, uid string) (*string, *pnd.AppError)
+	VerifyAuthAndGetUser(ctx context.Context, authHeader string) (*user.InternalView, error)
+	CustomToken(ctx context.Context, uid string) (*string, error)
 }
 
 type FirebaseBearerAuthService struct {
@@ -32,15 +32,15 @@ func NewFirebaseBearerAuthService(
 
 func (service *FirebaseBearerAuthService) verifyAuth(
 	ctx context.Context, authHeader string,
-) (*auth.Token, *pnd.AppError) {
+) (*auth.Token, error) {
 	idToken, err := service.stripBearerToken(authHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	authToken, err2 := service.authClient.VerifyIDToken(ctx, idToken)
-	if err2 != nil {
-		return nil, pnd.ErrInvalidFBToken(err2)
+	authToken, err := service.authClient.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		return nil, pnd.ErrInvalidFBToken(err)
 	}
 
 	return authToken, nil
@@ -48,7 +48,7 @@ func (service *FirebaseBearerAuthService) verifyAuth(
 
 func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
 	ctx context.Context, authHeader string,
-) (*user.InternalView, *pnd.AppError) {
+) (*user.InternalView, error) {
 	authToken, err := service.verifyAuth(ctx, authHeader)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (service *FirebaseBearerAuthService) VerifyAuthAndGetUser(
 func (service *FirebaseBearerAuthService) CustomToken(
 	ctx context.Context,
 	uid string,
-) (*string, *pnd.AppError) {
+) (*string, error) {
 	customToken, err := service.authClient.CustomToken(ctx, uid)
 	if err != nil {
 		return nil, pnd.ErrUnknown(err)
@@ -76,7 +76,7 @@ func (service *FirebaseBearerAuthService) CustomToken(
 
 func (service *FirebaseBearerAuthService) stripBearerToken(
 	authHeader string,
-) (string, *pnd.AppError) {
+) (string, error) {
 	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
 		return authHeader[7:], nil
 	}
