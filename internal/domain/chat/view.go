@@ -179,3 +179,16 @@ func ToUserChatRoomMessageView(
 ) *MessageCursorView {
 	return createMessageCursorView(row, hasNext, hasPrev, nextMessageID, prevMessageID)
 }
+
+func ToChatRoomMessage(
+	row databasegen.SaveChatMessageRow,
+) *Message {
+	return &Message{
+		ID:          row.ID,
+		UserID:      row.UserID,
+		RoomID:      row.RoomID,
+		MessageType: row.MessageType,
+		Content:     row.Content,
+		CreatedAt:   row.CreatedAt,
+	}
+}
