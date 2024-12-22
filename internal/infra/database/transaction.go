@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
-
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,7 +18,7 @@ type Transactioner interface {
 func (db *DB) BeginTx(ctx context.Context) (*Tx, error) {
 	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return &Tx{tx}, nil
@@ -54,18 +52,14 @@ func (tx *Tx) Rollback() error {
 		if errors.Is(err, sql.ErrTxDone) {
 			return nil
 		}
-		return pnd.FromPostgresError(err)
+		return err
 	}
 
 	return nil
 }
 
 func (tx *Tx) Commit() error {
-	if err := tx.Tx.Commit(); err != nil {
-		return pnd.FromPostgresError(err)
-	}
-
-	return nil
+	return tx.Tx.Commit()
 }
 
 func WithTransaction(ctx context.Context, conn *DB, f func(tx *Tx) error) error {

@@ -15,7 +15,6 @@ import (
 
 	"github.com/pet-sitter/pets-next-door-api/cmd/import_breeds/breedsimporterservice"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/configs"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -103,7 +102,7 @@ func importBreed(
 		Name:    utils.StrToNullStr(row.Breed),
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	if len(existingList) > 1 {
@@ -123,7 +122,7 @@ func importBreed(
 		PetType: petType.String(),
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	log.Printf(

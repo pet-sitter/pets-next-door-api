@@ -39,16 +39,16 @@ func (service *UserService) RegisterUser(
 	}
 
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
 	_, err = databasegen.New(service.conn).
 		WithTx(tx.Tx).
 		CreateUser(ctx, registerUserRequest.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -59,7 +59,7 @@ func (service *UserService) RegisterUser(
 		FbUid: utils.StrToNullStr(registerUserRequest.FirebaseUID),
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return user.ToWithProfileImage(row).ToInternalView(), nil
@@ -70,7 +70,7 @@ func (service *UserService) FindUsers(
 ) (*user.ListWithoutPrivateInfo, error) {
 	rows, err := databasegen.New(service.conn).FindUsers(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return user.ToListWithoutPrivateInfo(params.Page, params.Size, rows), nil
@@ -82,7 +82,7 @@ func (service *UserService) FindUser(
 ) (*user.WithProfileImage, error) {
 	row, err := databasegen.New(service.conn).FindUser(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return user.ToWithProfileImage(row), nil
@@ -93,7 +93,7 @@ func (service *UserService) FindUserProfile(
 ) (*user.ProfileView, error) {
 	row, err := databasegen.New(service.conn).FindUser(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	petParams := pet.FindPetsParams{OwnerID: uuid.NullUUID{UUID: row.ID, Valid: true}}
@@ -111,7 +111,7 @@ func (service *UserService) ExistsByNickname(
 ) (bool, error) {
 	existsByNickname, err := databasegen.New(service.conn).ExistsUserByNickname(ctx, nickname)
 	if err != nil {
-		return existsByNickname, pnd.FromPostgresError(err)
+		return existsByNickname, err
 	}
 
 	return existsByNickname, nil
@@ -121,10 +121,10 @@ func (service *UserService) UpdateUserByUID(
 	ctx context.Context, uid, nickname string, profileImageID uuid.NullUUID,
 ) (*user.MyProfileView, error) {
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
 	_, err = databasegen.New(service.conn).
 		WithTx(tx.Tx).
@@ -134,7 +134,7 @@ func (service *UserService) UpdateUserByUID(
 			FbUid:          utils.StrToNullStr(uid),
 		})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -145,7 +145,7 @@ func (service *UserService) UpdateUserByUID(
 		FbUid: utils.StrToNullStr(uid),
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return user.ToWithProfileImage(refreshedUser).ToMyProfileView(), nil
@@ -153,13 +153,13 @@ func (service *UserService) UpdateUserByUID(
 
 func (service *UserService) DeleteUserByUID(ctx context.Context, uid string) error {
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
 	if err := databasegen.New(service.conn).WithTx(tx.Tx).DeleteUserByFbUID(ctx, utils.StrToNullStr(uid)); err != nil {
-		return pnd.FromPostgresError(err)
+		return err
 	}
 
 	return tx.Commit()
@@ -170,7 +170,7 @@ func (service *UserService) FindPet(
 ) (*pet.WithProfileImage, error) {
 	row, err := databasegen.New(service.conn).FindPet(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return pet.ToWithProfileImage(row), nil
@@ -182,7 +182,7 @@ func (service *UserService) FindPets(
 ) (*pet.ListView, error) {
 	rows, err := databasegen.New(service.conn).FindPets(ctx, params.ToDBParams())
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return pet.ToListView(rows), nil
@@ -192,17 +192,17 @@ func (service *UserService) AddPetsToOwner(
 	ctx context.Context, uid string, addPetsRequest pet.AddPetsToOwnerRequest,
 ) (*pet.ListView, error) {
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
 	// 사용자가 존재하는지 확인
 	userData, err := databasegen.New(service.conn).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(uid),
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	// 프로필 이미지 ID가 DB에 존재하는지 확인
@@ -239,7 +239,7 @@ func (service *UserService) AddPetsToOwner(
 		}
 		row, err := databasegen.New(service.conn).WithTx(tx.Tx).CreatePet(ctx, petToCreate)
 		if err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 		petIDs = append(petIDs, row.ID)
 	}
@@ -252,7 +252,7 @@ func (service *UserService) AddPetsToOwner(
 		Ids: petIDs,
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return pet.ToListViewFromIDsRows(rows), nil
@@ -285,10 +285,10 @@ func (service *UserService) UpdatePet(
 	}
 
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
 	birthDate, err := datatype.ParseDateToTime(updatePetRequest.BirthDate)
 	if err != nil {
@@ -305,7 +305,7 @@ func (service *UserService) UpdatePet(
 		Remarks:        updatePetRequest.Remarks,
 		ProfileImageID: updatePetRequest.ProfileImageID,
 	}); err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -345,13 +345,13 @@ func (service *UserService) DeletePet(
 	}
 
 	tx, err := service.conn.BeginTx(ctx)
-	defer tx.Rollback()
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
 	if err := databasegen.New(service.conn).WithTx(tx.Tx).DeletePet(ctx, petID); err != nil {
-		return pnd.FromPostgresError(err)
+		return err
 	}
 
 	return tx.Commit()

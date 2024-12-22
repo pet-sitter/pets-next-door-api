@@ -10,7 +10,6 @@ import (
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/soscondition"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
 
@@ -41,7 +40,7 @@ func (service *SOSConditionService) InitConditions(
 				Name: utils.StrToNullStr(conditionName.String()),
 			})
 		if err != nil {
-			return nil, pnd.FromPostgresError(err)
+			return nil, err
 		}
 
 		conditionList[idx] = created
@@ -59,7 +58,7 @@ func (service *SOSConditionService) FindConditions(
 ) (soscondition.ListView, error) {
 	conditionList, err := databasegen.New(service.conn).FindConditions(ctx, false)
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return soscondition.ToListViewFromRows(conditionList), nil

@@ -13,7 +13,6 @@ import (
 
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 )
@@ -65,7 +64,7 @@ func (s *MediaService) CreateMedia(
 		Url:       url,
 	})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -83,7 +82,7 @@ func (s *MediaService) FindMediaByID(
 			ID: uuid.NullUUID{UUID: id, Valid: true},
 		})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 
 	return media.ToDetailView(mediaData), nil
@@ -106,7 +105,7 @@ func (s *MediaService) FindMediasByIDs(
 			IncludeDeleted: false,
 		})
 	if err != nil {
-		return nil, pnd.FromPostgresError(err)
+		return nil, err
 	}
 	views := make([]media.DetailView, 0)
 	for _, mediaData := range mediaDataList {

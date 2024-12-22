@@ -103,6 +103,12 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 					return c.JSON(appErr.StatusCode, appErr)
 				}
 
+				if err := pnd.FromPostgresError(err); err != nil {
+					if errors.As(err, &appErr) {
+						return c.JSON(appErr.StatusCode, appErr)
+					}
+				}
+
 				return c.JSON(http.StatusInternalServerError, pnd.ErrUnknown(err))
 			}
 
