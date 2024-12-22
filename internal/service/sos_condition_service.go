@@ -26,7 +26,7 @@ func NewSOSConditionService(conn *database.DB) *SOSConditionService {
 
 func (service *SOSConditionService) InitConditions(
 	ctx context.Context,
-) (soscondition.ListView, *pnd.AppError) {
+) (soscondition.ListView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (service *SOSConditionService) InitConditions(
 
 func (service *SOSConditionService) FindConditions(
 	ctx context.Context,
-) (soscondition.ListView, *pnd.AppError) {
+) (soscondition.ListView, error) {
 	conditionList, err := databasegen.New(service.conn).FindConditions(ctx, false)
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)

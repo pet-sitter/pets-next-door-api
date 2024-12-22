@@ -40,12 +40,12 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.chatService.FindChatRoomByUIDAndRoomID(
@@ -54,7 +54,7 @@ func (h ChatHandler) FindRoomByID(c echo.Context) error {
 		roomID,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -76,12 +76,12 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	var createRoomRequest domain.CreateRoomRequest
 
 	if bodyError := pnd.ParseBody(c, &createRoomRequest); bodyError != nil {
-		return c.JSON(bodyError.StatusCode, err)
+		return err
 	}
 
 	res, err := h.chatService.CreateRoom(
@@ -91,7 +91,7 @@ func (h ChatHandler) CreateRoom(c echo.Context) error {
 		user.FirebaseUID,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, res)
@@ -113,17 +113,17 @@ func (h ChatHandler) JoinChatRoom(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.chatService.JoinRoom(c.Request().Context(), roomID, foundUser.FirebaseUID)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -145,12 +145,12 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res := h.chatService.LeaveRoom(c.Request().Context(), roomID, foundUser.FirebaseUID)
@@ -172,12 +172,12 @@ func (h ChatHandler) FindAllRooms(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	rooms, err := h.chatService.FindAllByUserUID(c.Request().Context(), foundUser.FirebaseUID)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	return c.JSON(http.StatusOK, rooms)
 }
@@ -198,12 +198,12 @@ func (h ChatHandler) FindAllRooms(c echo.Context) error {
 func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 	roomID, err := pnd.ParseIDFromPath(c, "roomID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
-	prev, next, limit, appError := pnd.ParseCursorPaginationQueries(c, 30)
-	if appError != nil {
-		return c.JSON(appError.StatusCode, appError)
+	prev, next, limit, err := pnd.ParseCursorPaginationQueries(c, 30)
+	if err != nil {
+		return err
 	}
 
 	res, err := h.chatService.FindChatRoomMessagesByRoomID(
@@ -214,7 +214,7 @@ func (h ChatHandler) FindMessagesByRoomID(c echo.Context) error {
 		int64(limit),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

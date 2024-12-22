@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+
+	pnd "github.com/pet-sitter/pets-next-door-api/api"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -89,6 +92,24 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 			return nil
 		},
 	}))
+
+	// Error handler
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			err := next(c)
+			if err != nil {
+				var appErr *pnd.AppError
+				if errors.As(err, &appErr) {
+					return c.JSON(appErr.StatusCode, appErr)
+				}
+
+				return c.JSON(http.StatusInternalServerError, pnd.ErrUnknown(err))
+			}
+
+			return err
+		}
+	})
+
 	e.Use(pndmiddleware.BuildAuthMiddleware(authService, auth.FirebaseAuthClientKey))
 
 	// Register routes

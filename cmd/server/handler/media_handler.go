@@ -33,12 +33,12 @@ func NewMediaHandler(mediaService service.MediaService) *MediaHandler {
 func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 	id, err := pnd.ParseIDFromPath(c, "id")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	found, err := h.mediaService.FindMediaByID(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, found)
@@ -56,39 +56,35 @@ func (h *MediaHandler) FindMediaByID(c echo.Context) error {
 func (h *MediaHandler) UploadImage(c echo.Context) error {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		pndErr := pnd.ErrMultipartFormError(errors.New("file must be provided"))
-		return c.JSON(pndErr.StatusCode, pndErr)
+		return pnd.ErrMultipartFormError(errors.New("file must be provided"))
 	}
 
 	if fileHeader.Size > 10<<20 {
-		pndErr := pnd.ErrMultipartFormError(errors.New("file size must be less than 10MB"))
-		return c.JSON(pndErr.StatusCode, pndErr)
+		return pnd.ErrMultipartFormError(errors.New("file size must be less than 10MB"))
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		pndErr := pnd.ErrMultipartFormError(errors.New("failed to open file"))
-		return c.JSON(pndErr.StatusCode, pndErr)
+		return pnd.ErrMultipartFormError(errors.New("failed to open file"))
 	}
 	defer file.Close()
 
 	if !isValidMimeType(fileHeader.Header.Get("Content-Type")) {
-		pndErr := pnd.ErrMultipartFormError(
+		return pnd.ErrMultipartFormError(
 			errors.New(
 				"invalid MIME type; supported MIME types are: [" + supportedMimeTypeString() + "]",
 			),
 		)
-		return c.JSON(pndErr.StatusCode, pndErr)
 	}
 
-	res, err2 := h.mediaService.UploadMedia(
+	res, err := h.mediaService.UploadMedia(
 		c.Request().Context(),
 		file,
 		media.TypeImage,
 		fileHeader.Filename,
 	)
-	if err2 != nil {
-		return c.JSON(err2.StatusCode, err2)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, res)

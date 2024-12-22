@@ -31,7 +31,7 @@ func NewSOSPostService(conn *database.DB) *SOSPostService {
 
 func (service *SOSPostService) WriteSOSPost(
 	ctx context.Context, fbUID string, request *sospost.WriteSOSPostRequest,
-) (*sospost.DetailView, *pnd.AppError) {
+) (*sospost.DetailView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -39,11 +39,11 @@ func (service *SOSPostService) WriteSOSPost(
 	}
 	q := databasegen.New(tx)
 
-	userData, err2 := q.FindUser(ctx, databasegen.FindUserParams{
+	userData, err := q.FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	thumbnailID := setThumbnailID(request.ImageIDs)
@@ -56,29 +56,29 @@ func (service *SOSPostService) WriteSOSPost(
 		return nil, err
 	}
 
-	mediaData, err2 := q.FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
+	mediaData, err := q.FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
 		ResourceID:   uuid.NullUUID{UUID: sosPost.ID, Valid: true},
 		ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	conditionList, err2 := q.FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
+	conditionList, err := q.FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
 		SosPostID: sosPost.ID,
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	petRows, err2 := q.FindPetsBySOSPostID(ctx, sosPost.ID)
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	petRows, err := q.FindPetsBySOSPostID(ctx, sosPost.ID)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	dates, err2 := q.FindDatesBySOSPostID(ctx, uuid.NullUUID{UUID: sosPost.ID, Valid: true})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	dates, err := q.FindDatesBySOSPostID(ctx, uuid.NullUUID{UUID: sosPost.ID, Valid: true})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -97,7 +97,7 @@ func (service *SOSPostService) WriteSOSPost(
 func (service *SOSPostService) createSOSPost(
 	ctx context.Context, q *databasegen.Queries, authorID uuid.UUID,
 	request *sospost.WriteSOSPostRequest, thumbnailID uuid.NullUUID,
-) (databasegen.WriteSOSPostRow, *pnd.AppError) {
+) (databasegen.WriteSOSPostRow, error) {
 	params := databasegen.WriteSOSPostParams{
 		ID:          datatype.NewUUIDV7(),
 		AuthorID:    authorID,
@@ -126,7 +126,7 @@ func (service *SOSPostService) saveAllLinks(
 	q *databasegen.Queries,
 	request *sospost.WriteSOSPostRequest,
 	sosPostID uuid.UUID,
-) *pnd.AppError {
+) error {
 	if err := service.SaveSOSDates(ctx, q, request.Dates, sosPostID); err != nil {
 		return err
 	}
@@ -141,22 +141,22 @@ func (service *SOSPostService) saveAllLinks(
 
 func (service *SOSPostService) FindSOSPosts(
 	ctx context.Context, page, size int, sortBy, filterType string,
-) (*sospost.FindSOSPostListView, *pnd.AppError) {
+) (*sospost.FindSOSPostListView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPosts, err2 := databasegen.New(tx).FindSOSPosts(ctx, databasegen.FindSOSPostsParams{
+	sosPosts, err := databasegen.New(tx).FindSOSPosts(ctx, databasegen.FindSOSPostsParams{
 		EarliestDateStartAt: utils.FormatDateString(time.Now().String()),
 		PetType:             utils.StrToNullStr(filterType),
 		SortBy:              utils.StrToNullStr(sortBy),
 		Limit:               utils.IntToNullInt32(size + 1),
 		Offset:              utils.IntToNullInt32((page - 1) * size),
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	sosPostInfoList := sospost.ToInfoListFromFindRow(sosPosts, page, size)
@@ -189,14 +189,14 @@ func (service *SOSPostService) FindSOSPosts(
 
 func (service *SOSPostService) FindSOSPostsByAuthorID(
 	ctx context.Context, authorID uuid.UUID, page, size int, sortBy, filterType string,
-) (*sospost.FindSOSPostListView, *pnd.AppError) {
+) (*sospost.FindSOSPostListView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPosts, err2 := databasegen.New(tx).
+	sosPosts, err := databasegen.New(tx).
 		FindSOSPostsByAuthorID(ctx, databasegen.FindSOSPostsByAuthorIDParams{
 			EarliestDateStartAt: utils.FormatDateString(time.Now().String()),
 			PetType:             utils.StrToNullStr(filterType),
@@ -205,8 +205,8 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 			Limit:               utils.IntToNullInt32(size + 1),
 			Offset:              utils.IntToNullInt32((page - 1) * size),
 		})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	sosPostInfoList := sospost.ToInfoListFromFindAuthorIDRow(sosPosts, page, size)
@@ -240,25 +240,25 @@ func (service *SOSPostService) FindSOSPostsByAuthorID(
 
 func (service *SOSPostService) FindSOSPostByID(
 	ctx context.Context, id uuid.UUID,
-) (*sospost.FindSOSPostView, *pnd.AppError) {
+) (*sospost.FindSOSPostView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	sosPost, err2 := databasegen.New(tx).FindSOSPostByID(ctx, uuid.NullUUID{UUID: id, Valid: true})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	sosPost, err := databasegen.New(tx).FindSOSPostByID(ctx, uuid.NullUUID{UUID: id, Valid: true})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 	sosPostInfo := sospost.ToInfoFromFindByIDRow(sosPost)
 
-	author, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+	author, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
 		ID:             uuid.NullUUID{UUID: sosPostInfo.AuthorID, Valid: true},
 		IncludeDeleted: true,
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -280,7 +280,7 @@ func (service *SOSPostService) FindSOSPostByID(
 
 func (service *SOSPostService) UpdateSOSPost(
 	ctx context.Context, request *sospost.UpdateSOSPostRequest,
-) (*sospost.DetailView, *pnd.AppError) {
+) (*sospost.DetailView, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
@@ -288,8 +288,8 @@ func (service *SOSPostService) UpdateSOSPost(
 	}
 	q := databasegen.New(tx)
 
-	if err2 := service.updateAllLinks(ctx, q, request); err2 != nil {
-		return nil, err2
+	if err = service.updateAllLinks(ctx, q, request); err != nil {
+		return nil, err
 	}
 
 	thumbnailID := setThumbnailID(request.ImageIDs)
@@ -298,31 +298,31 @@ func (service *SOSPostService) UpdateSOSPost(
 		return nil, err
 	}
 
-	mediaData, err2 := databasegen.New(tx).
+	mediaData, err := databasegen.New(tx).
 		FindResourceMedia(ctx, databasegen.FindResourceMediaParams{
 			ResourceID:   uuid.NullUUID{UUID: updateSOSPost.ID, Valid: true},
 			ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
 		})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	conditionList, err2 := databasegen.New(tx).
+	conditionList, err := databasegen.New(tx).
 		FindSOSPostConditions(ctx, databasegen.FindSOSPostConditionsParams{
 			SosPostID: updateSOSPost.ID,
 		})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	petRows, err2 := databasegen.New(tx).FindPetsBySOSPostID(ctx, updateSOSPost.ID)
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	petRows, err := databasegen.New(tx).FindPetsBySOSPostID(ctx, updateSOSPost.ID)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
-	dates, err2 := q.FindDatesBySOSPostID(ctx, uuid.NullUUID{UUID: request.ID, Valid: true})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	dates, err := q.FindDatesBySOSPostID(ctx, uuid.NullUUID{UUID: request.ID, Valid: true})
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -343,7 +343,7 @@ func (service *SOSPostService) updateSOSPost(
 	q *databasegen.Queries,
 	request *sospost.UpdateSOSPostRequest,
 	thumbnailID uuid.NullUUID,
-) (databasegen.UpdateSOSPostRow, *pnd.AppError) {
+) (databasegen.UpdateSOSPostRow, error) {
 	params := databasegen.UpdateSOSPostParams{
 		ID:          request.ID,
 		Title:       utils.StrToNullStr(request.Title),
@@ -368,7 +368,7 @@ func (service *SOSPostService) updateSOSPost(
 
 func (service *SOSPostService) updateAllLinks(
 	ctx context.Context, q *databasegen.Queries, request *sospost.UpdateSOSPostRequest,
-) *pnd.AppError {
+) error {
 	if err := service.DeleteLinkSOSPostDates(ctx, q, request.ID); err != nil {
 		return err
 	}
@@ -398,24 +398,24 @@ func (service *SOSPostService) updateAllLinks(
 
 func (service *SOSPostService) CheckUpdatePermission(
 	ctx context.Context, fbUID string, sosPostID uuid.UUID,
-) (bool, *pnd.AppError) {
+) (bool, error) {
 	tx, err := service.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return false, err
 	}
 
-	userData, err2 := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
+	userData, err := databasegen.New(tx).FindUser(ctx, databasegen.FindUserParams{
 		FbUid: utils.StrToNullStr(fbUID),
 	})
-	if err2 != nil {
-		return false, pnd.FromPostgresError(err2)
+	if err != nil {
+		return false, pnd.FromPostgresError(err)
 	}
 
-	sosPost, err2 := databasegen.New(tx).
+	sosPost, err := databasegen.New(tx).
 		FindSOSPostByID(ctx, uuid.NullUUID{UUID: sosPostID, Valid: true})
-	if err2 != nil {
-		return false, pnd.FromPostgresError(err2)
+	if err != nil {
+		return false, pnd.FromPostgresError(err)
 	}
 	sosPostInfo := sospost.ToInfoFromFindByIDRow(sosPost)
 
@@ -428,7 +428,7 @@ func (service *SOSPostService) CheckUpdatePermission(
 
 func (service *SOSPostService) SaveSOSDates(
 	ctx context.Context, tx *databasegen.Queries, dates []sospost.SOSDateView, sosPostID uuid.UUID,
-) *pnd.AppError {
+) error {
 	for _, date := range dates {
 		dateStartAt, err := utils.StrToNullTime(date.DateStartAt)
 		if err != nil {
@@ -439,22 +439,21 @@ func (service *SOSPostService) SaveSOSDates(
 			return err
 		}
 
-		d, err2 := databasegen.New(service.conn).InsertSOSDate(ctx, databasegen.InsertSOSDateParams{
+		d, err := databasegen.New(service.conn).InsertSOSDate(ctx, databasegen.InsertSOSDateParams{
 			ID:          datatype.NewUUIDV7(),
 			DateStartAt: dateStartAt,
 			DateEndAt:   dateEndAt,
 		})
-		if err2 != nil {
-			return pnd.FromPostgresError(err2)
+		if err != nil {
+			return pnd.FromPostgresError(err)
 		}
 
-		err3 := tx.LinkSOSPostDate(ctx, databasegen.LinkSOSPostDateParams{
+		if err := tx.LinkSOSPostDate(ctx, databasegen.LinkSOSPostDateParams{
 			ID:         datatype.NewUUIDV7(),
 			SosPostID:  sosPostID,
 			SosDatesID: d.ID,
-		})
-		if err3 != nil {
-			return pnd.FromPostgresError(err3)
+		}); err != nil {
+			return pnd.FromPostgresError(err)
 		}
 	}
 	return nil
@@ -462,16 +461,16 @@ func (service *SOSPostService) SaveSOSDates(
 
 func (service *SOSPostService) SaveLinkSOSPostImage(
 	ctx context.Context, tx *databasegen.Queries, imageIDs []uuid.UUID, sosPostID uuid.UUID,
-) *pnd.AppError {
+) error {
 	for _, mediaID := range imageIDs {
 		log.Default().Println("mediaID", mediaID)
-		err := tx.LinkResourceMedia(ctx, databasegen.LinkResourceMediaParams{
+
+		if err := tx.LinkResourceMedia(ctx, databasegen.LinkResourceMediaParams{
 			ID:           datatype.NewUUIDV7(),
 			MediaID:      mediaID,
 			ResourceID:   sosPostID,
 			ResourceType: utils.StrToNullStr(resourcemedia.SOSResourceType.String()),
-		})
-		if err != nil {
+		}); err != nil {
 			return pnd.FromPostgresError(err)
 		}
 	}
@@ -480,15 +479,15 @@ func (service *SOSPostService) SaveLinkSOSPostImage(
 
 func (service *SOSPostService) SaveLinkConditions(
 	ctx context.Context, tx *databasegen.Queries, conditionIDs []uuid.UUID, sosPostID uuid.UUID,
-) *pnd.AppError {
+) error {
 	for _, conditionID := range conditionIDs {
 		log.Default().Println("conditionID", conditionID)
-		err := tx.LinkSOSPostCondition(ctx, databasegen.LinkSOSPostConditionParams{
+
+		if err := tx.LinkSOSPostCondition(ctx, databasegen.LinkSOSPostConditionParams{
 			ID:             datatype.NewUUIDV7(),
 			SosPostID:      sosPostID,
 			SosConditionID: uuid.NullUUID{UUID: conditionID, Valid: true},
-		})
-		if err != nil {
+		}); err != nil {
 			return pnd.FromPostgresError(err)
 		}
 	}
@@ -497,15 +496,15 @@ func (service *SOSPostService) SaveLinkConditions(
 
 func (service *SOSPostService) SaveLinkPets(
 	ctx context.Context, tx *databasegen.Queries, petIDs []uuid.UUID, sosPostID uuid.UUID,
-) *pnd.AppError {
+) error {
 	for _, petID := range petIDs {
 		log.Default().Println("petID", petID)
-		err := tx.LinkSOSPostPet(ctx, databasegen.LinkSOSPostPetParams{
+
+		if err := tx.LinkSOSPostPet(ctx, databasegen.LinkSOSPostPetParams{
 			ID:        datatype.NewUUIDV7(),
 			SosPostID: sosPostID,
 			PetID:     petID,
-		})
-		if err != nil {
+		}); err != nil {
 			return pnd.FromPostgresError(err)
 		}
 	}
@@ -514,9 +513,8 @@ func (service *SOSPostService) SaveLinkPets(
 
 func (service *SOSPostService) DeleteLinkSOSPostDates(
 	ctx context.Context, tx *databasegen.Queries, sosPostID uuid.UUID,
-) *pnd.AppError {
-	err := tx.DeleteSOSPostDateBySOSPostID(ctx, sosPostID)
-	if err != nil {
+) error {
+	if err := tx.DeleteSOSPostDateBySOSPostID(ctx, sosPostID); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 	return nil
@@ -524,9 +522,8 @@ func (service *SOSPostService) DeleteLinkSOSPostDates(
 
 func (service *SOSPostService) DeleteLinkSOSPostImages(
 	ctx context.Context, tx *databasegen.Queries, sosPostID uuid.UUID,
-) *pnd.AppError {
-	err := tx.DeleteResourceMediaByResourceID(ctx, sosPostID)
-	if err != nil {
+) error {
+	if err := tx.DeleteResourceMediaByResourceID(ctx, sosPostID); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 	return nil
@@ -534,9 +531,8 @@ func (service *SOSPostService) DeleteLinkSOSPostImages(
 
 func (service *SOSPostService) DeleteLinkSOSPostConditions(
 	ctx context.Context, tx *databasegen.Queries, sosPostID uuid.UUID,
-) *pnd.AppError {
-	err := tx.DeleteSOSPostConditionBySOSPostID(ctx, sosPostID)
-	if err != nil {
+) error {
+	if err := tx.DeleteSOSPostConditionBySOSPostID(ctx, sosPostID); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 	return nil
@@ -544,9 +540,8 @@ func (service *SOSPostService) DeleteLinkSOSPostConditions(
 
 func (service *SOSPostService) DeleteLinkSOSPostPets(
 	ctx context.Context, tx *databasegen.Queries, sosPostID uuid.UUID,
-) *pnd.AppError {
-	err := tx.DeleteSOSPostPetBySOSPostID(ctx, sosPostID)
-	if err != nil {
+) error {
+	if err := tx.DeleteSOSPostPetBySOSPostID(ctx, sosPostID); err != nil {
 		return pnd.FromPostgresError(err)
 	}
 	return nil

@@ -46,6 +46,10 @@ type AppError struct {
 	Message string       `json:"message,omitempty"`
 }
 
+func (e *AppError) Error() string {
+	return e.Message
+}
+
 func NewAppError(err error, statusCode int, code AppErrorCode, message string) *AppError {
 	log.Error().Err(err).Msg(message)
 	return &AppError{

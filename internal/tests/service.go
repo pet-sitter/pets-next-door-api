@@ -11,7 +11,6 @@ import (
 
 	"github.com/pet-sitter/pets-next-door-api/internal/infra/database"
 
-	pnd "github.com/pet-sitter/pets-next-door-api/api"
 	bucketinfra "github.com/pet-sitter/pets-next-door-api/internal/infra/bucket"
 
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/pet"
@@ -23,7 +22,7 @@ type StubUploader struct{}
 func (u StubUploader) UploadFile(
 	_ io.ReadSeeker,
 	fileName string,
-) (url string, appError *pnd.AppError) {
+) (string, error) {
 	return "https://example.com/files/" + fileName, nil
 }
 

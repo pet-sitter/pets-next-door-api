@@ -36,7 +36,7 @@ type UploadFileView struct {
 
 func (s *MediaService) UploadMedia(
 	ctx context.Context, file io.ReadSeeker, mediaType media.Type, fileName string,
-) (*media.DetailView, *pnd.AppError) {
+) (*media.DetailView, error) {
 	url, err := s.uploader.UploadFile(file, fileName)
 	if err != nil {
 		return nil, err
@@ -52,20 +52,20 @@ func (s *MediaService) UploadMedia(
 
 func (s *MediaService) CreateMedia(
 	ctx context.Context, mediaType media.Type, url string,
-) (*media.DetailView, *pnd.AppError) {
+) (*media.DetailView, error) {
 	tx, err := s.conn.BeginTx(ctx)
 	defer tx.Rollback()
 	if err != nil {
 		return nil, err
 	}
 
-	created, err2 := databasegen.New(s.conn).CreateMedia(ctx, databasegen.CreateMediaParams{
+	created, err := databasegen.New(s.conn).CreateMedia(ctx, databasegen.CreateMediaParams{
 		ID:        datatype.NewUUIDV7(),
 		MediaType: mediaType.String(),
 		Url:       url,
 	})
-	if err2 != nil {
-		return nil, pnd.FromPostgresError(err2)
+	if err != nil {
+		return nil, pnd.FromPostgresError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -77,7 +77,7 @@ func (s *MediaService) CreateMedia(
 func (s *MediaService) FindMediaByID(
 	ctx context.Context,
 	id uuid.UUID,
-) (*media.DetailView, *pnd.AppError) {
+) (*media.DetailView, error) {
 	mediaData, err := databasegen.New(s.conn).
 		FindSingleMedia(ctx, databasegen.FindSingleMediaParams{
 			ID: uuid.NullUUID{UUID: id, Valid: true},
@@ -92,7 +92,7 @@ func (s *MediaService) FindMediaByID(
 func (s *MediaService) FindMediasByIDs(
 	ctx context.Context,
 	ids []uuid.UUID,
-) ([]media.DetailView, *pnd.AppError) {
+) ([]media.DetailView, error) {
 	if len(ids) == 0 {
 		return make([]media.DetailView, 0), nil
 	}

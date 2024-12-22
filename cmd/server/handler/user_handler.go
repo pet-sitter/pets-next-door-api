@@ -37,12 +37,12 @@ func NewUserHandler(userService service.UserService, authService service.AuthSer
 func (h *UserHandler) RegisterUser(c echo.Context) error {
 	var registerUserRequest user.RegisterUserRequest
 	if err := pnd.ParseBody(c, &registerUserRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.userService.RegisterUser(c.Request().Context(), &registerUserRequest)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, res)
@@ -60,7 +60,7 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 	var checkUserNicknameRequest user.CheckNicknameRequest
 	if err := pnd.ParseBody(c, &checkUserNicknameRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	exists, err := h.userService.ExistsByNickname(
@@ -68,7 +68,7 @@ func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 		checkUserNicknameRequest.Nickname,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, user.CheckNicknameView{IsAvailable: !exists})
@@ -86,7 +86,7 @@ func (h *UserHandler) CheckUserNickname(c echo.Context) error {
 func (h *UserHandler) FindUserStatusByEmail(c echo.Context) error {
 	var providerRequest user.UserStatusRequest
 	if err := pnd.ParseBody(c, &providerRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	userData, err := h.userService.FindUser(
@@ -119,13 +119,13 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	nickname := pnd.ParseOptionalStringQuery(c, "nickname")
 	page, size, err := pnd.ParsePaginationQueries(c, 1, 10)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	var res *user.ListWithoutPrivateInfo
@@ -133,7 +133,7 @@ func (h *UserHandler) FindUsers(c echo.Context) error {
 	res, err = h.userService.FindUsers(c.Request().Context(),
 		user.FindUsersParams{Page: page, Size: size, Nickname: nickname})
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -154,12 +154,12 @@ func (h *UserHandler) FindUserByID(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	userID, err := pnd.ParseIDFromPath(c, "userID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.userService.FindUserProfile(
@@ -167,7 +167,7 @@ func (h *UserHandler) FindUserByID(c echo.Context) error {
 		user.FindUserParams{ID: uuid.NullUUID{UUID: userID, Valid: true}},
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -187,7 +187,7 @@ func (h *UserHandler) FindMyProfile(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res.ToMyProfileView())
@@ -209,14 +209,14 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var updateUserRequest user.UpdateUserRequest
 	if err = pnd.ParseBody(c, &updateUserRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	view, err := h.userService.UpdateUserByUID(
@@ -226,7 +226,7 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		updateUserRequest.ProfileImageID,
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, view)
@@ -245,11 +245,11 @@ func (h *UserHandler) DeleteMyAccount(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	if err := h.userService.DeleteUserByUID(c.Request().Context(), loggedInUser.FirebaseUID); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -271,18 +271,18 @@ func (h *UserHandler) AddMyPets(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	uid := foundUser.FirebaseUID
 
 	var addPetsToOwnerRequest pet.AddPetsToOwnerRequest
 	if err := pnd.ParseBody(c, &addPetsToOwnerRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	if _, err := h.userService.AddPetsToOwner(c.Request().Context(), uid, addPetsToOwnerRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -302,7 +302,7 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.userService.FindPets(c.Request().Context(), pet.FindPetsParams{
@@ -312,7 +312,7 @@ func (h *UserHandler) FindMyPets(c echo.Context) error {
 	},
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -335,23 +335,23 @@ func (h *UserHandler) UpdateMyPet(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	uid := foundUser.FirebaseUID
 
 	petID, err := pnd.ParseIDFromPath(c, "petID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	var updatePetRequest pet.UpdatePetRequest
 	if err = pnd.ParseBody(c, &updatePetRequest); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	res, err := h.userService.UpdatePet(c.Request().Context(), uid, petID, updatePetRequest)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -371,17 +371,17 @@ func (h *UserHandler) DeleteMyPet(c echo.Context) error {
 		c.Request().Header.Get("Authorization"),
 	)
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 	uid := foundUser.FirebaseUID
 
 	petID, err := pnd.ParseIDFromPath(c, "petID")
 	if err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	if err := h.userService.DeletePet(c.Request().Context(), uid, petID); err != nil {
-		return c.JSON(err.StatusCode, err)
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)

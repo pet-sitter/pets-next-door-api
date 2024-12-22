@@ -95,7 +95,7 @@ func parseFlags() Flags {
 
 func importBreed(
 	ctx context.Context, conn *database.DB, petType commonvo.PetType, row breedsimporterservice.Row,
-) (*breed.DetailView, *pnd.AppError) {
+) (*breed.DetailView, error) {
 	log.Printf("Importing breed with pet_type: %s, name: %s to database", petType, row.Breed)
 
 	existingList, err := databasegen.New(conn).FindBreeds(ctx, databasegen.FindBreedsParams{

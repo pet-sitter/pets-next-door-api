@@ -22,7 +22,7 @@ func NewBreedService(conn *database.DB) *BreedService {
 
 func (s *BreedService) FindBreeds(
 	ctx context.Context, params *breed.FindBreedsParams,
-) (*breed.ListView, *pnd.AppError) {
+) (*breed.ListView, error) {
 	rows, err := databasegen.New(s.conn).FindBreeds(ctx, params.ToDBParams())
 	if err != nil {
 		return nil, pnd.FromPostgresError(err)
