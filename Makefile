@@ -76,18 +76,18 @@ test\:run:
 
 ## Database ##
 db\:up:
-	docker compose -p pets-next-door-api-dev up -d --remove-orphans
+	docker compose up -d --remove-orphans
 db\:down:
-	docker compose -p pets-next-door-api-dev down
+	docker compose down
 db\:destroy:
-	docker compose -p pets-next-door-api-dev down -v
+	docker compose down -v
 
 db\:test\:up:
-	docker compose -f docker-compose-test.yml -p pets-next-door-api-test up -d --remove-orphans
+	docker compose -f docker-compose-test.yml up -d --remove-orphans
 db\:test\:down:
-	docker compose -f docker-compose-test.yml -p pets-next-door-api-test down
+	docker compose -f docker-compose-test.yml down
 db\:test\:destroy:
-	docker compose -f docker-compose-test.yml -p pets-next-door-api-test down -v
+	docker compose -f docker-compose-test.yml down -v
 
 ## Migrate ##
 migrate\:install:
