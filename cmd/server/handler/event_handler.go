@@ -3,59 +3,28 @@ package handler
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
+	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/event"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/media"
-	"github.com/pet-sitter/pets-next-door-api/internal/domain/user"
+	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
 )
 
 type EventHandler struct {
-	authService service.AuthService
+	authService  service.AuthService
+	eventService service.EventService
 }
 
-func NewEventHandler(authService service.AuthService) *EventHandler {
+func NewEventHandler(
+	authService service.AuthService,
+	eventService service.EventService,
+) *EventHandler {
 	return &EventHandler{
-		authService: authService,
-	}
-}
-
-func generateDummyEvent() event.ShortTermView {
-	profileImageURL := "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-	now := time.Now()
-	startAt := now.AddDate(0, 0, 1)
-	maxParticipants := 3
-	return event.ShortTermView{
-		BaseView: event.BaseView{
-			ID:        uuid.New(),
-			EventType: event.ShortTerm,
-			Author: user.WithoutPrivateInfo{
-				ID:              uuid.New(),
-				Nickname:        "멍냥이",
-				ProfileImageURL: &profileImageURL,
-			},
-			Name:        "name",
-			Description: "description",
-			Media: media.DetailView{
-				ID:        uuid.New(),
-				MediaType: media.TypeImage,
-				URL: "https://images.unsplash.com/" +
-					"photo-1493225457124-a3eb161ffa5f?q=80&w=2970&auto=format" +
-					"&fit=crop&ixlib=rb-4.0.3&ixid=" +
-					"M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-				CreatedAt: now,
-			},
-			Topics:          []event.EventTopic{event.ETC},
-			MaxParticipants: &maxParticipants,
-			Fee:             10000,
-			StartAt:         &startAt,
-			CreatedAt:       now,
-			UpdatedAt:       now,
-		},
+		authService:  authService,
+		eventService: eventService,
 	}
 }
 
@@ -72,10 +41,55 @@ func generateDummyEvent() event.ShortTermView {
 // @Success 200 {object} pnd.CursorPaginatedView[event.View]
 // @Router /events [get]
 func (h *EventHandler) FindEvents(c echo.Context) error {
+	prev, next, size, err := pnd.ParseCursorPaginationQueries(c, 20)
+	if err != nil {
+		return err
+	}
+	authorID, err := pnd.ParseOptionalUUIDQuery(c, "author_id")
+	if err != nil {
+		return err
+	}
+
+	ctx := c.Request().Context()
+	events, err := h.eventService.FindEvents(ctx, databasegen.FindEventsParams{
+		AuthorID: authorID,
+		Prev:     prev,
+		Next:     next,
+		Limit:    int32(size),
+	})
+	if err != nil {
+		return err
+	}
+
+	items := make([]event.ShortTermView, len(events))
+	for i, e := range events {
+		// Turn topics (string[]) to EventTopic[]
+		topics := make([]event.EventTopic, len(e.Event.Topics))
+		for i, topic := range e.Event.Topics {
+			topics[i] = event.EventTopic(topic)
+		}
+
+		items[i] = event.ShortTermView{
+			BaseView: event.BaseView{
+				ID:              e.Event.ID,
+				EventType:       event.EventType(e.Event.EventType),
+				Author:          e.Author,
+				Name:            e.Event.Name,
+				Description:     e.Event.Description,
+				Media:           *e.Media,
+				Topics:          topics,
+				MaxParticipants: utils.NullInt32ToIntPtr(e.Event.MaxParticipants),
+				Fee:             int(e.Event.Fee),
+				StartAt:         utils.NullTimeToTimePtr(e.Event.StartAt),
+				CreatedAt:       e.Event.CreatedAt,
+				UpdatedAt:       e.Event.UpdatedAt,
+			},
+		}
+	}
 	return c.JSON(
 		http.StatusOK,
 		pnd.CursorPaginatedView[event.ShortTermView]{
-			Items: []event.ShortTermView{generateDummyEvent()},
+			Items: items,
 		},
 	)
 }
@@ -94,9 +108,37 @@ func (h *EventHandler) FindEventByID(c echo.Context) error {
 		return err
 	}
 
-	res := generateDummyEvent()
-	res.ID = id
-	return c.JSON(http.StatusOK, res)
+	ctx := c.Request().Context()
+	eventData, err := h.eventService.FindEvent(
+		ctx,
+		databasegen.FindEventParams{ID: uuid.NullUUID{UUID: id, Valid: true}},
+	)
+	if err != nil {
+		return err
+	}
+
+	topics := make([]event.EventTopic, len(eventData.Event.Topics))
+	for i, topic := range eventData.Event.Topics {
+		topics[i] = event.EventTopic(topic)
+	}
+	view := event.ShortTermView{
+		BaseView: event.BaseView{
+			ID:              eventData.Event.ID,
+			Author:          eventData.Author,
+			EventType:       event.EventType(eventData.Event.EventType),
+			Name:            eventData.Event.Name,
+			Description:     eventData.Event.Description,
+			Media:           *eventData.Media,
+			Topics:          topics,
+			MaxParticipants: utils.NullInt32ToIntPtr(eventData.Event.MaxParticipants),
+			Fee:             int(eventData.Event.Fee),
+			StartAt:         utils.NullTimeToTimePtr(eventData.Event.StartAt),
+			CreatedAt:       eventData.Event.CreatedAt,
+			UpdatedAt:       eventData.Event.UpdatedAt,
+		},
+	}
+
+	return c.JSON(http.StatusOK, view)
 }
 
 // CreateEvent  godoc
@@ -117,18 +159,18 @@ func (h *EventHandler) CreateEvent(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	uid := foundUser.FirebaseUID
+	authorID := foundUser.ID
 
 	var reqBody event.CreateRequest
 	if err := pnd.ParseBody(c, &reqBody); err != nil {
 		return err
 	}
 
-	log.Printf("uid: %s, reqBody: %+v", uid, reqBody)
-	// TODO: Implement create event logic
-
-	created := generateDummyEvent()
-	created.ID = uuid.New()
+	ctx := c.Request().Context()
+	created, err := h.eventService.CreateEvent(ctx, authorID, reqBody)
+	if err != nil {
+		return err
+	}
 
 	return c.JSON(http.StatusCreated, created)
 }

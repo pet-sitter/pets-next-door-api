@@ -9,6 +9,10 @@ const (
 	Recurring EventType = "RECURRING"
 )
 
+func (e EventType) String() string {
+	return string(e)
+}
+
 func (e EventType) IsValid() bool {
 	switch e {
 	case ShortTerm, Recurring:
@@ -22,6 +26,10 @@ type EventTopic string
 const (
 	ETC EventTopic = "ETC"
 )
+
+func (e EventTopic) String() string {
+	return string(e)
+}
 
 func (e EventTopic) IsValid() bool {
 	// TODO: Add more topics

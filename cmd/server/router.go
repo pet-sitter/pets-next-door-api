@@ -58,6 +58,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	breedService := service.NewBreedService(db)
 	sosPostService := service.NewSOSPostService(db)
 	conditionService := service.NewSOSConditionService(db)
+	eventService := service.NewEventService(db, userService, mediaService)
 	chatService := service.NewChatService(db)
 
 	// Initialize handlers
@@ -68,7 +69,7 @@ func NewRouter(app *firebaseinfra.FirebaseApp) (*echo.Echo, error) {
 	sosPostHandler := handler.NewSOSPostHandler(*sosPostService, authService)
 	conditionHandler := handler.NewConditionHandler(*conditionService)
 	chatHandler := handler.NewChatHandler(authService, *chatService)
-	eventHandler := handler.NewEventHandler(authService)
+	eventHandler := handler.NewEventHandler(authService, *eventService)
 
 	// // InMemoryStateManager는 클라이언트와 채팅방의 상태를 메모리에 저장하고 관리합니다.
 	// // 이 메서드는 단순하고 빠르며 테스트 목적으로 적합합니다.

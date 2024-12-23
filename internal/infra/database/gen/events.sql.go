@@ -8,7 +8,6 @@ package databasegen
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -46,17 +45,7 @@ VALUES
     NOW()
   )
 RETURNING
-  id,
-  author_id,
-  name,
-  description,
-  media_id,
-  topics,
-  max_participants,
-  fee,
-  start_at,
-  created_at,
-  updated_at
+  id, event_type, author_id, name, description, media_id, topics, max_participants, fee, start_at, created_at, updated_at, deleted_at
 `
 
 type CreateEventParams struct {
@@ -72,21 +61,7 @@ type CreateEventParams struct {
 	StartAt         sql.NullTime
 }
 
-type CreateEventRow struct {
-	ID              uuid.UUID
-	AuthorID        uuid.UUID
-	Name            string
-	Description     string
-	MediaID         uuid.NullUUID
-	Topics          []string
-	MaxParticipants sql.NullInt32
-	Fee             int32
-	StartAt         sql.NullTime
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-}
-
-func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (CreateEventRow, error) {
+func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error) {
 	row := q.db.QueryRowContext(ctx, createEvent,
 		arg.ID,
 		arg.EventType,
@@ -99,9 +74,10 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Creat
 		arg.Fee,
 		arg.StartAt,
 	)
-	var i CreateEventRow
+	var i Event
 	err := row.Scan(
 		&i.ID,
+		&i.EventType,
 		&i.AuthorID,
 		&i.Name,
 		&i.Description,
@@ -112,6 +88,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Creat
 		&i.StartAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -129,73 +106,60 @@ func (q *Queries) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const findEventByID = `-- name: FindEventByID :one
+const findEvent = `-- name: FindEvent :one
 SELECT
-  (
-    events.id,
-    events.event_type,
-    events.author_id,
-    events.name,
-    events.description,
-    events.media_id,
-    events.topics,
-    events.max_participants,
-    events.fee,
-    events.start_at,
-    events.created_at,
-    events.updated_at
-  )
+  events.id, events.event_type, events.author_id, events.name, events.description, events.media_id, events.topics, events.max_participants, events.fee, events.start_at, events.created_at, events.updated_at, events.deleted_at
 FROM
   events
 WHERE
-  events.id = $1
-  AND (
+  (
     events.deleted_at IS NULL
-    OR $2::boolean = TRUE
+    OR $1::boolean = TRUE
   )
+  AND (events.id = $2 OR $2 IS NULL)
 LIMIT
   1
 `
 
-type FindEventByIDParams struct {
-	ID             uuid.NullUUID
+type FindEventParams struct {
 	IncludeDeleted bool
+	ID             uuid.NullUUID
 }
 
-func (q *Queries) FindEventByID(ctx context.Context, arg FindEventByIDParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, findEventByID, arg.ID, arg.IncludeDeleted)
-	var column_1 interface{}
-	err := row.Scan(&column_1)
-	return column_1, err
+func (q *Queries) FindEvent(ctx context.Context, arg FindEventParams) (Event, error) {
+	row := q.db.QueryRowContext(ctx, findEvent, arg.IncludeDeleted, arg.ID)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.EventType,
+		&i.AuthorID,
+		&i.Name,
+		&i.Description,
+		&i.MediaID,
+		pq.Array(&i.Topics),
+		&i.MaxParticipants,
+		&i.Fee,
+		&i.StartAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }
 
 const findEvents = `-- name: FindEvents :many
 SELECT
-  (
-    events.id,
-    events.event_type,
-    events.author_id,
-    events.name,
-    events.description,
-    events.media_id,
-    events.topics,
-    events.max_participants,
-    events.fee,
-    events.start_at,
-    events.created_at,
-    events.updated_at
-  )
+  events.id, events.event_type, events.author_id, events.name, events.description, events.media_id, events.topics, events.max_participants, events.fee, events.start_at, events.created_at, events.updated_at, events.deleted_at
 FROM
   events
-  LEFT OUTER JOIN media ON events.media_id = media.id
 WHERE
   (
     events.deleted_at IS NULL
     OR $2::boolean = TRUE
   )
-  AND id > $3::uuid
-  AND id < $4::uuid
-  AND events.author_id = $5
+  AND (id > $3::uuid OR $3 IS NULL)
+  AND (id < $4::uuid OR $4 IS NULL)
+  AND (events.author_id = $5 OR $5 IS NULL)
 ORDER BY
   events.created_at DESC
 LIMIT
@@ -210,7 +174,7 @@ type FindEventsParams struct {
 	AuthorID       uuid.NullUUID
 }
 
-func (q *Queries) FindEvents(ctx context.Context, arg FindEventsParams) ([]interface{}, error) {
+func (q *Queries) FindEvents(ctx context.Context, arg FindEventsParams) ([]Event, error) {
 	rows, err := q.db.QueryContext(ctx, findEvents,
 		arg.Limit,
 		arg.IncludeDeleted,
@@ -222,13 +186,27 @@ func (q *Queries) FindEvents(ctx context.Context, arg FindEventsParams) ([]inter
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []Event
 	for rows.Next() {
-		var column_1 interface{}
-		if err := rows.Scan(&column_1); err != nil {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.EventType,
+			&i.AuthorID,
+			&i.Name,
+			&i.Description,
+			&i.MediaID,
+			pq.Array(&i.Topics),
+			&i.MaxParticipants,
+			&i.Fee,
+			&i.StartAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, column_1)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -253,17 +231,7 @@ SET
 WHERE
   id = $8
 RETURNING
-  id,
-  author_id,
-  name,
-  description,
-  media_id,
-  topics,
-  max_participants,
-  fee,
-  start_at,
-  created_at,
-  updated_at
+  id, event_type, author_id, name, description, media_id, topics, max_participants, fee, start_at, created_at, updated_at, deleted_at
 `
 
 type UpdateEventParams struct {
@@ -277,21 +245,7 @@ type UpdateEventParams struct {
 	ID              uuid.UUID
 }
 
-type UpdateEventRow struct {
-	ID              uuid.UUID
-	AuthorID        uuid.UUID
-	Name            string
-	Description     string
-	MediaID         uuid.NullUUID
-	Topics          []string
-	MaxParticipants sql.NullInt32
-	Fee             int32
-	StartAt         sql.NullTime
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-}
-
-func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (UpdateEventRow, error) {
+func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error) {
 	row := q.db.QueryRowContext(ctx, updateEvent,
 		arg.Name,
 		arg.Description,
@@ -302,9 +256,10 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Updat
 		arg.StartAt,
 		arg.ID,
 	)
-	var i UpdateEventRow
+	var i Event
 	err := row.Scan(
 		&i.ID,
+		&i.EventType,
 		&i.AuthorID,
 		&i.Name,
 		&i.Description,
@@ -315,6 +270,7 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Updat
 		&i.StartAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

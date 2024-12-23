@@ -30,74 +30,37 @@ VALUES
     NOW()
   )
 RETURNING
-  id,
-  author_id,
-  name,
-  description,
-  media_id,
-  topics,
-  max_participants,
-  fee,
-  start_at,
-  created_at,
-  updated_at;
+  *;
 
 -- name: FindEvents :many
 SELECT
-  (
-    events.id,
-    events.event_type,
-    events.author_id,
-    events.name,
-    events.description,
-    events.media_id,
-    events.topics,
-    events.max_participants,
-    events.fee,
-    events.start_at,
-    events.created_at,
-    events.updated_at
-  )
+  events.*
 FROM
   events
-  LEFT OUTER JOIN media ON events.media_id = media.id
 WHERE
   (
     events.deleted_at IS NULL
     OR sqlc.arg ('include_deleted')::boolean = TRUE
   )
-  AND id > sqlc.narg ('prev')::uuid
-  AND id < sqlc.narg ('next')::uuid
-  AND events.author_id = sqlc.narg ('author_id')
+  AND (id > sqlc.narg ('prev')::uuid OR sqlc.narg ('prev') IS NULL)
+  AND (id < sqlc.narg ('next')::uuid OR sqlc.narg ('next') IS NULL)
+  AND (events.author_id = sqlc.narg ('author_id') OR sqlc.narg ('author_id') IS NULL)
 ORDER BY
   events.created_at DESC
 LIMIT
   $1;
 
--- name: FindEventByID :one
+-- name: FindEvent :one
 SELECT
-  (
-    events.id,
-    events.event_type,
-    events.author_id,
-    events.name,
-    events.description,
-    events.media_id,
-    events.topics,
-    events.max_participants,
-    events.fee,
-    events.start_at,
-    events.created_at,
-    events.updated_at
-  )
+  events.*
 FROM
   events
 WHERE
-  events.id = sqlc.narg ('id')
-  AND (
+  (
     events.deleted_at IS NULL
     OR sqlc.arg ('include_deleted')::boolean = TRUE
   )
+  AND (events.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
 LIMIT
   1;
 
@@ -115,17 +78,7 @@ SET
 WHERE
   id = $8
 RETURNING
-  id,
-  author_id,
-  name,
-  description,
-  media_id,
-  topics,
-  max_participants,
-  fee,
-  start_at,
-  created_at,
-  updated_at;
+  *;
 
 -- name: DeleteEvent :exec
 UPDATE events

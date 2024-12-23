@@ -76,6 +76,17 @@ func (service *UserService) FindUsers(
 	return user.ToListWithoutPrivateInfo(params.Page, params.Size, rows), nil
 }
 
+func (service *UserService) FindUsersByIDs(
+	ctx context.Context, params databasegen.FindUsersByIDsParams,
+) ([]user.WithoutPrivateInfo, error) {
+	rows, err := databasegen.New(service.conn).FindUsersByIDs(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return user.ToListWithoutPrivateInfoFromFindByIDs(rows), nil
+}
+
 func (service *UserService) FindUser(
 	ctx context.Context,
 	params user.FindUserParams,

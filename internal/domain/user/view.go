@@ -117,3 +117,18 @@ func ToListWithoutPrivateInfo(
 	ul.CalcLastPage()
 	return ul
 }
+
+func ToListWithoutPrivateInfoFromFindByIDs(
+	rows []databasegen.FindUsersByIDsRow,
+) []WithoutPrivateInfo {
+	var items []WithoutPrivateInfo
+	for _, row := range rows {
+		items = append(items, WithoutPrivateInfo{
+			ID:              row.ID,
+			Nickname:        row.Nickname,
+			ProfileImageURL: utils.NullStrToStrPtr(row.ProfileImageUrl),
+		})
+	}
+
+	return items
+}

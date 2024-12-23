@@ -42,6 +42,21 @@ func StrToNullStr(val string) sql.NullString {
 	}
 }
 
+func NullInt32ToIntPtr(val sql.NullInt32) *int {
+	if val.Valid {
+		intValue := int(val.Int32)
+		return &intValue
+	}
+	return nil
+}
+
+func NullInt32ToInt32Ptr(val sql.NullInt32) *int32 {
+	if val.Valid {
+		return &val.Int32
+	}
+	return nil
+}
+
 func NullInt64ToInt64Ptr(val sql.NullInt64) *int64 {
 	if val.Valid {
 		return &val.Int64
@@ -117,4 +132,18 @@ func NullTimeToStr(val sql.NullTime) string {
 		return val.Time.Format("2006-01-02")
 	}
 	return ""
+}
+
+func NullTimeToTimePtr(val sql.NullTime) *time.Time {
+	if val.Valid {
+		return &val.Time
+	}
+	return nil
+}
+
+func TimePtrToNullTime(val *time.Time) sql.NullTime {
+	return sql.NullTime{
+		Time:  DerefOrEmpty(val),
+		Valid: IsNotNil(val),
+	}
 }

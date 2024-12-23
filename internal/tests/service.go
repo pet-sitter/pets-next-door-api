@@ -46,6 +46,10 @@ func NewMockSOSConditionService(db *database.DB) *service.SOSConditionService {
 	return service.NewSOSConditionService(db)
 }
 
+func NewMockEventService(db *database.DB) *service.EventService {
+	return service.NewEventService(db, NewMockUserService(db), NewMockMediaService(db))
+}
+
 func NewMockChatService(db *database.DB) *service.ChatService {
 	return service.NewChatService(db)
 }
