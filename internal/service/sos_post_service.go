@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -464,8 +463,6 @@ func (service *SOSPostService) SaveLinkSOSPostImage(
 	ctx context.Context, tx *databasegen.Queries, imageIDs []uuid.UUID, sosPostID uuid.UUID,
 ) error {
 	for _, mediaID := range imageIDs {
-		log.Default().Println("mediaID", mediaID)
-
 		if err := tx.LinkResourceMedia(ctx, databasegen.LinkResourceMediaParams{
 			ID:           datatype.NewUUIDV7(),
 			MediaID:      mediaID,
@@ -482,8 +479,6 @@ func (service *SOSPostService) SaveLinkConditions(
 	ctx context.Context, tx *databasegen.Queries, conditionIDs []uuid.UUID, sosPostID uuid.UUID,
 ) error {
 	for _, conditionID := range conditionIDs {
-		log.Default().Println("conditionID", conditionID)
-
 		if err := tx.LinkSOSPostCondition(ctx, databasegen.LinkSOSPostConditionParams{
 			ID:             datatype.NewUUIDV7(),
 			SosPostID:      sosPostID,
@@ -499,8 +494,6 @@ func (service *SOSPostService) SaveLinkPets(
 	ctx context.Context, tx *databasegen.Queries, petIDs []uuid.UUID, sosPostID uuid.UUID,
 ) error {
 	for _, petID := range petIDs {
-		log.Default().Println("petID", petID)
-
 		if err := tx.LinkSOSPostPet(ctx, databasegen.LinkSOSPostPetParams{
 			ID:        datatype.NewUUIDV7(),
 			SosPostID: sosPostID,

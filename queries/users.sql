@@ -30,6 +30,19 @@ WHERE (users.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL)
 ORDER BY users.created_at DESC
 LIMIT $1 OFFSET $2;
 
+-- name: FindUsersByIDs :many
+SELECT users.id,
+       users.nickname,
+       media.url AS profile_image_url
+FROM users
+         LEFT OUTER JOIN
+     media
+     ON
+         users.profile_image_id = media.id
+WHERE (users.id = ANY (sqlc.arg('ids')::uuid[]))
+  AND (users.deleted_at IS NULL OR sqlc.arg('include_deleted')::boolean = TRUE)
+ORDER BY users.created_at DESC;
+
 -- name: FindUser :one
 SELECT users.id,
        users.email,

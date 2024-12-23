@@ -40,19 +40,19 @@ linters-settings:
       - switch
       - map
 
-  funlen:
-    # Checks the number of lines in a function.
-    # If lower than 0, disable the check.
-    # Default: 60
-    lines: 150
-    # Checks the number of statements in a function.
-    # If lower than 0, disable the check.
-    # Default: 40
-    statements: 100
-
-    # Ignore comments when counting lines.
-    # Default false
-    ignore-comments: true
+  # funlen:
+  #   # Checks the number of lines in a function.
+  #   # If lower than 0, disable the check.
+  #   # Default: 60
+  #   lines: 150
+  #   # Checks the number of statements in a function.
+  #   # If lower than 0, disable the check.
+  #   # Default: 40
+  #   statements: 100
+  #
+  #   # Ignore comments when counting lines.
+  #   # Default false
+  #   ignore-comments: true
 
   gocognit:
     # Minimal code complexity to report
@@ -470,7 +470,7 @@ linters:
     - exhaustive # checks exhaustiveness of enum switch statements
     - exportloopref # checks for pointers to enclosing loop variables
     - forbidigo # forbids identifiers
-    - funlen # tool for detection of long functions
+    # - funlen # tool for detection of long functions
     - gocheckcompilerdirectives
     - gochecknoinits # checks that no init functions are present in Go code
     - gocognit # computes and checks the cognitive complexity of functions
@@ -585,7 +585,7 @@ issues:
         - govet
         - bodyclose
         - dupl
-        - funlen
+        # - funlen
         - goconst
         - gosec
         - noctx

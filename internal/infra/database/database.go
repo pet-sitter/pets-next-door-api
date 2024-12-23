@@ -44,6 +44,7 @@ func (db *DB) Flush() error {
 	tableNames := []string{
 		"users",
 		"breeds",
+		"events",
 		"resource_media",
 		"sos_posts_pets",
 		"media",
