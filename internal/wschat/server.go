@@ -125,21 +125,32 @@ func (s *WSServer) LoopOverClientMessages() {
 			var msg MessageResponse
 			switch msgReq.MessageType {
 			case "plain":
-				s.chatService.SaveChatMessage(
+				_, err := s.chatService.SaveChatMessage(
 					ctx,
 					msgReq.Sender.ID,
 					msgReq.Room.ID,
 					msgReq.MessageType,
 					msgReq.Message,
 				)
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to save chat message")
+					msg = NewErrorMessageResponse(
+						msgReq.MessageID,
+						msgReq.Sender,
+						msgReq.Room,
+						"Failed to save chat message",
+						time.Now(),
+					)
+				} else {
+					msg = NewPlainMessageResponse(
+						msgReq.MessageID,
+						msgReq.Sender,
+						msgReq.Room,
+						msgReq.Message,
+						time.Now(),
+					)
+				}
 
-				msg = NewPlainMessageResponse(
-					msgReq.MessageID,
-					msgReq.Sender,
-					msgReq.Room,
-					msgReq.Message,
-					time.Now(),
-				)
 			case "media":
 				if len(msgReq.Medias) == 0 {
 					log.Error().Msg("No media found")
