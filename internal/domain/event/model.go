@@ -12,7 +12,7 @@ type Event struct {
 	Media  *media.DetailView
 }
 
-func ToDomainFromFind(
+func ToEvent(
 	eventData databasegen.Event,
 	authorData user.WithoutPrivateInfo,
 	mediaData *media.DetailView,

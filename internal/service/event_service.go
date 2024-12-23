@@ -36,13 +36,27 @@ func (s *EventService) CreateEvent(
 	ctx context.Context,
 	authorID uuid.UUID,
 	req event.CreateRequest,
-) (*databasegen.Event, error) {
+) (*event.Event, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, pnd.ErrUnknown(errors.New("failed to generate id"))
 	}
 
 	q := databasegen.New(s.conn)
+
+	// Check if author exists
+	authorData, err := s.userService.FindUserProfile(
+		ctx,
+		user.FindUserParams{ID: uuid.NullUUID{UUID: authorID, Valid: true}},
+	)
+	if err != nil {
+		return nil, err
+	}
+	authorView := user.WithoutPrivateInfo{
+		ID:              authorData.ID,
+		Nickname:        authorData.Nickname,
+		ProfileImageURL: authorData.ProfileImageURL,
+	}
 
 	// Check if media exists
 	if req.MediaID != nil {
@@ -53,6 +67,10 @@ func (s *EventService) CreateEvent(
 	mediaID := uuid.NullUUID{}
 	if req.MediaID != nil {
 		mediaID = uuid.NullUUID{UUID: *req.MediaID, Valid: true}
+	}
+	mediaData, err := s.mediaService.FindMediaByID(ctx, mediaID.UUID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Map topic[] to string[]
@@ -77,7 +95,7 @@ func (s *EventService) CreateEvent(
 		return nil, err
 	}
 
-	return &eventData, nil
+	return event.ToEvent(eventData, authorView, mediaData), nil
 }
 
 func (s *EventService) FindEvent(
@@ -112,7 +130,7 @@ func (s *EventService) FindEvent(
 		}
 	}
 
-	return event.ToDomainFromFind(eventData, authorView, mediaData), nil
+	return event.ToEvent(eventData, authorView, mediaData), nil
 }
 
 func (s *EventService) FindEvents(
@@ -160,7 +178,7 @@ func (s *EventService) FindEvents(
 	for i, eventData := range eventsData {
 		authorData := authorIDsMap[eventData.AuthorID]
 		mediaData := mediasDataMap[eventData.MediaID.UUID]
-		events[i] = event.ToDomainFromFind(eventData, authorData, &mediaData)
+		events[i] = event.ToEvent(eventData, authorData, &mediaData)
 	}
 	return events, nil
 }

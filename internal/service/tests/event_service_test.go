@@ -52,7 +52,7 @@ func TestCreateEvent(t *testing.T) {
 		// Then
 		found, err := eventService.FindEvent(
 			ctx,
-			databasegen.FindEventParams{ID: uuid.NullUUID{UUID: created.ID, Valid: true}},
+			databasegen.FindEventParams{ID: uuid.NullUUID{UUID: created.Event.ID, Valid: true}},
 		)
 		assert.Equal(t, err, nil)
 		assertEventEquals(t, created, found)
@@ -153,21 +153,21 @@ func TestFindEvents(t *testing.T) {
 
 func assertEventEquals(
 	t *testing.T,
-	expected *databasegen.Event,
+	expected *event.Event,
 	actual *event.Event,
 ) {
 	t.Helper()
-	assert.Equal(t, expected.ID, actual.Event.ID)
-	assert.Equal(t, expected.AuthorID, actual.Event.AuthorID)
-	assert.Equal(t, expected.EventType, actual.Event.EventType)
-	assert.Equal(t, expected.Name, actual.Event.Name)
-	assert.Equal(t, expected.Description, actual.Event.Description)
-	assert.Equal(t, expected.MediaID, actual.Event.MediaID)
-	assert.Equal(t, expected.Topics, actual.Event.Topics)
-	assert.Equal(t, expected.MaxParticipants, actual.Event.MaxParticipants)
-	assert.Equal(t, expected.Fee, actual.Event.Fee)
-	assert.Equal(t, expected.StartAt, actual.Event.StartAt)
-	assert.Equal(t, expected.CreatedAt, actual.Event.CreatedAt)
-	assert.Equal(t, expected.UpdatedAt, actual.Event.UpdatedAt)
-	assert.Equal(t, expected.DeletedAt, actual.Event.DeletedAt)
+	assert.Equal(t, expected.Event.ID, actual.Event.ID)
+	assert.Equal(t, expected.Event.AuthorID, actual.Event.AuthorID)
+	assert.Equal(t, expected.Event.EventType, actual.Event.EventType)
+	assert.Equal(t, expected.Event.Name, actual.Event.Name)
+	assert.Equal(t, expected.Event.Description, actual.Event.Description)
+	assert.Equal(t, expected.Event.MediaID, actual.Event.MediaID)
+	assert.Equal(t, expected.Event.Topics, actual.Event.Topics)
+	assert.Equal(t, expected.Event.MaxParticipants, actual.Event.MaxParticipants)
+	assert.Equal(t, expected.Event.Fee, actual.Event.Fee)
+	assert.Equal(t, expected.Event.StartAt, actual.Event.StartAt)
+	assert.Equal(t, expected.Event.CreatedAt, actual.Event.CreatedAt)
+	assert.Equal(t, expected.Event.UpdatedAt, actual.Event.UpdatedAt)
+	assert.Equal(t, expected.Event.DeletedAt, actual.Event.DeletedAt)
 }

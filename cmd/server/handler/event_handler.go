@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	pnd "github.com/pet-sitter/pets-next-door-api/api"
-	utils "github.com/pet-sitter/pets-next-door-api/internal/common"
 	"github.com/pet-sitter/pets-next-door-api/internal/domain/event"
 	databasegen "github.com/pet-sitter/pets-next-door-api/internal/infra/database/gen"
 	"github.com/pet-sitter/pets-next-door-api/internal/service"
@@ -63,28 +62,7 @@ func (h *EventHandler) FindEvents(c echo.Context) error {
 
 	items := make([]event.ShortTermView, len(events))
 	for i, e := range events {
-		// Turn topics (string[]) to EventTopic[]
-		topics := make([]event.EventTopic, len(e.Event.Topics))
-		for i, topic := range e.Event.Topics {
-			topics[i] = event.EventTopic(topic)
-		}
-
-		items[i] = event.ShortTermView{
-			BaseView: event.BaseView{
-				ID:              e.Event.ID,
-				EventType:       event.EventType(e.Event.EventType),
-				Author:          e.Author,
-				Name:            e.Event.Name,
-				Description:     e.Event.Description,
-				Media:           *e.Media,
-				Topics:          topics,
-				MaxParticipants: utils.NullInt32ToIntPtr(e.Event.MaxParticipants),
-				Fee:             int(e.Event.Fee),
-				StartAt:         utils.NullTimeToTimePtr(e.Event.StartAt),
-				CreatedAt:       e.Event.CreatedAt,
-				UpdatedAt:       e.Event.UpdatedAt,
-			},
-		}
+		items[i] = event.ToShortTermView(e)
 	}
 	return c.JSON(
 		http.StatusOK,
@@ -109,7 +87,7 @@ func (h *EventHandler) FindEventByID(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	eventData, err := h.eventService.FindEvent(
+	found, err := h.eventService.FindEvent(
 		ctx,
 		databasegen.FindEventParams{ID: uuid.NullUUID{UUID: id, Valid: true}},
 	)
@@ -117,28 +95,7 @@ func (h *EventHandler) FindEventByID(c echo.Context) error {
 		return err
 	}
 
-	topics := make([]event.EventTopic, len(eventData.Event.Topics))
-	for i, topic := range eventData.Event.Topics {
-		topics[i] = event.EventTopic(topic)
-	}
-	view := event.ShortTermView{
-		BaseView: event.BaseView{
-			ID:              eventData.Event.ID,
-			Author:          eventData.Author,
-			EventType:       event.EventType(eventData.Event.EventType),
-			Name:            eventData.Event.Name,
-			Description:     eventData.Event.Description,
-			Media:           *eventData.Media,
-			Topics:          topics,
-			MaxParticipants: utils.NullInt32ToIntPtr(eventData.Event.MaxParticipants),
-			Fee:             int(eventData.Event.Fee),
-			StartAt:         utils.NullTimeToTimePtr(eventData.Event.StartAt),
-			CreatedAt:       eventData.Event.CreatedAt,
-			UpdatedAt:       eventData.Event.UpdatedAt,
-		},
-	}
-
-	return c.JSON(http.StatusOK, view)
+	return c.JSON(http.StatusOK, event.ToShortTermView(found))
 }
 
 // CreateEvent  godoc
@@ -172,7 +129,7 @@ func (h *EventHandler) CreateEvent(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusCreated, created)
+	return c.JSON(http.StatusCreated, event.ToShortTermView(created))
 }
 
 // UpdateEvent godoc
