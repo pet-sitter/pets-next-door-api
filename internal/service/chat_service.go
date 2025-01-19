@@ -414,7 +414,9 @@ func (s *ChatService) SaveChatMessage(
 		return nil, databaseGenError
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 
 	return chat.ToChatRoomMessage(row), nil
 }

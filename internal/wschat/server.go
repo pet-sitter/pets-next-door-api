@@ -125,14 +125,27 @@ func (s *WSServer) LoopOverClientMessages() {
 			var msg MessageResponse
 			switch msgReq.MessageType {
 			case "plain":
-				s.chatService.SaveChatMessage(
+				saveChatMessage, err := s.chatService.SaveChatMessage(
 					ctx,
 					msgReq.Sender.ID,
 					msgReq.Room.ID,
 					msgReq.MessageType,
 					msgReq.Message,
 				)
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to save chat message")
+					msg = NewErrorMessageResponse(
+						msgReq.MessageID,
+						msgReq.Sender,
+						msgReq.Room,
+						"Failed to save chat message",
+						time.Now(),
+					)
 
+					break
+				}
+
+				log.Info().Msg("Save chat message: " + saveChatMessage.ID.String())
 				msg = NewPlainMessageResponse(
 					msgReq.MessageID,
 					msgReq.Sender,
