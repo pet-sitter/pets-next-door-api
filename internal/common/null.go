@@ -2,8 +2,8 @@ package utils
 
 import (
 	"database/sql"
-	"github.com/google/uuid"
 	"time"
+
 )
 
 func DerefOrEmpty[T any](val *T) T {
@@ -120,14 +120,14 @@ func NullTimeToStr(val sql.NullTime) string {
 	return ""
 }
 
-func UuidToNullUUID(val uuid.UUID) uuid.NullUUID {
+func UUIDToNullUUID(val uuid.UUID) uuid.NullUUID {
 	return uuid.NullUUID{
 		UUID:  val,
 		Valid: val != uuid.Nil,
 	}
 }
 
-func NullUUIDToUuid(val uuid.NullUUID) *uuid.UUID {
+func NullUUIDToUUID(val uuid.NullUUID) *uuid.UUID {
 	if val.Valid {
 		return &val.UUID
 	}

@@ -41,7 +41,7 @@ type RoomSimpleInfo struct {
 type JoinUsersSimpleInfo struct {
 	ID               uuid.UUID `field:"id"           json:"userId"`
 	UserNickname     string    `field:"nickname"     json:"userNickname"`
-	UserProfileImage *string   `field:"profileImage" json:"profileImageUrl"`
+	UserProfileImage string    `field:"profileImage" json:"profileImageUrl"`
 }
 
 type JoinRoom struct {
