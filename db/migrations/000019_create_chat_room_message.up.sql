@@ -1,6 +1,7 @@
 CREATE TABLE chat_rooms (
-    id SERIAL PRIMARY KEY,
+    id uuid PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    host_id uuid NULL, -- 하위호환 유지를 위해 NULL 허용
     room_type VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8,7 +9,7 @@ CREATE TABLE chat_rooms (
 );
 
 CREATE TABLE chat_messages (
-    id SERIAL PRIMARY KEY,
+    id uuid PRIMARY KEY,
     user_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
     message_type VARCHAR(255) NOT NULL,
@@ -20,7 +21,7 @@ CREATE TABLE chat_messages (
 );
 
 CREATE TABLE user_chat_rooms (
-    id SERIAL PRIMARY KEY,
+    id uuid PRIMARY KEY,
     user_id BIGINT NOT NULL,
     room_id BIGINT NOT NULL,
     joined_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
