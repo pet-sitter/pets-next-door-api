@@ -25,7 +25,7 @@ func NewChatHandler(
 }
 
 // FindRoomByID godoc
-// @Summary 채팅방을 조회합니다.
+// @Summary RoomID를 기반으로 채팅방을 조회합니다.
 // @Description
 // @Tags chat
 // @Accept  json
@@ -158,8 +158,8 @@ func (h ChatHandler) LeaveChatRoom(c echo.Context) error {
 }
 
 // FindAllRooms godoc
-// @Summary 사용자의 채팅방 목록을 조회합니다.
-// @Description 사용자의 채팅방 목록을 조회합니다.
+// @Summary 사용자의 모든 채팅방 목록을 조회합니다.
+// @Description 사용자의 모든 채팅방 목록을 조회합니다.
 // @Tags chat
 // @Accept  json
 // @Produce  json
