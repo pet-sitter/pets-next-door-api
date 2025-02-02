@@ -7,21 +7,38 @@ import (
 
 func ToCreateRoom(row databasegen.CreateRoomRow, users *JoinUsersSimpleInfo) *RoomSimpleInfo {
 	return &RoomSimpleInfo{
-		ID:        row.ID,
-		RoomName:  row.Name,
-		RoomType:  row.RoomType,
-		JoinUser:  users,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID:            row.ID,
+		HostInfo:      users,
+		RoomName:      row.Name,
+		RoomType:      row.RoomType,
+		JoinUsersInfo: nil,
+		CreatedAt:     row.CreatedAt,
+		UpdatedAt:     row.UpdatedAt,
 	}
 }
 
-func ToJoinUsers(row databasegen.FindUserRow) *JoinUsersSimpleInfo {
+func ToJoinUsersByFindUserRow(row databasegen.FindUserRow) *JoinUsersSimpleInfo {
 	return &JoinUsersSimpleInfo{
 		ID:               row.ID,
 		UserNickname:     row.Nickname,
-		UserProfileImage: row.ProfileImageUrl.String,
+		UserProfileImage: &row.ProfileImageUrl.String,
 	}
+}
+
+func ToJoinUsersByFindUserInfoByJoinUserIdRow(row []databasegen.FindUserInfoByJoinUserIdRow) *[]JoinUsersSimpleInfo {
+	if len(row) == 0 {
+		return nil
+	}
+
+	users := make([]JoinUsersSimpleInfo, len(row))
+	for i, r := range row {
+		users[i] = JoinUsersSimpleInfo{
+			ID:               r.JoinUserID,
+			UserNickname:     r.JoinUserNickname,
+			UserProfileImage: &r.ProfileImageUrl.String,
+		}
+	}
+	return &users
 }
 
 func ToJoinRoom(row databasegen.JoinRoomRow) *JoinRoom {
@@ -34,6 +51,7 @@ func ToJoinRoom(row databasegen.JoinRoomRow) *JoinRoom {
 
 func ToUserChatRoomsView(
 	rows []databasegen.FindAllUserChatRoomsByUserUIDRow,
+	joinUserMap map[uuid.UUID]*[]JoinUsersSimpleInfo,
 ) *JoinRoomsView {
 	if len(rows) == 0 {
 		// row가 없으면 빈 배열 반환
@@ -45,12 +63,20 @@ func ToUserChatRoomsView(
 	// rows를 반복하며 JoinRoomsView로 변환
 	roomSimpleInfos := make([]RoomSimpleInfo, len(rows))
 	for i, r := range rows {
+		joinUsers := joinUserMap[r.ChatRoomID]
+
 		roomSimpleInfos[i] = RoomSimpleInfo{
-			ID:        r.ChatRoomID,
-			RoomName:  r.ChatRoomName,
-			RoomType:  r.ChatRoomType,
-			CreatedAt: r.ChatRoomCreatedAt,
-			UpdatedAt: r.ChatRoomUpdatedAt,
+			ID: r.ChatRoomID,
+			HostInfo: &JoinUsersSimpleInfo{
+				ID:               r.HostUserID,
+				UserNickname:     r.HostUserNickname,
+				UserProfileImage: &r.HostUserProfileImageUrl.String,
+			},
+			RoomName:      r.ChatRoomName,
+			RoomType:      r.ChatRoomType,
+			JoinUsersInfo: joinUsers,
+			CreatedAt:     r.ChatRoomCreatedAt,
+			UpdatedAt:     r.ChatRoomUpdatedAt,
 		}
 	}
 
@@ -59,13 +85,22 @@ func ToUserChatRoomsView(
 	}
 }
 
-func ToUserChatRoomView(row databasegen.FindRoomByIDAndUserIDRow) *RoomSimpleInfo {
+func ToUserChatRoomView(
+	row databasegen.FindUserChatRoomByIDAndUserIDRow,
+	joinUsers []databasegen.FindUserInfoByJoinUserIdRow,
+) *RoomSimpleInfo {
 	return &RoomSimpleInfo{
-		ID:        row.ID,
-		RoomName:  row.Name,
-		RoomType:  row.RoomType,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID: row.ChatRoomID,
+		HostInfo: &JoinUsersSimpleInfo{
+			ID:               row.HostUserID,
+			UserNickname:     row.HostUserNickname,
+			UserProfileImage: &row.HostUserProfileImageUrl.String,
+		},
+		RoomName:      row.ChatRoomName,
+		RoomType:      row.ChatRoomType,
+		JoinUsersInfo: ToJoinUsersByFindUserInfoByJoinUserIdRow(joinUsers),
+		CreatedAt:     row.ChatRoomCreatedAt,
+		UpdatedAt:     row.ChatRoomUpdatedAt,
 	}
 }
 
