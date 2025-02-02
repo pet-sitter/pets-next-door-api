@@ -53,7 +53,7 @@ func (s *ChatService) CreateRoom(
 	row, err := q.CreateRoom(ctx, databasegen.CreateRoomParams{
 		ID:       chatRoomUUID,
 		Name:     name,
-		HostID:   utils.UUIDToNullUUID(userData.ID),
+		HostID:   UUIDToNullUUID(userData.ID),
 		RoomType: roomType,
 	})
 	if err != nil {
@@ -181,7 +181,7 @@ func (s *ChatService) FindAllByUserUID(
 	for _, row := range rows {
 		joinUsers, err := databasegen.New(s.conn).FindUserInfoByJoinUserId(ctx, databasegen.FindUserInfoByJoinUserIdParams{
 			RoomID: row.ChatRoomID,
-			UserID: *utils.NullUUIDToUUID(row.ChatRoomHostID),
+			UserID: *NullUUIDToUUID(row.ChatRoomHostID),
 		})
 		if err != nil {
 			return nil, err
@@ -221,7 +221,7 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(
 
 	joinUsers, err := databasegen.New(s.conn).FindUserInfoByJoinUserId(ctx, databasegen.FindUserInfoByJoinUserIdParams{
 		RoomID: roomID,
-		UserID: *utils.NullUUIDToUUID(row.ChatRoomHostID),
+		UserID: *NullUUIDToUUID(row.ChatRoomHostID),
 	})
 	if err != nil {
 		return nil, err
@@ -446,4 +446,18 @@ func (s *ChatService) SaveChatMessage(
 	}
 
 	return chat.ToChatRoomMessage(row), nil
+}
+
+func UUIDToNullUUID(val uuid.UUID) uuid.NullUUID {
+	return uuid.NullUUID{
+		UUID:  val,
+		Valid: val != uuid.Nil,
+	}
+}
+
+func NullUUIDToUUID(val uuid.NullUUID) *uuid.UUID {
+	if val.Valid {
+		return &val.UUID
+	}
+	return nil
 }

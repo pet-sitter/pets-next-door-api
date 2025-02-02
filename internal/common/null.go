@@ -3,7 +3,6 @@ package utils
 import (
 	"database/sql"
 	"time"
-
 )
 
 func DerefOrEmpty[T any](val *T) T {
@@ -118,18 +117,4 @@ func NullTimeToStr(val sql.NullTime) string {
 		return val.Time.Format("2006-01-02")
 	}
 	return ""
-}
-
-func UUIDToNullUUID(val uuid.UUID) uuid.NullUUID {
-	return uuid.NullUUID{
-		UUID:  val,
-		Valid: val != uuid.Nil,
-	}
-}
-
-func NullUUIDToUUID(val uuid.NullUUID) *uuid.UUID {
-	if val.Valid {
-		return &val.UUID
-	}
-	return nil
 }
