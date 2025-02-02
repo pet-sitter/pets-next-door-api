@@ -53,6 +53,7 @@ func (s *ChatService) CreateRoom(
 	row, err := q.CreateRoom(ctx, databasegen.CreateRoomParams{
 		ID:       chatRoomUUID,
 		Name:     name,
+		HostID:   utils.UuidToNullUUID(userData.ID),
 		RoomType: roomType,
 	})
 	if err != nil {
@@ -77,7 +78,7 @@ func (s *ChatService) CreateRoom(
 		return nil, err
 	}
 
-	return chat.ToCreateRoom(row, chat.ToJoinUsers(userData)), nil
+	return chat.ToCreateRoom(row, chat.ToJoinUsersByFindUserRow(userData)), nil
 }
 
 func (s *ChatService) JoinRoom(
@@ -174,8 +175,24 @@ func (s *ChatService) FindAllByUserUID(
 		return nil, err
 	}
 
+	// rows를 반복하며 chatRoomId 값을 통해 join user 정보를 가져오고 Map으로 저장 ( key: chatRoomID, value: joinUsers )
+	joinUsersMap := make(map[uuid.UUID]*[]chat.JoinUsersSimpleInfo)
+
+	for _, row := range rows {
+		joinUsers, err := databasegen.New(s.conn).FindUserInfoByJoinUserId(ctx, databasegen.FindUserInfoByJoinUserIdParams{
+			RoomID: row.ChatRoomID,
+			UserID: *utils.NullUUIDToUuid(row.ChatRoomHostID),
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		joinUsersMap[row.ChatRoomID] = chat.ToJoinUsersByFindUserInfoByJoinUserIdRow(joinUsers)
+	}
+
 	// rows를 반복하며 각 row에 대해 ToJoinRoom을 호출하여 JoinRoom으로 변환
-	return chat.ToUserChatRoomsView(rows), nil
+	return chat.ToUserChatRoomsView(rows, joinUsersMap), nil
 }
 
 func (s *ChatService) FindChatRoomByUIDAndRoomID(
@@ -192,15 +209,26 @@ func (s *ChatService) FindChatRoomByUIDAndRoomID(
 		return nil, err
 	}
 
-	row, err := databasegen.New(s.conn).FindRoomByIDAndUserID(
+	row, err := databasegen.New(s.conn).FindUserChatRoomByIDAndUserID(
 		ctx,
-		databasegen.FindRoomByIDAndUserIDParams{ID: roomID, UserID: userData.ID},
+		databasegen.FindUserChatRoomByIDAndUserIDParams{
+			RoomID: roomID,
+			UserID: userData.ID,
+		},
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return chat.ToUserChatRoomView(row), nil
+	joinUsers, err := databasegen.New(s.conn).FindUserInfoByJoinUserId(ctx, databasegen.FindUserInfoByJoinUserIdParams{
+		RoomID: roomID,
+		UserID: *utils.NullUUIDToUuid(row.ChatRoomHostID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return chat.ToUserChatRoomView(row, joinUsers), nil
 }
 
 /**
