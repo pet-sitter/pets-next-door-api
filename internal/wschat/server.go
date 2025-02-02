@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,7 +105,6 @@ func (s *WSServer) HandleConnections(
 }
 
 // Broadcast messages to all clients
-// TODO : 각 메시지 별 타입에 따라, 메시지 처리하고 있음 (plain, media) 저장로직 추가해야 함
 func (s *WSServer) LoopOverClientMessages() {
 	log.Info().Msg("Looping over client messages")
 	ctx := context.Background()
@@ -168,7 +168,29 @@ func (s *WSServer) LoopOverClientMessages() {
 					for _, mediaReq := range msgReq.Medias {
 						ids = append(ids, mediaReq.ID)
 					}
+
 					medias, err := s.mediaService.FindMediasByIDs(ctx, ids)
+
+					// medias의 id들을 chat_message 내 저장 ( []uuid.UUID -> string )
+					mediaIDs := make([]string, 0)
+					for _, mediaArray := range medias {
+						mediaIDs = append(mediaIDs, mediaArray.ID.String())
+					}
+
+					_, saveError := s.chatService.SaveChatMessage(
+						ctx,
+						msgReq.Sender.ID,
+						msgReq.Room.ID,
+						msgReq.MessageType,
+						// []string -> string
+						strings.Join(mediaIDs, ","),
+					)
+
+					if saveError != nil {
+						log.Error().Err(saveError).Msg("Failed to save chat message")
+						return
+					}
+
 					if err != nil {
 						log.Error().Err(err).Msg("Failed to find media")
 						msg = NewErrorMessageResponse(msgReq.MessageID, msgReq.Sender, msgReq.Room, "Failed to find media", time.Now())
