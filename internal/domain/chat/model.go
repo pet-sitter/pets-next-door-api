@@ -29,18 +29,19 @@ const (
 )
 
 type RoomSimpleInfo struct {
-	ID        uuid.UUID            `field:"id"        json:"id"`
-	RoomName  string               `field:"roomName"  json:"roomName"`
-	RoomType  string               `field:"roomType"  json:"roomType"`
-	JoinUser  *JoinUsersSimpleInfo `field:"joinUser"  json:"joinUser"`
-	CreatedAt time.Time            `field:"createdAt" json:"createdAt"`
-	UpdatedAt time.Time            `field:"updatedAt" json:"updatedAt"`
+	ID            uuid.UUID              `field:"id"        json:"id"`
+	HostInfo      *JoinUsersSimpleInfo   `field:"hostInfo"    json:"hostInfo"`
+	RoomName      string                 `field:"roomName"  json:"roomName"`
+	RoomType      string                 `field:"roomType"  json:"roomType"`
+	JoinUsersInfo *[]JoinUsersSimpleInfo `field:"joinUsersInfo"  json:"joinUsersInfo"`
+	CreatedAt     time.Time              `field:"createdAt" json:"createdAt"`
+	UpdatedAt     time.Time              `field:"updatedAt" json:"updatedAt"`
 }
 
 type JoinUsersSimpleInfo struct {
 	ID               uuid.UUID `field:"id"           json:"userId"`
 	UserNickname     string    `field:"nickname"     json:"userNickname"`
-	UserProfileImage string    `field:"profileImage" json:"profileImageUrl"`
+	UserProfileImage *string   `field:"profileImage" json:"profileImageUrl"`
 }
 
 type JoinRoom struct {
