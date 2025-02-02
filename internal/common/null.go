@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -117,4 +118,18 @@ func NullTimeToStr(val sql.NullTime) string {
 		return val.Time.Format("2006-01-02")
 	}
 	return ""
+}
+
+func UuidToNullUUID(val uuid.UUID) uuid.NullUUID {
+	return uuid.NullUUID{
+		UUID:  val,
+		Valid: val != uuid.Nil,
+	}
+}
+
+func NullUUIDToUuid(val uuid.NullUUID) *uuid.UUID {
+	if val.Valid {
+		return &val.UUID
+	}
+	return nil
 }
